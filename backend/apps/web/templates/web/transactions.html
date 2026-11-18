@@ -1,0 +1,252 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Cash (নগদ){% else %}নগদ{% endif %} — FinCore ERP{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-money-bill-wave" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Cash (নগদ){% else %}নগদ{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Only money received in cash: amount, date and name. Nothing else lives here — dues, expenses, loans and investments each have their own book.{% else %}শুধু নগদে পাওয়া টাকা: টাকা, তারিখ আর নাম। এখানে আর কিছু নেই — বাকি, খরচ, ঋণ ও বিনিয়োগের নিজস্ব হিসাব আলাদা।{% endif %}</p>
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span><span class="chip info"><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Separate ledger{% else %}আলাদা হিসাব{% endif %}</span></div>{% endif %}
+</div>
+
+<div class="split">
+  <div class="exp-card">
+    <div class="exp-head">
+      <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-receipt"></i> <h3>{% if ui_lang == 'en' %}Cash history{% else %}নগদ হিস্ট্রি{% endif %}</h3></div>
+      <span class="badge b-muted">{% if ui_lang == 'en' %}Total{% else %}মোট{% endif %} {{ cash_count }}</span>
+    </div>
+    <div class="exp-body">
+      <form method="get" class="exp-filter">
+        <div class="f-field f-search">
+          <label for="cash-q">{% if ui_lang == 'en' %}Search{% else %}খুঁজুন{% endif %}</label>
+          <div class="f-input-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="cash-q" type="search" name="q" value="{{ q }}" autocomplete="off"
+                   placeholder="{% if ui_lang == 'en' %}Name, note, reference or amount{% else %}নাম / নোট / রেফারেন্স / টাকা{% endif %}">
+          </div>
+        </div>
+        <div class="f-field">
+          <label for="cash-from">{% if ui_lang == 'en' %}From date{% else %}কোন তারিখ থেকে{% endif %}</label>
+          <input id="cash-from" type="date" name="from" value="{{ date_from }}">
+        </div>
+        <div class="f-field">
+          <label for="cash-to">{% if ui_lang == 'en' %}To date{% else %}কোন তারিখ পর্যন্ত{% endif %}</label>
+          <input id="cash-to" type="date" name="to" value="{{ date_to }}">
+        </div>
+        <div class="f-field">
+          <label for="cash-sort">{% if ui_lang == 'en' %}Sort{% else %}সাজান{% endif %}</label>
+          <select id="cash-sort" name="sort">
+            <option value="new" {% if sort == 'new' %}selected{% endif %}>{% if ui_lang == 'en' %}Newest first{% else %}নতুন আগে{% endif %}</option>
+            <option value="old" {% if sort == 'old' %}selected{% endif %}>{% if ui_lang == 'en' %}Oldest first{% else %}পুরোনো আগে{% endif %}</option>
+            <option value="high" {% if sort == 'high' %}selected{% endif %}>{% if ui_lang == 'en' %}Amount ↓{% else %}টাকা ↓{% endif %}</option>
+            <option value="low" {% if sort == 'low' %}selected{% endif %}>{% if ui_lang == 'en' %}Amount ↑{% else %}টাকা ↑{% endif %}</option>
+          </select>
+        </div>
+        <div class="f-field">
+          <label for="cash-per">{% if ui_lang == 'en' %}Per page{% else %}প্রতি পেজে{% endif %}</label>
+          <select id="cash-per" name="per">
+            <option value="10" {% if per == 10 %}selected{% endif %}>10</option>
+            <option value="25" {% if per == 25 %}selected{% endif %}>25</option>
+            <option value="50" {% if per == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if per == 100 %}selected{% endif %}>100</option>
+          </select>
+        </div>
+        <button type="submit" class="btn sm primary f-go"><i class="fa-solid fa-magnifying-glass"></i> {% if ui_lang == 'en' %}Filter{% else %}খুঁজুন{% endif %}</button>
+        <div class="f-chips">
+          <a class="exp-chip {% if not date_active %}on{% endif %}" href="{% querystring from=None to=None page=None %}">{% if ui_lang == 'en' %}All{% else %}সব{% endif %}</a>
+          <a class="exp-chip {% if date_from == today and date_to == today %}on{% endif %}" href="{% querystring from=today to=today page=None %}">{% if ui_lang == 'en' %}Today{% else %}আজ{% endif %}</a>
+          <a class="exp-chip {% if date_from == default_month_start and date_to == today %}on{% endif %}" href="{% querystring from=default_month_start to=today page=None %}">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</a>
+        </div>
+      </form>
+
+      {% if filter_active %}
+      <div class="exp-filter-note">
+        <i class="fa-solid fa-filter" style="color:var(--brand)"></i>
+        {% if ui_lang == 'en' %}<span>{% if date_active %}<b>{{ date_from|default:"…" }}</b> → <b>{{ date_to|default:"…" }}</b> · {% endif %}{% if q %}“<b>{{ q }}</b>” · {% endif %}<b>{{ cash_count }}</b> entries · cash received <b>{{ cash_total|money }}</b></span>{% else %}<span>{% if date_active %}<b>{{ date_from|default:"…" }}</b> থেকে <b>{{ date_to|default:"…" }}</b> পর্যন্ত · {% endif %}{% if q %}“<b>{{ q }}</b>” · {% endif %}<b>{{ cash_count }}</b>টি এন্ট্রি · নগদে এসেছে <b>{{ cash_total|money }}</b></span>{% endif %}
+        <a class="exp-chip" href="{% url 'web:transactions' %}">{% if ui_lang == 'en' %}Clear{% else %}ফিল্টার মুছুন{% endif %}</a>
+      </div>
+      {% endif %}
+
+      {% if rows %}
+      <div class="table-wrap">
+      <table class="exp-table">
+        <thead><tr><th style="width:16%">{% t "Date" %}</th><th style="width:32%">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %}</th><th class="num" style="width:18%">{% t "Amount" %}</th><th style="width:14%">{% t "Status" %}</th><th style="width:20%"></th></tr></thead>
+        <tbody>
+          {% for t in rows %}
+          <tr>
+            <td class="mono muted" style="white-space:nowrap">{{ t.transaction_date }}</td>
+            <td><strong style="font-size:14.5px;font-weight:800">{{ t.description|default:"—" }}</strong></td>
+            <td class="num exp-amount" style="color:var(--text-ok)">{{ t.amount|money }}</td>
+            <td>{% if t.status == 'REVERSED' %}<span class="badge b-danger">{% t "Reversed" %}</span>{% else %}<span class="badge b-ok">{% t "Posted" %}</span>{% endif %}</td>
+            <td style="white-space:nowrap;text-align:right">
+              {% if t.status != 'REVERSED' %}
+              <button type="button" class="btn sm" onclick="openCashEdit('{{ t.id }}','{{ t.amount }}','{{ t.transaction_date }}','{{ t.description|default:''|escapejs }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
+              <form method="post" style="display:inline" onsubmit="return confirm('{% if ui_lang == 'en' %}Reverse this cash entry? It cannot be undone.{% else %}এই নগদ এন্ট্রিটি বাতিল করবেন? এটি ফেরত আনা যাবে না।{% endif %}')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_cash">
+                <input type="hidden" name="tx_id" value="{{ t.id }}">
+                <input type="hidden" name="reason" value="Deleted from cash history">
+                <button type="submit" class="btn sm" style="background:var(--fill-danger);color:var(--text-danger);border-color:rgba(254,202,202,.65)"><i class="fa-solid fa-trash"></i></button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+
+      <div class="pager">
+        <span class="pager-info">
+          {% if ui_lang == 'en' %}Showing <b>{{ page_obj.start_index }}–{{ page_obj.end_index }}</b> of <b>{{ cash_count }}</b>{% else %}দেখানো হচ্ছে <b>{{ page_obj.start_index }}–{{ page_obj.end_index }}</b> / মোট <b>{{ cash_count }}</b>{% endif %}
+        </span>
+        {% if paginator.num_pages > 1 %}
+        <nav class="pager-nav" aria-label="{% if ui_lang == 'en' %}Pages{% else %}পৃষ্ঠা{% endif %}">
+          {% if page_obj.has_previous %}
+          <a class="pager-btn pager-step" href="{% querystring page=page_obj.previous_page_number %}" rel="prev" aria-label="{% if ui_lang == 'en' %}Previous page{% else %}আগের পৃষ্ঠা{% endif %}"><i class="fa-solid fa-chevron-left"></i></a>
+          {% else %}
+          <span class="pager-btn pager-step is-off" aria-hidden="true"><i class="fa-solid fa-chevron-left"></i></span>
+          {% endif %}
+          {% for p in pager_pages %}
+            {% if p is None %}
+            <span class="pager-gap">…</span>
+            {% elif p == page_obj.number %}
+            <span class="pager-btn on" aria-current="page">{{ p }}</span>
+            {% else %}
+            <a class="pager-btn" href="{% querystring page=p %}">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+          <a class="pager-btn pager-step" href="{% querystring page=page_obj.next_page_number %}" rel="next" aria-label="{% if ui_lang == 'en' %}Next page{% else %}পরের পৃষ্ঠা{% endif %}"><i class="fa-solid fa-chevron-right"></i></a>
+          {% else %}
+          <span class="pager-btn pager-step is-off" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+          {% endif %}
+        </nav>
+        {% endif %}
+      </div>
+
+      <div class="exp-totals">
+        {% if filter_active %}
+        <div class="stat-pill exp-sep"><span class="label">{% if ui_lang == 'en' %}All cash{% else %}সব নগদ{% endif %}</span><span class="value">{{ cash_all_total|money }}</span></div>
+        {% endif %}
+        <div class="stat-pill exp-sep good"><span class="label">{% if ui_lang == 'en' %}{% if filter_active %}Cash in this range{% else %}Total cash{% endif %}{% else %}{% if filter_active %}এই রেঞ্জে নগদ{% else %}মোট নগদ{% endif %}{% endif %}</span><span class="value">{{ cash_total|money }}</span></div>
+        <div class="stat-pill exp-sep warn"><span class="label">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</span><span class="value">{{ cash_month_total|money }}</span></div>
+      </div>
+      {% else %}
+      <div class="exp-empty">
+        <div class="ei"><i class="fa-solid fa-money-bill-wave"></i></div>
+        <h4>{% if q %}{% if ui_lang == 'en' %}No cash entries match “{{ q }}”{% else %}“{{ q }}” এর সাথে মিলে এমন কোনো নগদ এন্ট্রি নেই{% endif %}{% elif date_active %}{% if ui_lang == 'en' %}No cash entries in this date range{% else %}এই তারিখ রেঞ্জে কোনো নগদ এন্ট্রি নেই{% endif %}{% else %}{% if ui_lang == 'en' %}No cash entries yet{% else %}এখনো কোনো নগদ হিসাব নেই{% endif %}{% endif %}</h4>
+        <p>{% if ui_lang == 'en' %}Add a cash entry with the form on the right.{% else %}ডান পাশের ফর্ম দিয়ে একটি নগদ এন্ট্রি যোগ করুন।{% endif %}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div class="exp-card">
+      <div class="exp-head">
+        <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-plus"></i> <h3>{% if ui_lang == 'en' %}Add cash{% else %}নগদ এন্ট্রি{% endif %}</h3></div>
+        <span class="badge b-muted"><i class="fa-solid fa-clock-rotate-left"></i> {% if ui_lang == 'en' %}date remembered{% else %}তারিখ মনে থাকে{% endif %}</span>
+      </div>
+      <div class="exp-body">
+        <form method="post" class="form-grid">
+          {% csrf_token %}
+          <div class="field">
+            <label for="c-amt">{% t "Amount (৳)" %}</label>
+            <input id="c-amt" name="amount" type="number" step="0.01" min="0.01" required placeholder="0.00" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label for="c-date">{% t "Date" %}</label>
+            <input id="c-date" name="transaction_date" type="date" value="{{ default_date }}" required>
+          </div>
+          <div class="field full">
+            <label for="c-name">{% if ui_lang == 'en' %}Name / Note{% else %}নাম / বিবরণ{% endif %}</label>
+            <input id="c-name" name="name" placeholder="{% if ui_lang == 'en' %}e.g., Cash sale, Received from…{% else %}যেমন: নগদ বিক্রয়, কার কাছ থেকে পেলেন…{% endif %}" required>
+          </div>
+          <div class="field full">
+            <button class="btn primary" type="submit"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save cash{% else %}নগদ সংরক্ষণ করুন{% endif %}</button>
+            <div class="mini-hint muted" style="font-size:12px;margin-top:8px">{% if ui_lang == 'en' %}Only “what, when, how much” — cash received. Dues, expenses, loans and investments are recorded in their own books.{% else %}শুধু “কী, কখন, কত” — নগদে পাওয়া টাকা। বাকি, খরচ, ঋণ ও বিনিয়োগ নিজস্ব বইতে লেখা হয়।{% endif %}</div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--note-teal-bg);border-color:var(--note-teal-border)">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div class="icon i-teal" style="width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto"><i class="fa-solid fa-circle-info"></i></div>
+        <div>
+          <div style="font-weight:800;margin-bottom:3px">{% if ui_lang == 'en' %}Separate books{% else %}আলাদা হিসাব{% endif %}</div>
+          <div class="muted" style="font-size:13px;line-height:1.7">
+            {% if ui_lang == 'en' %}
+            <strong>নগদ</strong> = cash received ·
+            <strong>পার্টনার ও বাকি</strong> = customer dues ·
+            <strong>খরচ</strong> = what you spent ·
+            <strong>ঋণ</strong> / <strong>বিনিয়োগ</strong> = outside money.
+            None of them ever mixes.
+            {% else %}
+            <strong>নগদ</strong> = নগদে পাওয়া টাকা ·
+            <strong>পার্টনার ও বাকি</strong> = গ্রাহকের ধার ·
+            <strong>খরচ</strong> = আপনার খরচ ·
+            <strong>ঋণ</strong> / <strong>বিনিয়োগ</strong> = বাইরের টাকা।
+            কোনোটাই কখনো অন্যটির সাথে মিশবে না।
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit cash entry modal -->
+<div id="cash-edit-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,13,28,.5);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(460px,100%);max-height:90vh;overflow:auto;background:var(--panel-solid);border:1px solid var(--panel-solid-border);border-radius:22px;box-shadow:var(--shadow-lg);padding:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+      <div style="font-weight:800;font-size:17px"><i class="fa-solid fa-pen" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Edit Cash Entry{% else %}নগদ এন্ট্রি এডিট{% endif %}</div>
+      <button type="button" class="btn sm ghost" onclick="closeCashEdit()">{% if ui_lang == 'en' %}Close{% else %}বন্ধ{% endif %}</button>
+    </div>
+    <form method="post" class="form-grid" id="cash-edit-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_cash">
+      <input type="hidden" name="tx_id" id="ce-tx-id" value="">
+      <div class="field">
+        <label for="ce-amount">{% t "Amount (৳)" %}</label>
+        <input id="ce-amount" name="amount" type="number" step="0.01" min="0.01" required placeholder="0.00" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="ce-date">{% t "Date" %}</label>
+        <input id="ce-date" name="transaction_date" type="date" required>
+      </div>
+      <div class="field full">
+        <label for="ce-name">{% if ui_lang == 'en' %}Name / Note{% else %}নাম / বিবরণ{% endif %}</label>
+        <input id="ce-name" name="name" required placeholder="{% if ui_lang == 'en' %}Name / note{% else %}নাম / বিবরণ{% endif %}">
+      </div>
+      <div class="field full">
+        <label for="ce-reason">{% if ui_lang == 'en' %}Reason{% else %}কারণ{% endif %}</label>
+        <input id="ce-reason" name="reason" placeholder="{% if ui_lang == 'en' %}e.g. wrong amount, wrong date{% else %}যেমন: ভুল টাকা, ভুল তারিখ{% endif %}">
+      </div>
+      <div class="field full" style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn ghost" onclick="closeCashEdit()">{% if ui_lang == 'en' %}Cancel{% else %}বাতিল{% endif %}</button>
+        <button type="submit" class="btn primary"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Update{% else %}আপডেট করুন{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openCashEdit(txId, amount, txDate, name) {
+  document.getElementById('ce-tx-id').value = txId;
+  document.getElementById('ce-amount').value = amount;
+  document.getElementById('ce-date').value = txDate;
+  document.getElementById('ce-name').value = name;
+  document.getElementById('cash-edit-modal').style.display = 'flex';
+}
+function closeCashEdit() {
+  document.getElementById('cash-edit-modal').style.display = 'none';
+}
+// Close modal when clicking outside
+document.getElementById('cash-edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCashEdit();
+});
+</script>
+{% endblock %}

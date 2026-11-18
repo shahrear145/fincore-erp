@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="{{ data.lang }}">
+<head>
+<meta charset="utf-8">
+<title>{{ data.title }} — {{ data.business }}</title>
+<style>
+  @font-face { font-family:'FinCore'; src:url('NotoSansBengaliLatin-Regular.ttf') format('truetype'); font-weight:400; font-style:normal; }
+  @font-face { font-family:'FinCore'; src:url('NotoSansBengaliLatin-Bold.ttf') format('truetype'); font-weight:700; font-style:normal; }
+  @page { size: A4 landscape; margin: 9mm 9mm 12mm 9mm; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family:'FinCore','Nirmala UI','Noto Sans Bengali','Vrinda',sans-serif;
+    color:#111827; font-size:10px; line-height:1.45;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    background:#fff;
+  }
+
+  /* =====================================================
+     HERO — premium gold-on-navy brand masthead
+     ===================================================== */
+  .hero {
+    position:relative; overflow:hidden; border-radius:16px;
+    background:
+      radial-gradient(1200px 500px at 85% -20%, rgba(217,154,31,.28), transparent 55%),
+      radial-gradient(900px 500px at -10% 120%, rgba(56,189,248,.16), transparent 60%),
+      linear-gradient(135deg,#160e04 0%,#2a2011 45%,#0b3f3f 100%);
+    color:#fff; page-break-inside:avoid;
+    box-shadow:0 10px 30px rgba(8,17,32,.28);
+  }
+  .hero-inner {
+    position:relative; z-index:2; display:flex; align-items:center; gap:20px;
+    padding:20px 24px 18px;
+  }
+  .mark {
+    width:56px; height:56px; border-radius:16px; flex:0 0 auto; display:flex;
+    align-items:center; justify-content:center; font-size:26px; font-weight:800; color:#3d2c05;
+    background:linear-gradient(160deg,#ffe9a8 0%,#e8b23a 42%,#c9961b 78%,#8a5f10 100%);
+    box-shadow:0 10px 26px rgba(201,150,27,.45), 0 1px 0 rgba(255,255,255,.55) inset, 0 -2px 6px rgba(74,52,8,.35) inset;
+  }
+  .hero-text { flex:1; min-width:0; }
+  .eyebrow {
+    color:#d8bd8a; font-size:7.4px; font-weight:800; letter-spacing:.22em;
+    text-transform:uppercase; margin-bottom:3px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow .bar { display:inline-block; width:26px; height:2px; background:#d99a1f; border-radius:2px; }
+  .hero h1 {
+    margin:0; font-size:27px; line-height:1.1; font-weight:800; letter-spacing:-.35px; color:#fffdf3;
+  }
+  .hero .sub { margin-top:5px; color:#c9b283; font-size:9.5px; font-weight:600; }
+  .hero .sub .dot { color:#d99a1f; margin:0 7px; }
+  .hero-side {
+    text-align:right; flex:0 0 auto; border-radius:12px; padding:10px 16px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(253,230,138,.35);
+    box-shadow:0 4px 14px rgba(0,0,0,.25) inset;
+  }
+  .hero-side .k { color:#b9a06e; font-size:6.8px; text-transform:uppercase; letter-spacing:.14em; font-weight:800; }
+  .hero-side .v { color:#fff7e0; font-weight:800; font-size:14px; display:block; margin-top:2px; max-width:260px; overflow-wrap:anywhere; }
+  .hero-accent {
+    height:4px; margin:0 0 12px; border-radius:0 0 4px 4px;
+    background:linear-gradient(90deg,#8a5f10 0%,#d99a1f 22%,#ffe9a8 38%,#c9961b 55%,#38bdf8 100%);
+  }
+
+  /* =====================================================
+     META strip
+     ===================================================== */
+  .meta {
+    display:grid; grid-template-columns:1.35fr 1.5fr .8fr 1.3fr; gap:8px;
+    margin-bottom:10px; page-break-inside:avoid;
+  }
+  .meta-card {
+    position:relative; border:1px solid #e2e8f0; border-radius:12px; padding:9px 12px 9px 14px; min-width:0;
+    background:linear-gradient(180deg,#ffffff,#f6f9fe); overflow:hidden;
+  }
+  .meta-card::before {
+    content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+    background:linear-gradient(180deg,#d99a1f,#c9961b);
+  }
+  .meta-card:nth-child(2)::before { background:linear-gradient(180deg,#38bdf8,#0284c7); }
+  .meta-card:nth-child(3)::before { background:linear-gradient(180deg,#818cf8,#4f46e5); }
+  .meta-card:nth-child(4)::before { background:linear-gradient(180deg,#94a3b8,#64748b); }
+  .meta-card .label {
+    color:#64748b; font-size:6.9px; text-transform:uppercase; letter-spacing:.13em;
+    font-weight:800; margin-bottom:3px;
+  }
+  .meta-card .value { color:#0f172a; font-size:10.5px; font-weight:800; word-break:break-word; font-variant-numeric:tabular-nums; }
+
+  /* =====================================================
+     STAT strip — four KPI cards
+     ===================================================== */
+  .stats {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:13px;
+    page-break-inside:avoid;
+  }
+  .stat {
+    position:relative; border:1px solid #e2e8f0; border-radius:12px; padding:9px 13px;
+    background:linear-gradient(180deg,#ffffff,#f8fafc); box-shadow:0 1px 2px rgba(15,23,42,.05);
+  }
+  .stat .k {
+    color:#64748b; font-size:7px; text-transform:uppercase; letter-spacing:.12em;
+    font-weight:800; display:flex; align-items:center; gap:5px; margin-bottom:2px;
+  }
+  .stat .dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .stat .v {
+    font-size:16.5px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.3px;
+    color:#0b1220; display:block; line-height:1.15;
+  }
+  .stat.accent .dot { background:#0d9488; } .stat.accent .v { color:#0f766e; }
+  .stat.warn   .dot { background:#dc2626; } .stat.warn   .v { color:#b91c1c; }
+  .stat.gold   { background:linear-gradient(180deg,#fffdf0,#ffffff); border-color:#ecd77a; }
+  .stat.gold   .dot { background:#d99a1f; }
+  .stat.gold   .v.red { color:#b91c1c; } .stat.gold .v.green { color:#047857; }
+  .stat.info   .dot { background:#2563eb; } .stat.info   .v { color:#1d4ed8; }
+
+  /* =====================================================
+     Paragraph + section cards (steps)
+     ===================================================== */
+  .step {
+    margin-bottom:14px; page-break-inside:auto;
+    border:1px solid #e2e8f0; border-radius:14px; overflow:hidden;
+    background:#fff; box-shadow:0 2px 6px rgba(15,23,42,.06);
+  }
+  .step-header {
+    display:flex; align-items:center; gap:12px; padding:10px 14px;
+    background:linear-gradient(180deg,#fcfcfd,#f1f5f9);
+    border-bottom:1px solid #e2e8f0; page-break-after:avoid;
+  }
+  .step-num {
+    width:34px; height:34px; border-radius:10px; flex:0 0 auto; display:flex;
+    align-items:center; justify-content:center; font-size:16px; font-weight:800; color:#3d2c05;
+    background:linear-gradient(160deg,#ffe9a8,#d99a1f 75%,#b07c10);
+    box-shadow:0 3px 8px rgba(201,150,27,.4), 0 1px 0 rgba(255,255,255,.6) inset;
+  }
+  .step-title { flex:1; }
+  .step-title h3 { margin:0; font-size:13.5px; font-weight:800; color:#111827; letter-spacing:-.1px; }
+  .step-title .desc { margin-top:2px; color:#64748b; font-size:8.6px; }
+  .step-summary { text-align:right; min-width:150px; }
+  .step-summary .label { color:#94a3b8; font-size:6.8px; text-transform:uppercase; letter-spacing:.12em; font-weight:800; display:block; margin-bottom:2px; }
+  .step-summary .total {
+    display:inline-block; background:#fff8e1; color:#92580b; font-weight:800; font-size:12px;
+    border:1px solid #f0dfa0; border-radius:8px; padding:3px 10px; font-variant-numeric:tabular-nums;
+  }
+
+  /* =====================================================
+     Tables
+     ===================================================== */
+  .step-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  .step-table th {
+    background:linear-gradient(180deg,#12325b,#0b2545); color:#dbe7ff; font-size:8px; font-weight:800;
+    padding:8px 7px; text-align:right; border-right:1px solid rgba(255,255,255,.08);
+    letter-spacing:.06em; text-transform:uppercase; font-size:7.4px;
+  }
+  .step-table th:last-child { border-right:0; }
+  .step-table th:first-child, .step-table td:first-child { text-align:center; }
+  .step-table th[style*="text-align:left"] { text-align:left; }
+  .step-table td {
+    border-bottom:1px solid #edf1f7; border-right:1px solid #f1f5fa; padding:6px 7px;
+    vertical-align:middle; font-size:8.6px; line-height:1.4; overflow-wrap:anywhere;
+    text-align:right; font-variant-numeric:tabular-nums;
+  }
+  .step-table td:last-child { border-right:0; }
+  .step-table tbody tr:nth-child(even) td { background:#f8fafc; }
+  .step-table tbody tr:last-child td { border-bottom:0; }
+  .step-table tbody tr { page-break-inside:avoid; }
+  .step-table tfoot th {
+    background:linear-gradient(180deg,#fff6d8,#fdeec0); color:#4a3408;
+    font-size:9px; font-weight:800; padding:7px 7px; text-align:right;
+    border-top:2px solid #d99a1f; font-variant-numeric:tabular-nums;
+    border-right:1px solid rgba(201,150,27,.25);
+  }
+  .step-table tfoot th:first-child { text-align:right; color:#92580b; text-transform:uppercase; letter-spacing:.09em; font-size:7.8px; }
+  .step-table tfoot th:last-child { border-right:0; }
+
+  .muted { color:#64748b; }
+  .red { color:#b91c1c; font-weight:800; }
+  .green { color:#047857; font-weight:800; }
+  .context { color:#78716c; font-style:italic; }
+
+  /* =====================================================
+     Partner books — green money cards
+     ===================================================== */
+  .partner-book {
+    margin:10px; page-break-inside:auto;
+    border:1px solid #d4e9dc; border-radius:12px; overflow:hidden;
+    box-shadow:0 1px 3px rgba(6,78,59,.08);
+  }
+  .partner-book-header {
+    display:flex; align-items:center; gap:12px; padding:9px 14px;
+    background:linear-gradient(120deg,#ecfdf3,#f0fdf4 60%,#f7fffa);
+    border-bottom:1px solid #d4e9dc; page-break-after:avoid;
+  }
+  .partner-avatar {
+    width:38px; height:38px; border-radius:11px; flex:0 0 auto; display:flex;
+    align-items:center; justify-content:center; font-size:16px; font-weight:800; color:#ffffff;
+    background:linear-gradient(160deg,#10b981,#047857); box-shadow:0 3px 8px rgba(5,150,105,.35);
+  }
+  .partner-id .k { color:#059669; font-size:6.6px; text-transform:uppercase; letter-spacing:.14em; font-weight:800; }
+  .partner-id .v { color:#0b3b2e; font-size:12.5px; font-weight:800; }
+  .partner-id .v .muted { font-size:8px; font-weight:500; color:#52796b; margin-left:5px; }
+  .partner-meta { display:flex; gap:6px; margin-left:auto; }
+  .partner-chip {
+    background:#ffffff; border:1px solid #d4e9dc; border-radius:8px; padding:3px 9px;
+    font-size:8px; color:#334155; font-weight:600; font-variant-numeric:tabular-nums;
+  }
+  .partner-chip b { color:#065f46; }
+
+  .partner-book-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  .partner-book-table th {
+    background:linear-gradient(180deg,#0d9464,#065f46); color:#eafff3; font-size:7.3px; font-weight:800;
+    padding:7px 6px; text-align:right; letter-spacing:.07em; text-transform:uppercase;
+    border-right:1px solid rgba(255,255,255,.12);
+  }
+  .partner-book-table th:last-child { border-right:0; }
+  .partner-book-table th:first-child, .partner-book-table td:first-child { text-align:left; }
+  .partner-book-table td {
+    border-bottom:1px solid #eaf3ee; border-right:1px solid #eff5f1; padding:5px 6px;
+    vertical-align:middle; font-size:8.2px; line-height:1.4; overflow-wrap:anywhere;
+    text-align:right; font-variant-numeric:tabular-nums;
+  }
+  .partner-book-table td:last-child { border-right:0; }
+  .partner-book-table tbody tr:nth-child(even) td { background:#f7fdfa; }
+  .partner-book-table tbody tr:last-child td { border-bottom:0; }
+  .partner-book-table tbody tr { page-break-inside:avoid; }
+  .partner-book-table tfoot th {
+    background:linear-gradient(180deg,#e4fbe9,#c8f0d4); color:#064e3b;
+    font-size:8.4px; font-weight:800; padding:6px 6px; text-align:right;
+    border-top:2px solid #10b981; border-right:1px solid rgba(16,185,129,.25); font-variant-numeric:tabular-nums;
+  }
+  .partner-book-table tfoot th:first-child { text-align:left; color:#065f46; }
+  .partner-book-table tfoot th:last-child { border-right:0; }
+  .partner-book-table tfoot th:first-child { text-align:left; }
+  .inactive-row td { color:#a5b4cb; }
+  .inactive-row .name { text-decoration:line-through; text-decoration-color:#e2b9b9; }
+  .status-badge {
+    display:inline-flex; align-items:center; font-size:6.2px; font-weight:800; padding:2px 7px;
+    border-radius:999px; text-transform:uppercase; letter-spacing:.08em;
+  }
+  .status-badge.active { background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; }
+  .status-badge.closed { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+
+  /* =====================================================
+     Summary — serial partner table + equation card
+     ===================================================== */
+  .summary-body { padding:12px 14px; }
+  .summary-calc {
+    margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid #ecd77a;
+    box-shadow:0 2px 8px rgba(201,150,27,.12); page-break-inside:avoid;
+  }
+  .calc-row {
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:9px 16px; border-bottom:1px solid #f3ecd9; background:#fffdf4;
+  }
+  .calc-row:last-child { border-bottom:0; }
+  .calc-row .calc-label { color:#4b5563; font-size:9.5px; font-weight:600; letter-spacing:.02em; }
+  .calc-row .calc-val { font-variant-numeric:tabular-nums; font-size:12px; font-weight:800; color:#111827; }
+  .calc-row.strong { background:#fff4c2; border-top:1.5px solid #d99a1f; border-bottom:1.5px solid #d99a1f; }
+  .calc-row.strong .calc-label { color:#92580b; font-weight:800; text-transform:uppercase; letter-spacing:.08em; font-size:9px; }
+  .calc-row.strong .calc-val { color:#111827; font-size:14px; }
+  .calc-row.result.profit { background:linear-gradient(90deg,#d1fae5,#ecfdf5); }
+  .calc-row.result.profit .calc-val, .calc-row.result.profit .calc-label { color:#047857; }
+  .calc-row.result.loss   { background:linear-gradient(90deg,#fee2e2,#fff1f2); }
+  .calc-row.result.loss   .calc-val, .calc-row.result.loss   .calc-label { color:#b91c1c; }
+
+  /* =====================================================
+     Final result — the big dark gold finale
+     ===================================================== */
+  .final-result {
+    border:1px solid #ecd77a; border-radius:16px; overflow:hidden;
+    background:linear-gradient(135deg,#fffdf0 0%,#ffffff 100%);
+    box-shadow:0 6px 20px rgba(201,150,27,.18); page-break-inside:avoid; margin-bottom:13px;
+  }
+  .final-result-header {
+    background:
+      radial-gradient(600px 200px at 15% -30%, rgba(217,154,31,.35), transparent 60%),
+      linear-gradient(135deg,#160e04,#2a2011);
+    color:#fff; padding:13px 20px; text-align:center;
+  }
+  .final-result-header h2 {
+    margin:0; font-size:18px; font-weight:800; letter-spacing:.02em; color:#fff3d6;
+    display:flex; align-items:center; justify-content:center; gap:12px;
+  }
+  .final-num {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:9px; font-size:15px; font-weight:800; color:#3d2c05;
+    background:linear-gradient(160deg,#ffe9a8,#d99a1f);
+    box-shadow:0 2px 8px rgba(217,154,31,.45);
+  }
+  .final-result-body { display:flex; gap:14px; padding:16px 18px 15px; background:linear-gradient(180deg,#ffffff,#fffdf4); }
+  .result-box {
+    flex:1; min-width:0; border:1px solid #ece3c2; border-radius:12px; padding:12px 15px;
+    background:#ffffff; text-align:center;
+  }
+  .result-box .label {
+    color:#8a6d1f; font-size:7px; text-transform:uppercase; letter-spacing:.13em;
+    font-weight:800; margin-bottom:4px; display:block;
+  }
+  .result-box .value {
+    font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1.15; color:#111827; display:block;
+  }
+
+  .result-box .value.profit { color:#047857; }
+  .result-box .value.loss { color:#b91c1c; }
+  .result-box .rule { margin-top:8px; color:#92580b; font-size:7.4px; font-weight:600; line-height:1.55; }
+
+  /* =====================================================
+     Empty states + footer
+     ===================================================== */
+  .empty-step {
+    text-align:center; padding:28px 20px; color:#94a3b8; font-size:9.5px; background:#f8fafc;
+  }
+  .footer {
+    margin-top:12px; border-top:1px solid #e2e8f0; padding-top:8px;
+    color:#94a3b8; font-size:6.9px; display:flex; justify-content:space-between;
+    align-items:center; gap:12px;
+  }
+  .footer .brand { display:flex; align-items:center; gap:7px; font-weight:800; color:#64748b; letter-spacing:.03em; }
+  .footer .brand .dot {
+    width:12px; height:12px; border-radius:4px; display:inline-block;
+    background:linear-gradient(135deg,#fde68a,#c9961b);
+  }
+
+  /* Print fixes */
+  @media print {
+    .step, .partner-book, .final-result { page-break-inside:auto; }
+    .step-header, .partner-book-header, .final-result-header { page-break-after:avoid; }
+    .step-table thead { display:table-header-group; }
+    .step-table tfoot { display:table-footer-group; }
+    .partner-book-table thead { display:table-header-group; }
+    .partner-book-table tfoot { display:table-footer-group; }
+  }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="mark">৳</div>
+      <div class="hero-text">
+        <div class="eyebrow"><span class="bar"></span>FINCORE ERP · {{ data.labels.step_word|upper }} {{ data.labels.num_1 }}–{{ data.labels.num_5 }}</div>
+        <h1>{{ data.title }}</h1>
+        <div class="sub">{{ data.period_label }}<span class="dot">•</span>{{ data.count }} {{ data.labels.days }}<span class="dot">•</span>{{ data.labels.formula }}</div>
+      </div>
+      <div class="hero-side">
+        <div class="k">{{ data.labels.business }}</div>
+        <div class="v">{{ data.business }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-accent"></div>
+
+  <div class="meta">
+    <div class="meta-card"><div class="label">{{ data.labels.business }}</div><div class="value">{{ data.business }}</div></div>
+    <div class="meta-card"><div class="label">{{ data.labels.period }}</div><div class="value">{{ data.period_label }}</div></div>
+    <div class="meta-card"><div class="label">{{ data.labels.generated }}</div><div class="value">{{ data.generated_label }}</div></div>
+    <div class="meta-card"><div class="label">{{ data.labels.collection }}</div><div class="value">{{ data.totals.collection_display }}</div></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat accent"><div class="k"><span class="dot"></span>{{ data.labels.sell_total }}</div><div class="v">{{ data.totals.sell_total_display }}</div></div>
+    <div class="stat warn"><div class="k"><span class="dot"></span>{{ data.labels.khoroch }}</div><div class="v">{{ data.totals.khoroch_display }}</div></div>
+    <div class="stat gold"><div class="k"><span class="dot"></span>{{ data.labels.profit }}</div><div class="v {% if data.totals.profit < 0 %}red{% else %}green{% endif %}">{{ data.totals.profit_display }}</div></div>
+    <div class="stat info"><div class="k"><span class="dot"></span>{{ data.labels.collection }}</div><div class="v">{{ data.totals.collection_display }}</div></div>
+  </div>
+
+  {# ==================== STEP 1: Cash Account ==================== #}
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">{{ data.labels.num_1 }}</div>
+      <div class="step-title">
+        <h3>{{ data.labels.step_cash }}</h3>
+        <div class="desc">{{ data.labels.step_cash_desc }}</div>
+      </div>
+      <div class="step-summary"><div class="label">{{ data.labels.cash_total }}</div><div class="total">{{ data.cash_total_display }}</div></div>
+    </div>
+    {% if data.cash_rows %}
+    <table class="step-table">
+      <colgroup>
+        <col style="width:12%">
+        <col style="width:18%">
+        <col style="width:12%">
+        <col style="width:12%">
+        <col style="width:14%">
+        <col style="width:14%">
+        <col style="width:18%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>{{ data.labels.date }}</th>
+          <th>{{ data.labels.particular }}</th>
+          <th>{{ data.labels.customer }}</th>
+          <th>{{ data.labels.partner }}</th>
+          <th>{{ data.labels.method }}</th>
+          <th>{{ data.labels.amount }}</th>
+          <th>{{ data.labels.running }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data.cash_rows %}
+        <tr>
+          <td class="muted">{{ row.date_label }}</td>
+          <td style="text-align:left">{{ row.particular }}</td>
+          <td style="text-align:left">{{ row.customer }}</td>
+          <td style="text-align:left">{{ row.partner }}</td>
+          <td class="muted">{{ row.method }}</td>
+          <td style="font-weight:800">{{ row.amount_display }}</td>
+          <td class="muted">{{ row.running_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>{{ data.labels.total }}</th>
+          <th colspan="4"></th>
+          <th>{{ data.cash_total_display }}</th>
+          <th class="muted">{{ data.totals.sell_cash_display }}</th>
+        </tr>
+      </tfoot>
+    </table>
+    {% else %}
+    <div class="empty-step">{{ data.labels.empty_step }}</div>
+    {% endif %}
+  </div>
+
+  {# ==================== STEP 2: Partner-wise Due Books ==================== #}
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">{{ data.labels.num_2 }}</div>
+      <div class="step-title">
+        <h3>{{ data.labels.step_partner }}</h3>
+        <div class="desc">{{ data.labels.step_partner_desc }}</div>
+      </div>
+      <div class="step-summary"><div class="label">{{ data.labels.partner_books_total }}</div><div class="total">{{ data.partner_books_total_display }}</div></div>
+    </div>
+    {% if data.partner_books %}
+    {% for book in data.partner_books %}
+    <div class="partner-book">
+      <div class="partner-book-header">
+        <div class="partner-avatar">{{ book.name|first }}</div>
+        <div class="partner-id">
+          <div class="k">{{ data.labels.partner }}</div>
+          <div class="v">{{ book.name }}{% if book.phone %}<span class="muted">{{ book.phone }}</span>{% endif %}</div>
+        </div>
+        <div class="partner-meta">
+          <span class="partner-chip">{{ data.labels.customers }} <b>{{ book.count }}/{{ book.row_count }}</b></span>
+          <span class="partner-chip">{{ data.labels.period_due }} <b>{{ book.period_due_display }}</b></span>
+          <span class="partner-chip">{{ data.labels.period_collection }} <b>{{ book.period_collection_display }}</b></span>
+        </div>
+      </div>
+      <table class="partner-book-table">
+        <colgroup>
+          <col style="width:36%">
+          <col style="width:17%">
+          <col style="width:17%">
+          <col style="width:15%">
+          <col style="width:15%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>{{ data.labels.customer }}</th>
+            <th>{{ data.labels.due_now }}</th>
+            <th>{{ data.labels.period_due }}</th>
+            <th>{{ data.labels.period_collection }}</th>
+            <th>{{ data.labels.active }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in book.rows %}
+          <tr class="{% if not item.is_active %}inactive-row{% endif %}">
+            <td class="name">{{ item.name }}</td>
+            <td style="font-weight:800">{{ item.due_display }}</td>
+            <td>{{ item.period_due_display }}</td>
+            <td class="green">{{ item.period_collection_display }}</td>
+            <td><span class="status-badge {% if item.is_active %}active{% else %}closed{% endif %}">{% if item.is_active %}{{ data.labels.active }}{% else %}{{ data.labels.closed }}{% endif %}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th>{{ data.labels.partner_total }}</th>
+            <th>{{ book.total_due_display }}</th>
+            <th>{{ book.period_due_display }}</th>
+            <th>{{ book.period_collection_display }}</th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-step">{{ data.labels.no_partner_books }}</div>
+    {% endif %}
+  </div>
+
+  {# ==================== STEP 3: Expense Account ==================== #}
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">{{ data.labels.num_3 }}</div>
+      <div class="step-title">
+        <h3>{{ data.labels.step_expense }}</h3>
+        <div class="desc">{{ data.labels.step_expense_desc }}</div>
+      </div>
+      <div class="step-summary"><div class="label">{{ data.labels.expense_total }}</div><div class="total">{{ data.expense_total_display }}</div></div>
+    </div>
+    {% if data.expense_rows %}
+    <table class="step-table">
+      <colgroup>
+        <col style="width:12%">
+        <col style="width:22%">
+        <col style="width:16%">
+        <col style="width:12%">
+        <col style="width:16%">
+        <col style="width:22%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>{{ data.labels.date }}</th>
+          <th>{{ data.labels.particular }}</th>
+          <th>{{ data.labels.category }}</th>
+          <th>{{ data.labels.method }}</th>
+          <th>{{ data.labels.amount }}</th>
+          <th>{{ data.labels.running }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data.expense_rows %}
+        <tr>
+          <td class="muted">{{ row.date_label }}</td>
+          <td style="text-align:left">{{ row.particular }}</td>
+          <td style="text-align:left" class="muted">{{ row.category }}</td>
+          <td class="muted">{{ row.method }}</td>
+          <td class="red">{{ row.amount_display }}</td>
+          <td class="muted">{{ row.running_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>{{ data.labels.total }}</th>
+          <th colspan="3"></th>
+          <th class="red">{{ data.expense_total_display }}</th>
+          <th class="muted">{{ data.totals.khoroch_display }}</th>
+        </tr>
+      </tfoot>
+    </table>
+    {% else %}
+    <div class="empty-step">{{ data.labels.empty_step }}</div>
+    {% endif %}
+  </div>
+
+  {# ==================== STEP 4: Summary ==================== #}
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">{{ data.labels.num_4 }}</div>
+      <div class="step-title">
+        <h3>{{ data.labels.step_summary }}</h3>
+        <div class="desc">{{ data.labels.step_summary_desc }}</div>
+      </div>
+      <div class="step-summary"><div class="label">{{ data.labels.summary_total }}</div><div class="total">{{ data.summary_partners|length }} {{ data.labels.entries }}</div></div>
+    </div>
+    <div class="summary-body">
+      {% if data.summary_partners %}
+      <table class="step-table summary-partners">
+        <colgroup>
+          <col style="width:6%">
+          <col style="width:29%">
+          <col style="width:10%">
+          <col style="width:18%">
+          <col style="width:16%">
+          <col style="width:21%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>{{ data.labels.sl }}</th>
+            <th style="text-align:left">{{ data.labels.partner }}</th>
+            <th>{{ data.labels.customers }}</th>
+            <th>{{ data.labels.due_given }}</th>
+            <th>{{ data.labels.collected }}</th>
+            <th>{{ data.labels.net_due }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in data.summary_partners %}
+          <tr>
+            <td class="muted">{{ p.sl }}</td>
+            <td style="text-align:left;font-weight:800">{{ p.name }}{% if p.phone %} <span class="muted" style="font-weight:500">{{ p.phone }}</span>{% endif %}</td>
+            <td class="muted">{{ p.customers }}</td>
+            <td>{{ p.due_given_display }}</td>
+            <td class="green">{{ p.collection_display }}</td>
+            <td style="font-weight:800;color:#92580b">{{ p.current_due_display }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="3" style="text-align:right">{{ data.labels.total }}</th>
+            <th>{{ data.summary_due_given_display }}</th>
+            <th>{{ data.summary_collection_display }}</th>
+            <th>{{ data.partner_books_total_display }}</th>
+          </tr>
+        </tfoot>
+      </table>
+      {% else %}
+      <div class="empty-step">{{ data.labels.no_partner_books }}</div>
+      {% endif %}
+
+      <div class="summary-calc">
+        <div class="calc-row"><span class="calc-label">{{ data.labels.cash_total }}</span><span class="calc-val">{{ data.cash_total_display }}</span></div>
+        <div class="calc-row"><span class="calc-label">+ {{ data.labels.due_total }}</span><span class="calc-val">{{ data.due_total_display }}</span></div>
+        <div class="calc-row strong"><span class="calc-label">= {{ data.labels.net_sell }}</span><span class="calc-val">{{ data.totals.sell_total_display }}</span></div>
+        <div class="calc-row"><span class="calc-label">− {{ data.labels.expense_total }}</span><span class="calc-val">{{ data.expense_total_display }}</span></div>
+        <div class="calc-row result {% if data.totals.profit < 0 %}loss{% else %}profit{% endif %}"><span class="calc-label">= {{ data.labels.net_result }}</span><span class="calc-val">{{ data.totals.profit_display }}</span></div>
+      </div>
+    </div>
+  </div>
+
+  {# ==================== STEP 5: FINAL RESULT ==================== #}
+  <div class="final-result">
+    <div class="final-result-header">
+      <h2><span class="final-num">{{ data.labels.num_5 }}</span>{{ data.labels.step_result }}</h2>
+    </div>
+    <div class="final-result-body">
+      <div class="result-box">
+        <div class="label">{{ data.labels.net_sell }}</div>
+        <div class="value">{{ data.totals.sell_total_display }}</div>
+        <div class="rule">{{ data.labels.cash_total }}: {{ data.totals.sell_cash_display }}<br>+ {{ data.labels.due_total }}: {{ data.totals.sell_due_display }}</div>
+      </div>
+      <div class="result-box">
+        <div class="label">{{ data.labels.net_expense }}</div>
+        <div class="value">{{ data.totals.khoroch_display }}</div>
+      </div>
+      <div class="result-box">
+        <div class="label">{{ data.labels.net_result }}</div>
+        <div class="value {% if data.totals.profit < 0 %}loss{% else %}profit{% endif %}">{{ data.totals.profit_display }}</div>
+        <div class="rule">{{ data.labels.result_rule }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="brand"><span class="dot"></span>FINCORE ERP</span>
+    <span>{{ data.labels.footer }} · {{ data.generated_label }}</span>
+  </div>
+</body>
+</html>

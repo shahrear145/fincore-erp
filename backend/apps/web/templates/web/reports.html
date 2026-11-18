@@ -1,0 +1,164 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Reports (রিপোর্ট){% else %}রিপোর্ট{% endif %} — FinCore ERP{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-file-lines" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Reports (রিপোর্ট){% else %}রিপোর্ট{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}P&amp;L, cash flow and partner statement — pick a period once, export any of them as PDF or Excel.{% else %}লাভ-ক্ষতি, নগদের আনাগোনা ও পার্টনার স্টেটমেন্ট — একবার সময়কাল বাছাই, যেকোনোটা PDF/এক্সেল ডাউনলোড করুন।{% endif %}</p>
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span><span class="chip info"><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Same ledger{% else %}একই লেজার{% endif %}</span></div>{% endif %}
+</div>
+
+<div class="period-bar mt">
+  <div class="pb-seg">
+    <a class="pb-btn {% if preset == 'month' %}on{% endif %}" href="?preset=month{% if partner %}&partner={{ partner.id }}{% endif %}">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</a>
+    <a class="pb-btn {% if preset == 'last_month' %}on{% endif %}" href="?preset=last_month{% if partner %}&partner={{ partner.id }}{% endif %}">{% if ui_lang == 'en' %}Last month{% else %}গত মাস{% endif %}</a>
+    <a class="pb-btn {% if preset == 'year' %}on{% endif %}" href="?preset=year{% if partner %}&partner={{ partner.id }}{% endif %}">{% if ui_lang == 'en' %}This year{% else %}এই বছর{% endif %}</a>
+  </div>
+  <form method="get" class="pb-custom">
+    <input type="hidden" name="preset" value="custom">
+    {% if can_pick_partner and partners %}
+    <select name="partner" class="pb-partner-select" aria-label="{% if ui_lang == 'en' %}Partner{% else %}পার্টনার{% endif %}" onchange="this.form.submit()">
+      {% for p in partners %}<option value="{{ p.id }}" {% if p.id == partner.id %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <input type="date" name="from" value="{{ dfrom|date:'Y-m-d' }}" aria-label="{% if ui_lang == 'en' %}From date{% else %}কোন তারিখ থেকে{% endif %}">
+    <span class="pb-range">→</span>
+    <input type="date" name="to" value="{{ dto|date:'Y-m-d' }}" aria-label="{% if ui_lang == 'en' %}To date{% else %}কোন তারিখ পর্যন্ত{% endif %}">
+    <button class="btn sm pb-apply" type="submit"><i class="fa-solid fa-filter"></i> {% if ui_lang == 'en' %}Apply{% else %}দেখান{% endif %}</button>
+  </form>
+</div>
+<p class="muted" style="font-size:12px;margin:8px 2px 0">{% if ui_lang == 'en' %}Period:{% else %}সময়কাল:{% endif %} <b>{{ dfrom|date:'d M Y' }} → {{ dto|date:'d M Y' }}</b>{% if partner %} · {% if ui_lang == 'en' %}Partner{% else %}পার্টনার{% endif %}: <b>{{ partner.name }}</b>{% endif %}</p>
+
+<div class="exp-card section mt">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-chart-line"></i> <h3>{% if ui_lang == 'en' %}Profit &amp; Loss (লাভ-ক্ষতি){% else %}লাভ-ক্ষতি (P&amp;L){% endif %}</h3></div>
+    <div class="export-group">
+      <span class="eg-label">Export</span>
+      <a class="btn sm export-btn pdf" href="{% url 'web:reports' %}?report=pnl&format=pdf&{{ export_query }}" download title="PDF"><i class="fa-solid fa-file-pdf"></i> <span style="font-weight:800">PDF</span></a>
+      <a class="btn sm export-btn xlsx" href="{% url 'web:reports' %}?report=pnl&format=xlsx&{{ export_query }}" download title="Excel"><i class="fa-solid fa-file-excel"></i> <span style="font-weight:800">Excel</span></a>
+    </div>
+  </div>
+  <div class="exp-body">
+    <div class="report-cols">
+      <div>
+        <h4 class="report-h ok"><i class="fa-solid fa-arrow-trend-up"></i> {% if ui_lang == 'en' %}Income{% else %}আয় (Revenue){% endif %}</h4>
+        <div class="table-wrap" style="border:0">
+          <table class="exp-table">
+            <thead><tr><th>{% if ui_lang == 'en' %}Account{% else %}একাউন্ট{% endif %}</th><th class="num">{% if ui_lang == 'en' %}Amount{% else %}টাকা{% endif %}</th></tr></thead>
+            <tbody>
+              {% if pnl.revenues %}{% for row in pnl.revenues %}
+              <tr><td><span class="mono muted" style="font-size:11px">{{ row.code }}</span> {{ row.name }}</td><td class="num">{{ row.amount|money }}</td></tr>
+              {% endfor %}{% else %}<tr><td colspan="2" class="muted" style="text-align:center">{% if ui_lang == 'en' %}No income in this range{% else %}এই সময়কালে কোনো আয় নেই{% endif %}</td></tr>{% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h4 class="report-h bad"><i class="fa-solid fa-arrow-trend-down"></i> {% if ui_lang == 'en' %}Expenses{% else %}ব্যয় (Expenses){% endif %}</h4>
+        <div class="table-wrap" style="border:0">
+          <table class="exp-table">
+            <thead><tr><th>{% if ui_lang == 'en' %}Account{% else %}একাউন্ট{% endif %}</th><th class="num">{% if ui_lang == 'en' %}Amount{% else %}টাকা{% endif %}</th></tr></thead>
+            <tbody>
+              {% if pnl.expenses %}{% for row in pnl.expenses %}
+              <tr><td><span class="mono muted" style="font-size:11px">{{ row.code }}</span> {{ row.name }}</td><td class="num">{{ row.amount|money }}</td></tr>
+              {% endfor %}{% else %}<tr><td colspan="2" class="muted" style="text-align:center">{% if ui_lang == 'en' %}No expenses in this range{% else %}এই সময়কালে কোনো ব্যয় নেই{% endif %}</td></tr>{% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="exp-totals">
+      <div class="stat-pill exp-sep good"><span class="label">{% if ui_lang == 'en' %}Total income{% else %}মোট আয়{% endif %}</span><span class="value">{{ pnl.total_revenue_display }}</span></div>
+      <div class="stat-pill exp-sep danger"><span class="label">{% if ui_lang == 'en' %}Total expenses{% else %}মোট ব্যয়{% endif %}</span><span class="value">{{ pnl.total_expenses_display }}</span></div>
+      <div class="stat-pill exp-sep {% if pnl.is_profit %}good{% else %}danger{% endif %}"><span class="label">{% if pnl.is_profit %}{% if ui_lang == 'en' %}Net profit{% else %}নিট লাভ{% endif %}{% else %}{% if ui_lang == 'en' %}Net loss{% else %}নিট ক্ষতি{% endif %}{% endif %}</span><span class="value">{{ pnl.net_display }}</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="exp-card section">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-arrow-right-arrow-left"></i> <h3>{% if ui_lang == 'en' %}Cash flow (নগদের আনাগোনা){% else %}নগদের আনাগোনা (ক্যাশফ্লো){% endif %}</h3></div>
+    <div class="export-group">
+      <span class="eg-label">Export</span>
+      <a class="btn sm export-btn pdf" href="{% url 'web:reports' %}?report=cashflow&format=pdf&{{ export_query }}" download title="PDF"><i class="fa-solid fa-file-pdf"></i> <span style="font-weight:800">PDF</span></a>
+      <a class="btn sm export-btn xlsx" href="{% url 'web:reports' %}?report=cashflow&format=xlsx&{{ export_query }}" download title="Excel"><i class="fa-solid fa-file-excel"></i> <span style="font-weight:800">Excel</span></a>
+    </div>
+  </div>
+  <div class="exp-body">
+    <div class="table-wrap" style="border:0">
+      <table class="exp-table">
+        <thead><tr><th style="width:24%">{% if ui_lang == 'en' %}Account{% else %}হিসাব{% endif %}</th><th class="num" style="width:19%">{% if ui_lang == 'en' %}Opening{% else %}শুরু{% endif %}</th><th class="num" style="width:19%">{% if ui_lang == 'en' %}Money in{% else %}জমা{% endif %}</th><th class="num" style="width:19%">{% if ui_lang == 'en' %}Money out{% else %}খরচ{% endif %}</th><th class="num" style="width:19%">{% if ui_lang == 'en' %}Closing{% else %}শেষ{% endif %}</th></tr></thead>
+        <tbody>
+          {% for w in cashflow.wallets %}
+          <tr><td><strong>{{ w.name }}</strong></td><td class="num">{{ w.opening_display }}</td><td class="num pos">{{ w.inflow_display }}</td><td class="num neg">{{ w.outflow_display }}</td><td class="num" style="font-weight:800">{{ w.closing_display }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="exp-totals">
+      <div class="stat-pill exp-sep good"><span class="label">{% if ui_lang == 'en' %}Total money in{% else %}মোট জমা{% endif %}</span><span class="value">{{ cashflow.total_money_in_display }}</span></div>
+      <div class="stat-pill exp-sep danger"><span class="label">{% if ui_lang == 'en' %}Total money out{% else %}মোট খরচ{% endif %}</span><span class="value">{{ cashflow.total_money_out_display }}</span></div>
+      <div class="stat-pill exp-sep {% if cashflow.net_change >= 0 %}good{% else %}danger{% endif %}"><span class="label">{% if ui_lang == 'en' %}Net change{% else %}নিট বৃদ্ধি/হ্রাস{% endif %}</span><span class="value">{{ cashflow.net_change_display }}</span></div>
+    </div>
+    {% if cashflow.daily %}
+    <details class="report-details">
+      <summary>{% if ui_lang == 'en' %}Day-by-day movement ({{ cashflow.daily|length }} days){% else %}দিন অনুযায়ী আনাগোনা ({{ cashflow.daily|length }} দিন){% endif %}</summary>
+      <div class="table-wrap" style="border:0;margin-top:10px">
+        <table class="exp-table">
+          <thead><tr><th>{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</th><th class="num">{% if ui_lang == 'en' %}In{% else %}জমা{% endif %}</th><th class="num">{% if ui_lang == 'en' %}Out{% else %}খরচ{% endif %}</th><th class="num">{% if ui_lang == 'en' %}Net{% else %}নিট{% endif %}</th><th class="num">{% if ui_lang == 'en' %}Closing{% else %}শেষ{% endif %}</th></tr></thead>
+          <tbody>
+            {% for d in cashflow.daily %}
+            <tr><td class="mono muted">{{ d.date }}</td><td class="num pos">{{ d.inflow_display }}</td><td class="num neg">{{ d.outflow_display }}</td><td class="num">{{ d.net_display }}</td><td class="num">{{ d.closing_display }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% endif %}
+  </div>
+</div>
+
+{% if partner_statement %}
+<div class="exp-card section">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-hand-holding-dollar"></i> <h3>{% if ui_lang == 'en' %}Partner statement{% else %}পার্টনার স্টেটমেন্ট{% endif %}</h3></div>
+    <div class="export-group">
+      <span class="eg-label">Export</span>
+      <a class="btn sm export-btn pdf" href="{% url 'web:reports' %}?report=partner&format=pdf&{{ export_query }}" download title="PDF"><i class="fa-solid fa-file-pdf"></i> <span style="font-weight:800">PDF</span></a>
+      <a class="btn sm export-btn xlsx" href="{% url 'web:reports' %}?report=partner&format=xlsx&{{ export_query }}" download title="Excel"><i class="fa-solid fa-file-excel"></i> <span style="font-weight:800">Excel</span></a>
+    </div>
+  </div>
+  <div class="exp-body">
+    <div class="exp-totals" style="margin-top:0;justify-content:flex-start">
+      <div class="stat-pill exp-sep"><span class="label">{% if ui_lang == 'en' %}Opening baki{% else %}শুরু বাকি{% endif %}</span><span class="value">{{ partner_statement.opening_display }}</span></div>
+      <div class="stat-pill exp-sep danger"><span class="label">{% if ui_lang == 'en' %}Baki given{% else %}বাকি দেওয়া{% endif %}</span><span class="value">{{ partner_statement.total_given_display }}</span></div>
+      <div class="stat-pill exp-sep good"><span class="label">{% if ui_lang == 'en' %}Collected{% else %}আদায়{% endif %}</span><span class="value">{{ partner_statement.total_collected_display }}</span></div>
+      <div class="stat-pill exp-sep {% if partner_statement.closing > 0 %}danger{% else %}good{% endif %}"><span class="label">{% if ui_lang == 'en' %}Closing baki{% else %}শেষের বাকি{% endif %}</span><span class="value">{{ partner_statement.closing_display }}</span></div>
+    </div>
+    {% if partner_statement.rows %}
+    <div class="table-wrap" style="border:0;margin-top:14px">
+      <table class="exp-table">
+        <thead><tr><th style="width:6%">{% if ui_lang == 'en' %}SL{% else %}ক্র{% endif %}</th><th style="width:15%">{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</th><th style="width:19%">{% if ui_lang == 'en' %}Customer{% else %}গ্রাহক{% endif %}</th><th style="width:12%">{% if ui_lang == 'en' %}Type{% else %}ধরন{% endif %}</th><th style="width:27%">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</th><th class="num" style="width:10%">{% if ui_lang == 'en' %}Amount{% else %}টাকা{% endif %}</th><th class="num" style="width:11%">{% if ui_lang == 'en' %}Balance{% else %}বাকি{% endif %}</th></tr></thead>
+        <tbody>
+          {% for r in partner_statement.rows|slice:":60" %}
+          <tr><td class="mono muted">{{ forloop.counter }}</td><td class="mono">{{ r.date }}</td><td>{{ r.customer }}</td><td>{{ r.type }}</td><td class="muted">{{ r.note }}</td><td class="num">{{ r.amount }}</td><td class="num">{{ r.running }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if partner_statement.count > 60 %}
+    <p class="muted" style="font-size:12px;margin:8px 2px 0">{% if ui_lang == 'en' %}Showing first 60 of {{ partner_statement.count }} entries — download the PDF/Excel for the full statement.{% else %}{{ partner_statement.count }} টি এন্ট্রির মধ্যে প্রথম ৬০ টি দেখানো হলো — পুরো স্টেটমেন্ট PDF/এক্সেলে দেখুন।{% endif %}</p>
+    {% endif %}
+    {% else %}
+    <div class="exp-empty" style="padding:28px 22px">
+      <div class="ei"><i class="fa-solid fa-receipt"></i></div>
+      <h4>{% if ui_lang == 'en' %}No entries in this period{% else %}এই সময়কালে কোনো এন্ট্রি নেই{% endif %}</h4>
+      <p>{% if ui_lang == 'en' %}Try a different period or partner.{% else %}অন্য সময় বা পার্টনার বাছাই করে দেখুন।{% endif %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

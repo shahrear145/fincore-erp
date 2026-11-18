@@ -1,0 +1,572 @@
+{% load static fmt i18n_tags %}
+<!doctype html>
+<html lang="{{ ui_lang|default:'bn' }}" data-theme="{{ user_theme|default:'aurora' }}" data-view="{{ ui_view|default:'auto' }}">
+<head>
+  <meta charset="utf-8">
+  {% if ui_view == 'desktop' %}
+  <meta name="viewport" content="width=1200">
+  {% else %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% endif %}
+  <title>{% block title %}FinCore ERP{% endblock %}</title>
+  <meta name="description" content="FinCore ERP — লেনদেন, পার্টনার বাকি, বিক্রয়, মজুদ ও Drive ব্যাকআপ; সব হিসাব এক জায়গায়।">
+  <meta name="theme-color" content="#08162c">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FinCore ERP">
+  <meta property="og:title" content="FinCore ERP — ব্যবসা ও ব্যক্তিগত হিসাব, এক জায়গায়">
+  <meta property="og:description" content="লেনদেন, পার্টনার বাকি, বিক্রয়, মজুদ ও Drive ব্যাকআপ — সব হিসাব এক জায়গায়।">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'web/og.png' %}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="FinCore ERP — business and personal finance, one ledger">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'web/og.png' %}">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="icon" type="image/svg+xml" href="{% static 'web/favicon.svg' %}">
+  <link rel="alternate icon" type="image/png" sizes="32x32" href="{% static 'web/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'web/favicon-180.png' %}">
+  <link rel="manifest" href="{% static 'web/site.webmanifest' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="color-scheme" content="light">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'web/app.css' %}?v=27">
+  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'web/premium.css' %}?v=15">
+  <link rel="stylesheet" href="{% static 'web/themes.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'web/viewmodes.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'web/modern.css' %}?v=4">
+  <link rel="stylesheet" href="{% static 'web/motion3d.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'web/notif-center.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'web/palette.css' %}?v=1">
+  <script src="{% static 'web/motion3d.js' %}?v=2" defer></script>
+  <script src="{% static 'web/palette.js' %}?v=1" defer></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<div class="bg-blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+{% block body %}
+<div class="app">
+  <aside class="sidebar" aria-label="{% t 'Open menu' %}">
+    <button type="button" class="sidebar-close" aria-label="{% if ui_lang == 'en' %}Close menu{% else %}মেনু বন্ধ করুন{% endif %}" onclick="document.body.classList.remove('nav-open')"><i class="fa-solid fa-xmark"></i></button>
+    <div class="brand">
+      <div class="logo"><i class="fa-solid fa-coins"></i></div>
+      <div><h1>FinCore ERP</h1><small>{% t "Finance, clear and calm" %}</small></div>
+    </div>
+
+    <nav class="nav">
+      {% with u=request.resolver_match.url_name %}
+      <div class="section">{% t "Overview" %}</div>
+      <a href="{% url 'web:dashboard' %}" class="{% if u == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i> {% t "Dashboard" %}</a>
+
+      <div class="section">{% t "Business" %}</div>
+      <a href="{% url 'web:transactions' %}" class="{% if u == 'transactions' %}active{% endif %}"><i class="fa-solid fa-money-bill-wave"></i> {% if ui_lang == 'en' %}Cash (নগদ){% else %}নগদ{% endif %}</a>
+      <a href="{% url 'web:customers' %}" class="{% if u == 'customers' %}active{% endif %}"><i class="fa-solid fa-hand-holding-dollar"></i> {% if ui_lang == 'en' %}Partner & Dues (পার্টনার ও বাকি){% else %}পার্টনার ও বাকি{% endif %}</a>
+      <a href="{% url 'web:expenses' %}" class="{% if u == 'expenses' %}active{% endif %}"><i class="fa-solid fa-cart-shopping"></i> {% if ui_lang == 'en' %}Expenses (খরচ){% else %}খরচ / ক্রয়{% endif %}</a>
+      <a href="{% url 'web:loans' %}" class="{% if u == 'loans' %}active{% endif %}"><i class="fa-solid fa-hand-holding-dollar"></i> {% if ui_lang == 'en' %}Loan (ঋণ){% else %}ঋণ{% endif %}</a>
+      <a href="{% url 'web:investments' %}" class="{% if u == 'investments' %}active{% endif %}"><i class="fa-solid fa-handshake"></i> {% if ui_lang == 'en' %}Investment (বিনিয়োগ){% else %}বিনিয়োগ{% endif %}</a>
+      <a href="{% url 'web:summary' %}" class="{% if u == 'summary' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i> {% if ui_lang == 'en' %}Summary (সারাংশ){% else %}হিসাব সারাংশ{% endif %}</a>
+      <a href="{% url 'web:reports' %}" class="{% if u == 'reports' %}active{% endif %}"><i class="fa-solid fa-file-lines"></i> {% if ui_lang == 'en' %}Reports (রিপোর্ট){% else %}রিপোর্ট{% endif %}</a>
+      <a href="{% url 'web:supercalc' %}" class="{% if u == 'supercalc' %}active{% endif %}"><i class="fa-solid fa-calculator"></i> {% if ui_lang == 'en' %}Super Calculator (সুপার ক্যালকুলেটর){% else %}সুপার ক্যালকুলেটর{% endif %}</a>
+      <a href="{% url 'drivesync:status' %}" class="{% if u == 'drivesync' %}active{% endif %}"><i class="fa-brands fa-google-drive"></i> {% if ui_lang == 'en' %}Google Drive Sync{% else %}গুগল ড্রাইভ সিঙ্ক{% endif %}</a>
+
+      <div class="section">{% t "Personal" %}</div>
+      <a href="{% url 'web:personal' %}" class="{% if u == 'personal' %}active{% endif %}"><i class="fa-solid fa-wallet"></i> {% t "Personal Finance" %}</a>
+
+      <div class="section">{% t "Tools" %}</div>
+      <a href="{% url 'web:assistant' %}" class="{% if u == 'assistant' %}active{% endif %}"><i class="fa-solid fa-wand-magic-sparkles"></i> {% t "Ask FinCore" %}</a>
+      {% if active_membership and active_membership.role == 'ADMIN' %}<a href="{% url 'web:business_users' %}" class="{% if u == 'business_users' %}active{% endif %}"><i class="fa-solid fa-user-shield"></i> {% if ui_lang == 'en' %}Team &amp; Permissions{% else %}টিম ও পারমিশন{% endif %}</a>{% endif %}
+      {% if request.user.is_staff or request.user.is_superuser %}<a href="{% url 'web:manage_users' %}" class="{% if u == 'manage_users' %}active{% endif %}"><i class="fa-solid fa-users-gear"></i> {% if ui_lang == 'en' %}Users{% else %}ব্যবহারকারী{% endif %}</a>{% endif %}
+      <a href="{% url 'web:reset_data' %}" class="{% if u == 'reset_data' %}active{% endif %}" style="color:#fca5a5"><i class="fa-solid fa-trash-can"></i> {% if ui_lang == 'en' %}Reset data{% else %}ডাটা রিসেট{% endif %}</a>
+      <a href="/admin/" target="_blank" rel="noopener"><i class="fa-solid fa-gear"></i> {% t "Admin Console" %}</a>
+      {% endwith %}
+    </nav>
+
+    <div class="grow"></div>
+
+    <div class="biz-switch" style="margin-bottom:0">
+      <label><i class="fa-solid fa-language"></i> {% t "Language" %} / Language</label>
+      <form method="post" action="{% url 'web:set_language' %}" style="display:flex;gap:8px;margin-top:8px">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button class="btn sm" name="lang" value="bn" type="submit" style="flex:1;{% if ui_lang != 'en' %}background:rgba(20,184,166,.28);color:#fff;border-color:rgba(45,212,191,.25){% else %}background:rgba(255,255,255,.08);color:#dce8f8;border-color:rgba(255,255,255,.12){% endif %}">বাংলা</button>
+        <button class="btn sm" name="lang" value="en" type="submit" style="flex:1;{% if ui_lang == 'en' %}background:rgba(20,184,166,.28);color:#fff;border-color:rgba(45,212,191,.25){% else %}background:rgba(255,255,255,.08);color:#dce8f8;border-color:rgba(255,255,255,.12){% endif %}">English</button>
+      </form>
+    </div>
+
+    {% if request.user.is_authenticated %}
+    <div class="biz-switch">
+      <label><i class="fa-solid fa-building"></i> {% t "Active business" %}</label>
+      <form method="post" action="{% url 'web:switch_business' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <select name="business_id" aria-label="{% t 'Active business' %}">
+          {% for m in memberships %}
+            <option value="{{ m.business_id }}" {% if active_business and active_business.id == m.business_id %}selected{% endif %}>{{ m.business.name }} ({{ m.role }})</option>
+          {% empty %}
+            <option value="">{% t "No business yet" %}</option>
+          {% endfor %}
+        </select>
+        {% if memberships %}<button type="submit">{% t "Switch" %}</button>{% endif %}
+      </form>
+      <a class="btn sm" href="{% url 'web:create_business' %}" style="margin-top:8px;width:100%;justify-content:center;background:rgba(255,255,255,.08);color:#e6eef8;border-color:rgba(255,255,255,.14)"><i class="fa-solid fa-plus"></i> {% if ui_lang == 'en' %}New business{% else %}নতুন ব্যবসা{% endif %}</a>
+      {% if active_membership and active_membership.role == 'ADMIN' %}
+      <a class="btn sm" href="{% url 'web:business_settings' %}" style="margin-top:8px;width:100%;justify-content:center;background:rgba(255,255,255,.08);color:#e6eef8;border-color:rgba(255,255,255,.14)"><i class="fa-solid fa-gear"></i> {% if ui_lang == 'en' %}Business settings{% else %}ব্যবসার সেটিংস{% endif %}</a>
+      {% endif %}
+    </div>
+    <button type="button" class="palette-trigger" id="paletteTrigger" aria-label="{% if ui_lang == 'en' %}Open command palette{% else %}কমান্ড প্যালেট খুলুন{% endif %}"><i class="fa-solid fa-magnifying-glass"></i><span>{% if ui_lang == 'en' %}Quick search…{% else %}দ্রুত খুঁজুন…{% endif %}</span><kbd>Ctrl K</kbd></button>
+    <form method="post" action="{% url 'web:logout' %}">
+      {% csrf_token %}
+      <button class="btn" type="submit" style="width:100%;justify-content:center;background:rgba(255,255,255,.06);color:#e6eef8;border-color:rgba(255,255,255,.12)"><i class="fa-solid fa-right-from-bracket"></i> {% t "Sign out" %} ({{ request.user.username }})</button>
+    </form>
+    {% endif %}
+  </aside>
+
+  <main class="main">
+    <div class="mobile-bar">
+      <button class="icon-btn" type="button" aria-label="{% t 'Open menu' %}" onclick="document.body.classList.toggle('nav-open')"><i class="fa-solid fa-bars"></i></button>
+      <button class="icon-btn" type="button" id="paletteTriggerMobile" aria-label="{% if ui_lang == 'en' %}Quick search{% else %}দ্রুত খুঁজুন{% endif %}"><i class="fa-solid fa-magnifying-glass"></i></button>
+      <div class="mbrand"><span class="logo-sm"><i class="fa-solid fa-coins"></i></span> FinCore ERP</div>
+    </div>
+
+    {% if request.user.is_authenticated %}
+    <div class="profile-fab">
+      <button class="notif-bell{% if notif_unread %} has-unread{% endif %}" id="notifBell" type="button"
+              aria-label="{% if ui_lang == 'en' %}Notifications{% else %}নোটিফিকেশন{% endif %}"
+              aria-haspopup="dialog" aria-expanded="false" aria-controls="notifDrawer">
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+        {% if notif_unread %}<span class="notif-badge" id="notifBadge">{{ notif_unread }}</span>{% endif %}
+      </button>
+      <button class="avatar-btn" id="avatarBtn" type="button" aria-haspopup="true" aria-expanded="false"
+              title="{% if ui_lang == 'en' %}My profile{% else %}আমার প্রোফাইল{% endif %}">
+        {% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="">{% else %}<span>{{ request.user.username|slice:":2"|upper }}</span>{% endif %}
+        <span class="avatar-dot" aria-hidden="true"></span>
+      </button>
+      <div class="avatar-menu" id="avatarMenu" hidden>
+        <div class="avatar-menu-head">
+          <div class="n">{{ request.user.get_full_name|default:request.user.username }}</div>
+          <div class="m">{{ request.user.email }}</div>
+        </div>
+        <a href="{% url 'web:profile' %}"><i class="fa-regular fa-id-badge"></i> {% if ui_lang == 'en' %}My profile &amp; settings{% else %}আমার প্রোফাইল ও সেটিংস{% endif %}</a>
+        <a href="{% url 'web:profile' %}#security"><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Password &amp; security{% else %}পাসওয়ার্ড ও নিরাপত্তা{% endif %}</a>
+        <div class="sep"></div>
+        <div class="theme-picker">
+          <div class="theme-picker-label"><i class="fa-solid fa-display"></i> {% if ui_lang == 'en' %}View{% else %}ভিউ{% endif %}</div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <form method="post" action="{% url 'web:set_view_mode' %}" style="flex:1">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <input type="hidden" name="view" value="desktop">
+              <button type="submit" class="btn sm" style="width:100%;justify-content:center;{% if ui_view == 'desktop' %}background:rgba(20,184,166,.28);color:#fff;border-color:rgba(45,212,191,.25){% else %}background:rgba(255,255,255,.08);color:#dce8f8;border-color:rgba(255,255,255,.12){% endif %}" title="ডেস্কটপ ভিউ"><i class="fa-solid fa-desktop"></i> ডেস্কটপ</button>
+            </form>
+            <form method="post" action="{% url 'web:set_view_mode' %}" style="flex:1">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <input type="hidden" name="view" value="mobile">
+              <button type="submit" class="btn sm" style="width:100%;justify-content:center;{% if ui_view == 'mobile' %}background:rgba(20,184,166,.28);color:#fff;border-color:rgba(45,212,191,.25){% else %}background:rgba(255,255,255,.08);color:#dce8f8;border-color:rgba(255,255,255,.12){% endif %}" title="মোবাইল ভিউ"><i class="fa-solid fa-mobile-screen"></i> মোবাইল</button>
+            </form>
+          </div>
+          {% if ui_view != 'auto' %}
+          <form method="post" action="{% url 'web:set_view_mode' %}" style="margin-top:6px">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <input type="hidden" name="view" value="auto">
+            <button type="submit" class="btn sm" style="width:100%;justify-content:center;background:rgba(255,255,255,.06);color:#dce8f8;border-color:rgba(255,255,255,.12)">অটো (রেসপন্সিভ)</button>
+          </form>
+          {% endif %}
+        </div>
+        <div class="sep"></div>
+        <div class="theme-picker">
+          <div class="theme-picker-label"><i class="fa-solid fa-palette"></i> {% if ui_lang == 'en' %}Theme{% else %}থিম{% endif %}</div>
+          <div class="theme-swatches">
+            {% for t_id, t_label, t_c1, t_c2 in theme_choices %}
+            <form method="post" action="{% url 'web:set_theme' %}" style="display:inline">
+              {% csrf_token %}
+              <input type="hidden" name="theme" value="{{ t_id }}">
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <button type="submit" class="theme-swatch{% if user_theme == t_id %} on{% endif %}"
+                      title="{{ t_label }}"
+                      style="background:linear-gradient(135deg,{{ t_c1 }} 0%,{{ t_c2 }} 100%)"
+                      aria-label="{{ t_label }}"></button>
+            </form>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="sep"></div>
+        <form method="post" action="{% url 'web:logout' %}">{% csrf_token %}<button type="submit"><i class="fa-solid fa-right-from-bracket"></i> {% t "Sign out" %}</button></form>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="notif-backdrop" id="notifBackdrop" hidden></div>
+    <div class="notif-drawer" id="notifDrawer" role="dialog" aria-modal="true" aria-label="{% if ui_lang == 'en' %}Notification center{% else %}নোটিফিকেশন সেন্টার{% endif %}" hidden>
+      <div class="notif-drawer-head">
+        <div>
+          <div class="notif-drawer-title"><i class="fa-solid fa-bell" aria-hidden="true"></i> {% if ui_lang == 'en' %}Notifications{% else %}নোটিফিকেশন সেন্টার{% endif %}</div>
+          <div class="notif-drawer-sub">{% if ui_lang == 'en' %}Everything new at a glance{% else %}সব নতুন খবর এক জায়গায়{% endif %}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button type="button" class="notif-mark-all" id="notifMarkAll"><i class="fa-solid fa-check-double"></i> {% if ui_lang == 'en' %}Mark all read{% else %}সব পড়েছি{% endif %}</button>
+          <button type="button" class="notif-mark-all notif-clear-btn" id="notifClear" title="{% if ui_lang == 'en' %}Delete all notifications{% else %}সব নোটিফিকেশন মুছে ফেলুন{% endif %}"><i class="fa-solid fa-trash-can"></i> {% if ui_lang == 'en' %}Clear{% else %}মুছুন{% endif %}</button>
+          <button type="button" class="notif-mark-all" id="notifClose" aria-label="{% if ui_lang == 'en' %}Close{% else %}বন্ধ{% endif %}" style="padding:7px 10px"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="notif-tabs" role="tablist">
+        <button class="notif-tab on" data-tab="timeline" role="tab"><i class="fa-solid fa-timeline" aria-hidden="true"></i> {% if ui_lang == 'en' %}Timeline{% else %}সময়রেখা{% endif %}<span class="cnt" id="notifTimelineCount" hidden></span></button>
+        <button class="notif-tab" data-tab="live" role="tab"><i class="fa-solid fa-bolt" aria-hidden="true"></i> {% if ui_lang == 'en' %}Live{% else %}লাইভ{% endif %} <span class="cnt" id="notifLiveCount" hidden></span></button>
+      </div>
+      <div class="notif-drawer-body" id="notifDrawerBody" aria-live="polite">
+        <div class="notif-loading"><i class="fa-solid fa-spinner spin" aria-hidden="true"></i></div>
+      </div>
+      <div class="notif-foot">
+        <span class="note">{% if ui_lang == 'en' %}Newest first · unread stays marked until read{% else %}নতুন আগে · পড়া হলেই চিহ্নিত হয়{% endif %}</span>
+        <a href="{% url 'web:notifications' %}">{% if ui_lang == 'en' %}View all →{% else %}সব দেখুন →{% endif %}</a>
+      </div>
+    </div>
+
+    <div class="backdrop" aria-hidden="true"></div>
+
+    {% if messages %}
+    <div class="messages" aria-live="polite">
+      {% for message in messages %}
+        <div class="msg {{ message.tags|default:'info' }}">
+          <i class="fa-solid {% if 'success' in message.tags %}fa-circle-check{% elif 'error' in message.tags %}fa-circle-exclamation{% elif 'warning' in message.tags %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+          <div>{{ message }}</div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+  </main>
+</div>
+<script>
+  addEventListener('resize', function(){ if(innerWidth>860 && document.documentElement.getAttribute('data-view') !== 'mobile') document.body.classList.remove('nav-open'); });
+  // mobile sidebar: reliable open/close
+  (function(){
+    var backdrop = document.querySelector('.backdrop');
+    function closeNav(){ document.body.classList.remove('nav-open'); }
+    if(backdrop) backdrop.addEventListener('click', closeNav);
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeNav(); });
+    document.addEventListener('click', function(e){
+      if(!document.body.classList.contains('nav-open')) return;
+      if(e.target.closest('.sidebar a') || e.target.closest('.sidebar-close')) closeNav();
+    });
+  })();
+  // profile avatar dropdown (top-right)
+  (function(){
+    var btn = document.getElementById('avatarBtn'), menu = document.getElementById('avatarMenu');
+    if(!btn || !menu) return;
+    function close(){ menu.hidden = true; btn.setAttribute('aria-expanded','false'); }
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      menu.hidden = !menu.hidden;
+      btn.setAttribute('aria-expanded', menu.hidden ? 'false' : 'true');
+    });
+    document.addEventListener('click', function(e){ if(!menu.hidden && !menu.contains(e.target) && e.target !== btn) close(); });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
+  })();
+  // notification center — bell + slide-in drawer
+  (function(){
+    var bell = document.getElementById('notifBell');
+    var drawer = document.getElementById('notifDrawer');
+    var backdrop = document.getElementById('notifBackdrop');
+    var body = document.getElementById('notifDrawerBody');
+    if(!bell || !drawer || !backdrop || !body) return;
+    var loaded = false, open = false;
+
+    function getCookie(name){
+      var m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return m ? decodeURIComponent(m[2]) : '';
+    }
+    function setBadge(n){
+      var badge = document.getElementById('notifBadge');
+      if(n > 0){
+        bell.classList.add('has-unread');
+        if(badge){ badge.textContent = n; }
+        else {
+          var b = document.createElement('span');
+          b.className = 'notif-badge'; b.id = 'notifBadge'; b.textContent = n;
+          bell.appendChild(b);
+        }
+      } else {
+        bell.classList.remove('has-unread');
+        if(badge) badge.remove();
+      }
+    }
+    function openDrawer(){
+      if(open) return; open = true;
+      backdrop.hidden = false; drawer.hidden = false;
+      bell.setAttribute('aria-expanded','true');
+      requestAnimationFrame(function(){
+        backdrop.classList.add('open'); drawer.classList.add('open');
+      });
+      document.body.style.overflow = 'hidden';
+      if(!loaded) loadDrawer();
+    }
+    function closeDrawer(){
+      if(!open) return; open = false;
+      backdrop.classList.remove('open'); drawer.classList.remove('open');
+      bell.setAttribute('aria-expanded','false');
+      document.body.style.overflow = '';
+      setTimeout(function(){ if(!open){ backdrop.hidden = true; drawer.hidden = true; } }, 340);
+    }
+    function loadDrawer(){
+      fetch('/notifications/drawer/?_=' + Date.now(), {credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          body.innerHTML = html;
+          loaded = true;
+          var live = body.querySelectorAll('[data-pane="live"] .notif-item').length;
+          var tl = body.querySelectorAll('[data-pane="timeline"] .notif-item').length;
+          var lc = document.getElementById('notifLiveCount');
+          var tc = document.getElementById('notifTimelineCount');
+          if(lc && live){ lc.textContent = live; lc.hidden = false; }
+          if(tc && tl){ tc.textContent = tl; tc.hidden = false; }
+          requestAnimationFrame(function(){
+            body.querySelectorAll('.notif-progress i').forEach(function(el){
+              var w = el.style.width; el.style.width = '0%';
+              requestAnimationFrame(function(){ el.style.width = w; });
+            });
+          });
+        })
+        .catch(function(){
+          body.innerHTML = '<div class="notif-empty"><div class="ei"><i class="fa-solid fa-wifi"></i></div><h4 style="margin:0">নোটিফিকেশন লোড করা যায়নি</h4></div>';
+        });
+    }
+    bell.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(open) { closeDrawer(); } else { openDrawer(); }
+    });
+    backdrop.addEventListener('click', closeDrawer);
+    document.getElementById('notifClose').addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDrawer(); });
+    drawer.addEventListener('click', function(e){
+      var t = e.target.closest('.notif-tab');
+      if(t){
+        drawer.querySelectorAll('.notif-tab').forEach(function(x){
+          x.classList.toggle('on', x === t);
+          x.setAttribute('aria-selected', x === t ? 'true' : 'false');
+        });
+        drawer.querySelectorAll('.notif-pane').forEach(function(p){
+          p.hidden = p.getAttribute('data-pane') !== t.getAttribute('data-tab');
+        });
+        return;
+      }
+      var all = e.target.closest('#notifMarkAll');
+      if(all){
+        e.preventDefault();
+        fetch('/notifications/read-all/', {method:'POST', credentials:'same-origin',
+          headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest'}})
+          .then(function(r){ return r.json(); })
+          .then(function(d){ if(d && d.ok){ setBadge(0); body.querySelectorAll('.notif-item.unread').forEach(function(n){ n.classList.remove('unread'); }); } });
+        return;
+      }
+      var clearBtn = e.target.closest('#notifClear');
+      if(clearBtn){
+        e.preventDefault();
+        var lang = document.documentElement.lang || 'bn';
+        var msg = lang === 'en'
+          ? 'Delete ALL notifications? This cannot be undone.'
+          : 'সব নোটিফিকেশন মুছে ফেলবেন? ফিরিয়ে আনা যাবে না।';
+        if(!window.confirm(msg)) return;
+        clearBtn.style.pointerEvents = 'none';
+        clearBtn.style.opacity = '.55';
+        // Android-style: fly the items away one by one, then reload
+        var items = body.querySelectorAll('a.notif-item');
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var pending = fetch('/notifications/clear/', {method:'POST', credentials:'same-origin',
+          headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest'}});
+        var finish = function(){
+          setBadge(0);
+          loaded = false;
+          loadDrawer();
+        };
+        if(reduced || !items.length){
+          pending.then(finish, finish);
+          return;
+        }
+        items.forEach(function(item, i){
+          item.style.setProperty('--clear-i', i);
+          item.style.maxHeight = item.offsetHeight + 'px';
+          item.offsetHeight; /* reflow so the collapse transition runs */
+          item.classList.add('notif-clearing');
+          item.classList.add('notif-collapse');
+        });
+        setTimeout(finish, items.length * 55 + 620);
+        return;
+      }
+      var item = e.target.closest('.notif-item.unread');
+      if(item && item.hasAttribute('data-notif-id')){
+        var id = item.getAttribute('data-notif-id');
+        item.classList.remove('unread');
+        var fd = new URLSearchParams();
+        fd.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+        if(navigator.sendBeacon){ navigator.sendBeacon('/notifications/read/' + encodeURIComponent(id) + '/', fd); }
+        else { fetch('/notifications/read/' + encodeURIComponent(id) + '/', {method:'POST', credentials:'same-origin', headers:{'X-CSRFToken':getCookie('csrftoken'),'X-Requested-With':'XMLHttpRequest'}}); }
+        var badge = document.getElementById('notifBadge');
+        var cur = badge ? (parseInt(badge.textContent, 10) || 0) : 0;
+        setBadge(Math.max(0, cur - 1));
+      }
+    });
+  })();
+
+  // smooth form submit: instant feedback + no jarring feel
+  document.addEventListener('submit', function(e){
+    var f = e.target;
+    if(f.dataset.submitting) return;
+    var btn = f.querySelector('button[type="submit"], button:not([type])');
+    if(btn && !btn.dataset.keep){
+      f.dataset.submitting = '1';
+      btn.disabled = true;
+      btn.dataset.orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner" style="animation:spin .7s linear infinite"></i> {% if ui_lang == "en" %}Saving...{% else %}সংরক্ষণ হচ্ছে...{% endif %}';
+    }
+  }, true);
+  // smooth navigation for internal links
+  if(document.startViewTransition){
+    document.addEventListener('click', function(e){
+      if(e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest('a');
+      if(!a || a.target || a.hasAttribute('download') || a.dataset.noTransition) return;
+      var href = a.getAttribute('href');
+      if(!href || href.charAt(0) === '#' || /^(https?:|mailto:|tel:|javascript:)/.test(href) || href.indexOf('/admin') === 0) return;
+      e.preventDefault();
+      document.startViewTransition(function(){ location.href = href; });
+    });
+  }
+  // same smooth page change for form submissions (date filters, actions);
+  // skipped when a confirm() gates the form or the submitter carries data
+  // (e.g. the language switch), or the form opts out via data-no-transition
+  if(document.startViewTransition){
+    document.addEventListener('submit', function(e){
+      var f = e.target;
+      if(e.defaultPrevented || f.hasAttribute('onsubmit') || f.hasAttribute('data-no-transition')) return;
+      if(f.target === '_blank') return;
+      var s = e.submitter;
+      if(s && (s.name || s.hasAttribute('formaction') || s.hasAttribute('formmethod'))) return;
+      e.preventDefault();
+      // A view transition never runs while the tab is hidden — submit
+      // natively there so the action is never stuck in the background.
+      if(document.hidden){ f.submit(); return; }
+      document.startViewTransition(function(){ f.submit(); });
+    }, true);
+  }
+  // A popover lives inside a .card, and .card's backdrop-filter traps its
+  // z-index in that card's stacking context — the next card would then cover
+  // the popover's buttons. Mark the card while a <details> inside it is open
+  // (the CSS also does this with :has(), this keeps older browsers working).
+  document.addEventListener('toggle', function(e){
+    var d = e.target;
+    if(!d || d.tagName !== 'DETAILS') return;
+    var card = d.closest('.card');
+    if(!card) return;
+    card.classList.toggle('card-open', d.open);
+    // Keep the popover above later siblings inside the same card (the
+    // partner grid would otherwise cover the "Add partner" form).
+    var host = d.parentElement;
+    if(host && host !== card) host.classList.toggle('pop-host-open', d.open);
+  }, true);
+  // prefetch internal pages on hover/focus for instant navigation
+  (function(){
+    var seen = {};
+    function prefetch(a){
+      try{
+        if(!a || a.target || a.hasAttribute('download')) return;
+        var href = a.href;
+        if(!href || a.origin !== location.origin) return;
+        if(/^\/(admin|logout)/.test(a.pathname)) return;
+        if(seen[href]) return;
+        seen[href] = 1;
+        var l = document.createElement('link');
+        l.rel = 'prefetch'; l.href = href; l.as = 'document';
+        document.head.appendChild(l);
+      }catch(err){}
+    }
+    document.addEventListener('pointerover', function(e){ prefetch(e.target.closest('a')); }, {passive:true});
+    document.addEventListener('focusin', function(e){ prefetch(e.target.closest('a')); }, {passive:true});
+  })();
+</script>
+<style>
+</style>
+{% endblock %}
+
+<div class="palette-backdrop" id="paletteBackdrop" hidden></div>
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="{% if ui_lang == 'en' %}Command palette{% else %}কমান্ড প্যালেট{% endif %}" hidden>
+  <div class="palette-input-wrap">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input class="palette-input" id="paletteInput" type="text" autocomplete="off" spellcheck="false" aria-label="{% if ui_lang == 'en' %}Search or command{% else %}খুঁজুন বা কমান্ড দিন{% endif %}" placeholder="{% if ui_lang == 'en' %}Search customers, pages, amounts — or type a command…{% else %}গ্রাহক, পেজ, টাকা খুঁজুন — অথবা কমান্ড লিখুন…{% endif %}">
+    <kbd class="palette-kbd-esc">ESC</kbd>
+  </div>
+  <div class="palette-results" id="paletteResults" role="listbox" aria-live="polite"></div>
+  <div class="palette-foot">
+    <span><kbd>↑</kbd><kbd>↓</kbd> {% if ui_lang == 'en' %}move{% else %}বেছে নিন{% endif %}</span>
+    <span><kbd>↵</kbd> {% if ui_lang == 'en' %}open{% else %}খুলুন{% endif %}</span>
+    <span><kbd>esc</kbd> {% if ui_lang == 'en' %}close{% else %}বন্ধ{% endif %}</span>
+    <span class="brand-dot">FINCORE ⌘K</span>
+  </div>
+</div>
+
+<div class="pwa-install" id="pwa-install" role="dialog" aria-live="polite" aria-label="{% if ui_lang == 'en' %}Install FinCore app{% else %}FinCore অ্যাপ ইনস্টল করুন{% endif %}" hidden>
+  <span class="pwa-install-icon" aria-hidden="true"><i class="fa-solid fa-mobile-screen-button"></i></span>
+  <span class="pwa-install-text">{% if ui_lang == 'en' %}FinCore, one tap away{% else %}FinCore — এক ট্যাপে{% endif %}<small>{% if ui_lang == 'en' %}Install on your phone — works offline, opens like a native app{% else %}ফোনে ইনস্টল করুন — অফলাইনেও খোলে, নেটিভ অ্যাপের মতো{% endif %}</small></span>
+  <button class="pwa-install-cta" id="pwa-install-cta" type="button">{% if ui_lang == 'en' %}Install{% else %}ইনস্টল{% endif %}</button>
+  <button class="pwa-install-close" id="pwa-install-close" type="button" aria-label="{% if ui_lang == 'en' %}Dismiss{% else %}বাতিল{% endif %}"><i class="fa-solid fa-xmark"></i></button>
+</div>
+
+<script>
+(function () {
+  // ---- service worker (PWA app-shell) ----------------------------------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+    });
+  }
+
+  // ---- install prompt banner -------------------------------------------
+  var bar = document.getElementById('pwa-install');
+  var cta = document.getElementById('pwa-install-cta');
+  var closeBtn = document.getElementById('pwa-install-close');
+  if (!bar || !cta || !closeBtn) return;
+  var deferred = null;
+
+  function standalone() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+  }
+  function dismissed() {
+    try { return window.sessionStorage.getItem('pwa-install-dismissed') === '1'; }
+    catch (e) { return false; }
+  }
+  function hide() { bar.classList.remove('show'); }
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferred = e;
+    if (dismissed() || standalone()) return;
+    bar.hidden = false;
+    // force reflow so the slide-up transition plays
+    void bar.offsetWidth;
+    bar.classList.add('show');
+  });
+
+  cta.addEventListener('click', function () {
+    if (!deferred) { hide(); return; }
+    deferred.prompt();
+    deferred.userChoice.then(function () {
+      deferred = null;
+      hide();
+    }).catch(function () { hide(); });
+  });
+
+  closeBtn.addEventListener('click', function () {
+    try { window.sessionStorage.setItem('pwa-install-dismissed', '1'); } catch (e) {}
+    hide();
+  });
+
+  window.addEventListener('appinstalled', function () { hide(); });
+})();
+</script>
+</body>
+</html>

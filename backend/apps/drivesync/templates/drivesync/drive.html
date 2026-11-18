@@ -1,0 +1,137 @@
+{% extends "web/base.html" %}
+{% load i18n_tags %}
+{% block title %}অটো ব্যাকআপ ও ক্লাউড সিঙ্ক — FinCore ERP{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-cloud-arrow-up" style="color:var(--brand)"></i> অটো ব্যাকআপ ও ক্লাউড সিঙ্ক</h2>
+    <p>আপনার ব্যক্তিগত ও ব্যবসায়িক সব ডেটার দৈনিক স্ন্যাপশট — ডাউনলোড করুন, গুগল ড্রাইভে জমা রাখুন, যেকোনো সময় ফিরিয়ে আনুন।</p>
+  </div>
+  <div class="chips">
+    {% if account and account.status == 'CONNECTED' %}
+      <span class="chip" style="background:rgba(236,253,245,.9);color:#047857;border-color:rgba(16,185,129,.4)"><i class="fa-solid fa-circle-check"></i> Drive সংযুক্ত</span>
+    {% else %}
+      <span class="chip" style="background:rgba(254,242,242,.9);color:#b91c1c;border-color:rgba(239,68,68,.35)"><i class="fa-solid fa-circle-xmark"></i> Drive সংযুক্ত নয়</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="max-width:960px">
+  <h3 style="margin-top:0"><i class="fa-solid fa-circle-info"></i> এটি কী এবং কেন</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:8px">
+    <div style="border:1px solid var(--line);border-radius:14px;padding:14px;background:transparent">
+      <div style="font-weight:800;margin-bottom:5px"><i class="fa-solid fa-cloud" style="color:var(--brand)"></i> গুগল ড্রাইভে জমা</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.5">আপনার ব্যক্তিগত ও ব্যবসায়ের পুরো ডেটার JSON ফাইল <em>FinCore ERP Backup/fincore-backup.json</em> নামে Drive-এ আপলোড হয়। আপনার কম্পিউটারের কোনো ক্ষতি হলেও ডেটা ফেরাতে পারবেন।</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:14px;padding:14px;background:transparent">
+      <div style="font-weight:800;margin-bottom:5px"><i class="fa-solid fa-file-arrow-down" style="color:#2563eb"></i> ডাউনলোড</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.5">কোনো ধাপ ছাড়াই — এক ক্লিকেই ডেটার পুরো স্ন্যাপশট আপনার কম্পিউটারে .json ফাইল হিসেবে ডাউনলোড হয়।</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:14px;padding:14px;background:transparent">
+      <div style="font-weight:800;margin-bottom:5px"><i class="fa-solid fa-rotate-left" style="color:#d97706"></i> রিস্টোর</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.5">Drive বা একটি লোকাল ফাইল থেকে — আগের কোনো তারিখের অবস্থায় ফিরে যাওয়া যাবে। একক মালিকানার ব্যবসায় পুরানো ডেটা মুছে নতুন সেট সঠিকভাবে ঢোকে।</div>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:6px"><i class="fa-solid fa-shield-halved" style="color:var(--brand)"></i> <strong>সিকিউরিটি:</strong> গুগলের <code>drive.file</code> স্কোপ ব্যবহৃত হয় — শুধু এই ফাইল এবং এই ফোল্ডার ছাড়া আর কোনো ফাইলে আমাদের অ্যাক্সেস নেই। সব রিফ্রেশ টোকেন এনক্রিপ্টেড অবস্থায় রাখা হয়।</p>
+</div>
+
+<div class="card" style="max-width:960px;margin-top:14px">
+  <div class="section-head" style="margin-top:0"><h3><i class="fa-solid fa-download"></i> তাৎক্ষণিক ব্যাকআপ ও রিস্টোর <span class="badge b-muted">লোকাল ফাইল</span></h3></div>
+  <div class="form-grid" style="margin-top:0">
+    <div class="field full">
+      <a class="btn" href="{% url 'drivesync:download' %}" style="background:#2563eb;color:#fff;text-decoration:none;justify-content:center" data-no-transition><i class="fa-solid fa-file-arrow-down"></i> এখনই ব্যাকআপ ডাউনলোড করুন (.json)</a>
+    </div>
+    <div class="field full" style="border-top:1px dashed var(--line);padding-top:14px;margin-top:2px">
+      <form method="post" action="{% url 'drivesync:upload_restore' %}" enctype="multipart/form-data" onsubmit="return confirm('ফাইল থেকে রিস্টোর করলে বর্তমান ডেটার ওপর অতিরিক্ত লেখা হবে। নিশ্চিত?');">
+        {% csrf_token %}
+        <input type="hidden" name="confirm" value="RESTORE" />
+        <label for="bkp-file" style="font-weight:800;font-size:12px;color:var(--muted);margin-bottom:8px;display:block">Drive বিহীন ব্যাকআপ — ফাইল থেকে রিস্টোর</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="bkp-file" type="file" name="backup_file" accept=".json,application/json" style="flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel-solid);font:inherit;font-size:13px" />
+          <button class="btn" type="submit" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff"><i class="fa-solid fa-rotate-left"></i> ফাইল রিস্টোর</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="max-width:960px;margin-top:14px">
+  <div class="section-head" style="margin-top:0"><h3><i class="fa-solid fa-cloud"></i> গুগল ড্রাইভ সিঙ্ক <span class="badge b-muted">ক্লাউড</span></h3></div>
+  <div class="form-grid" style="margin-top:0">
+    <div class="field full"><label>যুক্ত অ্যাকাউন্ট</label><div class="value">{{ account.email|default:"— (কোনো অ্যাকাউন্ট নেই)" }}</div></div>
+    <div class="field"><label>শেষ সিঙ্ক</label><div class="value">{{ account.last_sync_at|default:"—" }}</div></div>
+    <div class="field"><label>শেষ রিস্টোর</label><div class="value">{{ account.last_restore_at|default:"—" }}</div></div>
+    <div class="field"><label>ব্যাকআপ ফাইল</label><div class="value">{{ account.last_file_name|default:"—" }}</div></div>
+    <div class="field"><label>মোড</label><div class="value">{% if account %}✓ সংযুক্ত{% else %}- সংযুক্ত নয়{% endif %}</div></div>
+  </div>
+
+  {% if not configured %}
+  <div class="msg error" style="margin-top:14px"><i class="fa-solid fa-triangle-exclamation"></i><div>
+    <strong>.env-এ গুগল Drive OAuth সেট করা হয়নি</strong><br>
+    <code style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:4px 8px;display:inline-block;margin-top:6px">GOOGLE_CLIENT_ID=...&nbsp;&nbsp;GOOGLE_CLIENT_SECRET=...&nbsp;&nbsp;SITE_BASE_URL=https://your-domain.com</code><br>
+    <span style="font-size:12px;color:var(--muted)">গুগল ক্লাউড কনসোলে OAuth App তৈরি করে এই মানগুলো বসান।</span>
+  </div></div>
+  {% endif %}
+
+  <div class="form-grid" style="margin-top:16px">
+    {% if not account %}
+    <div class="field full">
+      <a href="{% url 'drivesync:connect' %}" class="btn" style="background:#2563eb;color:#fff;justify-content:center;text-decoration:none"><i class="fa-brands fa-google-drive"></i> গুগল অ্যাকাউন্ট সংযুক্ত করুন</a>
+    </div>
+    {% else %}
+    <div class="field">
+      <form method="post" action="{% url 'drivesync:sync' %}">
+        {% csrf_token %}
+        <button class="btn" type="submit" style="background:#059669;color:#fff;justify-content:center;width:100%"><i class="fa-solid fa-cloud-arrow-up"></i> এখনই Drive-এ সিঙ্ক (ব্যাকআপ)</button>
+      </form>
+    </div>
+    <div class="field">
+      <form method="post" action="{% url 'drivesync:restore' %}" onsubmit="return confirm('Drive-এর বর্তমান ব্যাকআপ থেকে রিস্টোর করবেন?');">
+        {% csrf_token %}
+        <input type="hidden" name="confirm" value="RESTORE" />
+        <button class="btn" type="submit" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;justify-content:center;width:100%"><i class="fa-solid fa-rotate-left"></i> Drive থেকে রিস্টোর</button>
+      </form>
+    </div>
+    <div class="field">
+      <form method="post" action="{% url 'drivesync:inspect' %}">
+        {% csrf_token %}
+        <button class="btn" type="submit" style="background:#eef2ff;color:#3730a3;border-color:#c7d2fe;justify-content:center;width:100%"><i class="fa-solid fa-magnifying-glass"></i> ব্যাকআপে কী আছে দেখুন</button>
+      </form>
+    </div>
+    <div class="field">
+      <form method="post" action="{% url 'drivesync:disconnect' %}" onsubmit="return confirm('Drive সংযোগ বিচ্ছিন্ন করবেন?');">
+        {% csrf_token %}
+        <button class="btn" type="submit" style="background:#fee2e2;color:#991b1b;border-color:#fecaca;justify-content:center;width:100%"><i class="fa-solid fa-unlink"></i> Drive বিচ্ছিন্ন</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <p class="muted" style="margin-top:14px;font-size:12px"><i class="fa-solid fa-circle-info"></i> <strong>যা সিঙ্ক হয়:</strong> ব্যক্তিগত লেনদেন/বাজেট/লক্ষ্য/ঋণ/অ্যাকাউন্ট + ব্যবসার লেনদেন/কাস্টমার/পার্টনার/ঋণ/মেম্বার/জার্নাল/পিরিয়ড — সবসময় বিদ্যমান ডেটার ওপর <em>নতুন</em> করে সংযোজিত হয় না, <em>match-by-key (uuid)</em> করে। একক মালিকের ব্যবসায় সাজানো মুছে নতুন সেট ঢোকে; শেয়ার করা ব্যবসায় আপনার রো গুলো শুধু আপডেট হয়, অন্যের ডেটা স্পর্শে আসে না।</p>
+</div>
+
+<div class="card" style="max-width:960px;margin-top:14px;padding:16px 18px">
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:12px;min-width:0">
+      <div class="ab-bolt" aria-hidden="true"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <div style="font-weight:800;font-size:15px;letter-spacing:-.01em">Auto Backup</div>
+        <div class="muted" style="font-size:12px;margin-top:2px">Last run: {% if last_auto %}{{ last_auto|date:"d M Y, H:i" }}{% else %}never{% endif %}{% if not auto_backup_enabled %} · <span style="color:#f87171;font-weight:800">OFF</span>{% endif %}</div>
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      {% if auto_backup_enabled %}<span class="ab-state ab-on">ON</span>{% else %}<span class="ab-state ab-off">OFF</span>{% endif %}
+      {% if can_toggle %}
+      <form method="post" action="{% url 'drivesync:auto_backup_toggle' %}" style="margin:0">
+        {% csrf_token %}
+        <button type="submit" class="ab-switch{% if auto_backup_enabled %} on{% endif %}" role="switch" aria-checked="{{ auto_backup_enabled|yesno:'true,false' }}" aria-label="Toggle auto backup">
+          <span class="ab-knob"></span>
+        </button>
+      </form>
+      {% else %}
+      <span class="muted" style="font-size:11px;font-weight:600">Owner/Admin only</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

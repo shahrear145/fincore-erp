@@ -1,0 +1,62 @@
+{% load fmt %}
+<div class="notif-pane" data-pane="timeline">
+  {% if events %}
+  <div class="notif-group">{% if en %}Recent events{% else %}সাম্প্রতিক ইভেন্ট{% endif %}</div>
+  {% for n in events %}
+  <a class="notif-item{% if not n.is_read %} unread{% endif %}" href="{{ n.link|default:'/notifications/' }}"
+     data-notif-id="{{ n.id }}" rel="noopener">
+    <span class="notif-aur {{ n.tone }}"><i class="fa-solid {{ n.icon }}"></i></span>
+    <span class="notif-txt">
+      <span class="notif-ttl">{{ n.title }}</span>
+      <span class="notif-sub">
+        {% if n.amount %}<span class="notif-amt">{{ n.amount|money }}</span><span aria-hidden="true">·</span>{% endif %}
+        <time datetime="{{ n.created_at|date:'c' }}">{{ n.rel }}</time>
+      </span>
+    </span>
+    {% if not n.is_read %}<span class="notif-unread-dot" aria-hidden="true"></span>{% endif %}
+  </a>
+  {% endfor %}
+  <div class="notif-group" style="text-align:center;letter-spacing:0;text-transform:none;font-size:11px">
+    {% if en %}Showing the newest {{ events|length }} events{% else %}সর্বশেষ {{ events|length }} টি ইভেন্ট{% endif %}
+  </div>
+  {% else %}
+  <div class="notif-empty">
+    <div class="ei"><i class="fa-solid fa-bell"></i></div>
+    <h4 style="margin:0 0 4px;color:var(--m-ink, var(--ink))">{% if en %}No notifications yet{% else %}এখনো কোনো নোটিফিকেশন নেই{% endif %}</h4>
+    <p style="margin:0;font-size:12.5px">{% if en %}Baki, reminders and budget crossings will appear here.{% else %}বাকি, রিমাইন্ডার আর বাজেটের ঘটনা এখানে আসবে।{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="notif-pane" data-pane="live" hidden>
+  {% if alerts %}
+  <div class="notif-group">{% if en %}Needs attention now{% else %}একনজরে দেখুন{% endif %} · <span class="notif-live-tag"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor"></span> Live</span></div>
+  {% for a in alerts %}
+  <div class="notif-item tone-{{ a.tone }}">
+    <span class="notif-aur {{ a.tone }}"><i class="fa-solid {{ a.icon }}"></i></span>
+    <span class="notif-txt">
+      <span class="notif-ttl">{{ a.title }}</span>
+      <span class="notif-sub"><span>{{ a.body }}</span></span>
+      {% if a.kind == 'BUDGET_OVER' %}
+      <span class="notif-progress" aria-hidden="true"><i style="width:{{ a.pct|default:100 }}%"></i></span>
+      <span class="notif-sub" style="margin-top:3px"><span style="font-variant-numeric:tabular-nums">{% if en %}Over by{% else %}ছাড়েছে{% endif %} ৳{{ a.amount|floatformat:2 }}</span></span>
+      {% elif a.kind == 'INSTALLMENT_DUE' %}
+      <span class="notif-sub" style="margin-top:5px">
+        {% if a.overdue %}
+        <span class="notif-countdown"><i class="fa-solid fa-triangle-exclamation"></i> {% if en %}{{ a.days_abs }}d overdue{% else %}{{ a.days_abs }} দিন ওভারডিউ{% endif %}</span>
+        {% else %}
+        <span class="notif-countdown ok"><i class="fa-solid fa-hourglass-half"></i> {% if en %}{{ a.days_left }}d left{% else %}{{ a.days_left }} দিন বাকি{% endif %}</span>
+        {% endif %}
+      </span>
+      {% endif %}
+    </span>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="notif-empty">
+    <div class="ei"><i class="fa-solid fa-check"></i></div>
+    <h4 style="margin:0 0 4px;color:var(--m-ink, var(--ink))">{% if en %}All quiet here{% else %}সবই ঠিক আছে{% endif %}</h4>
+    <p style="margin:0;font-size:12.5px">{% if en %}No budgets over, no installments due this week.{% else %}বাজেট ছাড়ছে না, এই সপ্তাহে কোনো কিস্তি নেই।{% endif %}</p>
+  </div>
+  {% endif %}
+</div>

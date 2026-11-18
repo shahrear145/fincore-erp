@@ -1,0 +1,250 @@
+/* ==========================================================================
+   FinCore — THEME LIBRARY
+   Every theme only swaps colours; the layout stays exactly the same.
+   Pick one in the avatar menu (Theme) — the choice is saved on the user
+   account, so it follows you to every device.
+
+     PREMIUM  (glass, gradients, soft light)
+       premium    Ivory · Navy · Gold      (default)
+       midnight   Midnight Blue · Gold
+       emerald    Emerald · Gold
+       royal      Royal Violet · Gold
+       rose       Rose Champagne
+
+     STANDARD  (flat, clean, no gloss)
+       flat-teal      Flat · Teal
+       flat-indigo    Flat · Indigo
+       flat-emerald   Flat · Emerald
+       flat-slate     Flat · Graphite
+       flat-crimson   Flat · Crimson
+   ========================================================================== */
+
+/* ============================ PREMIUM — Ivory · Navy · Gold ============ */
+[data-theme="premium"]{
+  --t-body-1:#faf6ed; --t-body-2:#f8f7f3; --t-body-3:#f1f5f5;
+  --t-blob-1:rgba(240,192,74,.80); --t-blob-2:rgba(45,212,191,.55);
+  --t-blob-3:rgba(212,160,23,.60);  --t-blob-4:rgba(11,37,69,.42);
+  --t-blob-opacity:.20;
+  --t-card-1:rgba(255,255,255,.97); --t-card-2:rgba(255,253,247,.94);
+  --t-card-3:rgba(248,251,251,.94); --t-card-border:rgba(214,176,90,.28);
+  --t-card-shadow:0 22px 48px -20px rgba(120,90,20,.24),0 5px 14px -5px rgba(11,37,69,.10);
+  --t-card-shadow-hover:0 32px 66px -22px rgba(120,90,20,.30),0 8px 18px -6px rgba(11,37,69,.12);
+  --t-seam:linear-gradient(90deg,#8a6a12 0%,#b8860b 20%,#e8c46a 44%,#f3e3b6 66%,#b8860b 100%);
+  --t-seam-opacity:.85;
+  --t-heading:#0b2545; --t-label:#8a6a12; --t-value:#0b2545; --t-soft:#5c6b80;
+  --t-btn-1:#0b2545; --t-btn-2:#123a63; --t-btn-3:#145f6b; --t-btn-shadow:rgba(11,37,69,.5);
+  --t-chip-1:rgba(253,247,230,.96); --t-chip-2:rgba(240,232,203,.86);
+  --t-chip-ink:#7a5c0d; --t-chip-border:rgba(214,176,90,.6);
+  --t-table-head:#8a6a12; --t-table-border:rgba(214,176,90,.28);
+  --t-row-1:rgba(255,255,255,.58); --t-row-2:rgba(255,253,247,.46); --t-row-hover:rgba(253,247,230,.9);
+  --t-side-1:#040d1c; --t-side-2:#0a1f40; --t-side-3:#102e4a;
+  --t-side-ink:#dce9fa; --t-side-muted:#8aa6cf; --t-side-hover:rgba(255,255,255,.09);
+  --t-side-border:rgba(255,255,255,.11);
+  --t-side-active:linear-gradient(90deg,rgba(212,160,23,.30),rgba(212,160,23,.05));
+  --t-side-active-ink:#fff;
+  --t-side-logo:linear-gradient(135deg,#fde68a,#d99a1f 45%,#c9961b);
+  --t-card-gold-1:rgba(253,247,230,.98); --t-card-gold-2:rgba(246,237,215,.95);
+  --t-card-gold-3:rgba(240,232,203,.93);
+}
+
+/* ============================ PREMIUM — Midnight Blue · Gold =========== */
+[data-theme="midnight"]{
+  --t-body-1:#0a1526; --t-body-2:#0d1b31; --t-body-3:#101f38;
+  --t-blob-1:rgba(56,130,246,.45); --t-blob-2:rgba(212,160,23,.38);
+  --t-blob-3:rgba(124,58,237,.34);  --t-blob-4:rgba(45,212,191,.26);
+  --t-blob-opacity:.30;
+  --t-card-1:rgba(255,255,255,.07); --t-card-2:rgba(255,255,255,.05);
+  --t-card-3:rgba(255,255,255,.04); --t-card-border:rgba(255,255,255,.12);
+  --t-card-shadow:0 22px 50px -20px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.08) inset;
+  --t-card-shadow-hover:0 32px 70px -22px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.16) inset;
+  --t-seam:linear-gradient(90deg,#b8860b 0%,#f0c04a 34%,#fde68a 58%,#38bdf8 100%);
+  --t-seam-opacity:.9;
+  --t-heading:#f2f6ff; --t-label:#f0c04a; --t-value:#eef3ff; --t-soft:#9db0d0;
+  --t-btn-1:#1e3a8a; --t-btn-2:#1d4ed8; --t-btn-3:#b8860b; --t-btn-shadow:rgba(0,0,0,.5);
+  --t-chip-1:rgba(253,230,138,.16); --t-chip-2:rgba(30,58,138,.35);
+  --t-chip-ink:#fde68a; --t-chip-border:rgba(240,192,74,.45);
+  --t-table-head:#f0c04a; --t-table-border:rgba(255,255,255,.12);
+  --t-row-1:rgba(255,255,255,.04); --t-row-2:rgba(255,255,255,.02); --t-row-hover:rgba(56,130,246,.16);
+  --t-side-1:#050b18; --t-side-2:#0b1a33; --t-side-3:#122a4d;
+  --t-side-ink:#e6eefc; --t-side-muted:#8ba3ca; --t-side-hover:rgba(255,255,255,.07);
+  --t-side-border:rgba(255,255,255,.12);
+  --t-side-active:linear-gradient(90deg,rgba(240,192,74,.28),rgba(240,192,74,.04));
+  --t-side-active-ink:#fff;
+  --t-side-logo:linear-gradient(135deg,#fde68a,#d99a1f 45%,#38bdf8);
+  --t-card-gold-1:rgba(240,192,74,.16); --t-card-gold-2:rgba(212,160,23,.10);
+  --t-card-gold-3:rgba(30,58,138,.18);
+}
+[data-theme="midnight"] .card h3,[data-theme="midnight"] .section-head h3,
+[data-theme="midnight"] .topbar h2{color:#f2f6ff}
+[data-theme="midnight"] .card,[data-theme="midnight"] .sum-card{color:#dbe6fb}
+[data-theme="midnight"] .topbar p,[data-theme="midnight"] .card .muted{color:#9db0d0}
+[data-theme="midnight"] .table-wrap{background:rgba(255,255,255,.05)}
+[data-theme="midnight"] .khata-table td{color:#e6edfb}
+[data-theme="midnight"] .khata-table th{background:rgba(255,255,255,.07);color:#f0c04a}
+[data-theme="midnight"] .khata-search{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03))}
+[data-theme="midnight"] input,[data-theme="midnight"] select,[data-theme="midnight"] textarea{
+  background-color:rgba(255,255,255,.07);color:#eaf1ff;border-color:rgba(255,255,255,.16)}
+[data-theme="midnight"] input:focus,[data-theme="midnight"] select:focus,
+[data-theme="midnight"] textarea:focus{background-color:rgba(255,255,255,.12);color:#fff}
+[data-theme="midnight"] .btn{background:rgba(255,255,255,.09);color:#e8eeff;border-color:rgba(255,255,255,.16)}
+[data-theme="midnight"] .btn:hover{background:rgba(255,255,255,.16)}
+[data-theme="midnight"] .exp-empty .ei{background:rgba(255,255,255,.07);color:#8fa4c6}
+[data-theme="midnight"] .msg{background:rgba(255,255,255,.07)}
+[data-theme="midnight"] .hero,[data-theme="midnight"] .sum-hero,[data-theme="midnight"] .pos-hero,
+[data-theme="midnight"] .ln-hero,[data-theme="midnight"] .sc-hero{
+  background:linear-gradient(135deg,#0a1526 0%,#132449 55%,#1e3a8a 100%) !important;
+  box-shadow:0 30px 80px -24px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.1)}
+
+/* ============================ PREMIUM — Emerald · Gold ================= */
+[data-theme="emerald"]{
+  --t-body-1:#f0faf5; --t-body-2:#f4f9f6; --t-body-3:#f1f6f4;
+  --t-blob-1:rgba(52,211,153,.55); --t-blob-2:rgba(240,192,74,.50);
+  --t-blob-3:rgba(16,185,129,.40);  --t-blob-4:rgba(6,95,70,.28);
+  --t-blob-opacity:.26;
+  --t-card-1:rgba(255,255,255,.96); --t-card-2:rgba(246,255,250,.92);
+  --t-card-3:rgba(240,253,247,.92); --t-card-border:rgba(16,185,129,.30);
+  --t-card-shadow:0 22px 48px -20px rgba(6,95,70,.26),0 5px 14px -5px rgba(6,95,70,.10);
+  --t-card-shadow-hover:0 32px 66px -22px rgba(6,95,70,.32),0 8px 18px -6px rgba(6,95,70,.12);
+  --t-seam:linear-gradient(90deg,#065f46 0%,#10b981 26%,#f0c04a 62%,#b8860b 100%);
+  --t-seam-opacity:.9;
+  --t-heading:#064e3b; --t-label:#0f766e; --t-value:#052e26; --t-soft:#556b64;
+  --t-btn-1:#064e3b; --t-btn-2:#0f766e; --t-btn-3:#10b981; --t-btn-shadow:rgba(6,95,70,.45);
+  --t-chip-1:rgba(204,251,241,.96); --t-chip-2:rgba(254,243,199,.9);
+  --t-chip-ink:#065f46; --t-chip-border:rgba(16,185,129,.5);
+  --t-table-head:#0f766e; --t-table-border:rgba(16,185,129,.28);
+  --t-row-1:rgba(255,255,255,.58); --t-row-2:rgba(240,253,247,.5); --t-row-hover:rgba(209,250,229,.9);
+  --t-side-1:#04231c; --t-side-2:#06342a; --t-side-3:#0a4a3a;
+  --t-side-ink:#dcfce7; --t-side-muted:#8fc9b6; --t-side-hover:rgba(255,255,255,.08);
+  --t-side-border:rgba(255,255,255,.12);
+  --t-side-active:linear-gradient(90deg,rgba(52,211,153,.28),rgba(52,211,153,.04));
+  --t-side-active-ink:#fff;
+  --t-side-logo:linear-gradient(135deg,#6ee7b7,#10b981 45%,#f0c04a);
+  --t-card-gold-1:rgba(253,247,230,.98); --t-card-gold-2:rgba(246,237,215,.95);
+  --t-card-gold-3:rgba(240,232,203,.93);
+}
+
+/* ============================ PREMIUM — Royal Violet · Gold ============= */
+[data-theme="royal"]{
+  --t-body-1:#f7f3fd; --t-body-2:#f8f5fc; --t-body-3:#f4f2fb;
+  --t-blob-1:rgba(168,85,247,.50); --t-blob-2:rgba(240,192,74,.46);
+  --t-blob-3:rgba(124,58,237,.36);  --t-blob-4:rgba(76,29,149,.26);
+  --t-blob-opacity:.26;
+  --t-card-1:rgba(255,255,255,.96); --t-card-2:rgba(250,245,255,.93);
+  --t-card-3:rgba(245,240,255,.93); --t-card-border:rgba(124,58,237,.26);
+  --t-card-shadow:0 22px 48px -20px rgba(76,29,149,.28),0 5px 14px -5px rgba(124,58,237,.10);
+  --t-card-shadow-hover:0 32px 66px -22px rgba(76,29,149,.34),0 8px 18px -6px rgba(124,58,237,.12);
+  --t-seam:linear-gradient(90deg,#4c1d95 0%,#7c3aed 26%,#c084fc 52%,#f0c04a 100%);
+  --t-seam-opacity:.9;
+  --t-heading:#2e1065; --t-label:#6d28d9; --t-value:#1e0b45; --t-soft:#615b7a;
+  --t-btn-1:#3b1373; --t-btn-2:#6d28d9; --t-btn-3:#a855f7; --t-btn-shadow:rgba(76,29,149,.45);
+  --t-chip-1:rgba(237,233,254,.96); --t-chip-2:rgba(254,243,199,.9);
+  --t-chip-ink:#5b21b6; --t-chip-border:rgba(167,139,250,.5);
+  --t-table-head:#6d28d9; --t-table-border:rgba(124,58,237,.26);
+  --t-row-1:rgba(255,255,255,.58); --t-row-2:rgba(245,240,255,.5); --t-row-hover:rgba(237,233,254,.9);
+  --t-side-1:#1b0b3a; --t-side-2:#2a1152; --t-side-3:#3b1d6e;
+  --t-side-ink:#ede9fe; --t-side-muted:#b3a2d6; --t-side-hover:rgba(255,255,255,.09);
+  --t-side-border:rgba(255,255,255,.12);
+  --t-side-active:linear-gradient(90deg,rgba(168,85,247,.30),rgba(168,85,247,.05));
+  --t-side-active-ink:#fff;
+  --t-side-logo:linear-gradient(135deg,#fde68a,#a855f7 50%,#d946ef);
+  --t-card-gold-1:rgba(253,247,230,.98); --t-card-gold-2:rgba(246,237,215,.95);
+  --t-card-gold-3:rgba(240,232,203,.93);
+}
+
+/* ============================ PREMIUM — Rose Champagne ================== */
+[data-theme="rose"]{
+  --t-body-1:#fdf5f3; --t-body-2:#fbf6f5; --t-body-3:#f8f2f5;
+  --t-blob-1:rgba(251,146,190,.48); --t-blob-2:rgba(240,192,74,.42);
+  --t-blob-3:rgba(244,114,182,.34);  --t-blob-4:rgba(136,19,55,.22);
+  --t-blob-opacity:.24;
+  --t-card-1:rgba(255,255,255,.96); --t-card-2:rgba(255,247,250,.93);
+  --t-card-3:rgba(252,244,247,.93); --t-card-border:rgba(244,114,182,.28);
+  --t-card-shadow:0 22px 48px -20px rgba(136,19,55,.24),0 5px 14px -5px rgba(136,19,55,.10);
+  --t-card-shadow-hover:0 32px 66px -22px rgba(136,19,55,.30),0 8px 18px -6px rgba(136,19,55,.12);
+  --t-seam:linear-gradient(90deg,#9d174d 0%,#db2777 26%,#f0c04a 62%,#fde68a 100%);
+  --t-seam-opacity:.9;
+  --t-heading:#500724; --t-label:#be185d; --t-value:#4a0620; --t-soft:#7a5a66;
+  --t-btn-1:#881337; --t-btn-2:#be185d; --t-btn-3:#e879a6; --t-btn-shadow:rgba(136,19,55,.42);
+  --t-chip-1:rgba(252,231,243,.96); --t-chip-2:rgba(254,243,199,.9);
+  --t-chip-ink:#9d174d; --t-chip-border:rgba(244,114,182,.5);
+  --t-table-head:#be185d; --t-table-border:rgba(244,114,182,.26);
+  --t-row-1:rgba(255,255,255,.58); --t-row-2:rgba(252,244,247,.5); --t-row-hover:rgba(252,231,243,.9);
+  --t-side-1:#3b0a1d; --t-side-2:#5c1030; --t-side-3:#7d1746;
+  --t-side-ink:#ffe4e6; --t-side-muted:#d9a3b4; --t-side-hover:rgba(255,255,255,.09);
+  --t-side-border:rgba(255,255,255,.12);
+  --t-side-active:linear-gradient(90deg,rgba(244,114,182,.30),rgba(244,114,182,.05));
+  --t-side-active-ink:#fff;
+  --t-side-logo:linear-gradient(135deg,#fde68a,#f472b6 50%,#fb7185);
+  --t-card-gold-1:rgba(253,247,230,.98); --t-card-gold-2:rgba(246,237,215,.95);
+  --t-card-gold-3:rgba(240,232,203,.93);
+}
+
+/* ============================== STANDARD — flat, no gloss =============== */
+/* Shared look for the flat family: solid cards, crisp borders, no seam. */
+[data-theme^="flat-"]{
+  --t-body-1:#f4f6f9; --t-body-2:#f7f8fa; --t-body-3:#f1f3f6;
+  --t-blob-1:rgba(148,163,184,.20); --t-blob-2:rgba(148,163,184,.14);
+  --t-blob-3:rgba(148,163,184,.12);  --t-blob-4:rgba(148,163,184,.10);
+  --t-blob-opacity:.10;
+  --t-card-1:#ffffff; --t-card-2:#ffffff; --t-card-3:#ffffff;
+  --t-card-border:#e2e8f0;
+  --t-card-shadow:0 6px 18px -10px rgba(15,23,42,.16);
+  --t-card-shadow-hover:0 14px 30px -12px rgba(15,23,42,.20);
+  --t-seam:none; --t-seam-opacity:0;
+  --t-soft:#64748b;
+  --t-row-1:rgba(255,255,255,1); --t-row-2:rgba(248,250,252,.9); --t-row-hover:rgba(241,245,249,1);
+  /* the flat family gets a LIGHT sidebar — a different feel altogether */
+  --t-side-1:#ffffff; --t-side-2:#f8fafc; --t-side-3:#f1f5f9;
+  --t-side-ink:#0f172a; --t-side-muted:#64748b; --t-side-hover:rgba(15,23,42,.05);
+  --t-side-border:#e2e8f0;
+  --t-side-active:linear-gradient(90deg,rgba(99,102,241,.16),rgba(99,102,241,.03));
+  --t-side-active-ink:#1e1b4b;
+  --t-side-logo:linear-gradient(135deg,#818cf8,#6366f1 50%,#4f46e5);
+  --t-card-gold-1:#ffffff; --t-card-gold-2:#ffffff; --t-card-gold-3:#ffffff;
+}
+[data-theme^="flat-"] .sidebar{box-shadow:6px 0 26px rgba(15,23,42,.08)}
+[data-theme^="flat-"] .nav a.active::before{background:linear-gradient(180deg,var(--t-btn-2),var(--t-btn-1))}
+[data-theme^="flat-"] .theme-swatch{border-color:rgba(15,23,42,.16)}
+[data-theme^="flat-"] .card::before,[data-theme^="flat-"] .exp-card::before,
+[data-theme^="flat-"] .ln-card::before,[data-theme^="flat-"] .tool-card::before{display:none}
+[data-theme^="flat-"] .bg-blobs i{animation:none}
+
+/* ---- Flat · Teal (the classic brand look) ---- */
+[data-theme="flat-teal"]{
+  --t-heading:#0f172a; --t-label:#0f766e; --t-value:#0f172a;
+  --t-btn-1:#0f766e; --t-btn-2:#14b8a6; --t-btn-3:#0d9488; --t-btn-shadow:rgba(15,118,110,.32);
+  --t-chip-1:#ccfbf1; --t-chip-2:#e6fffb; --t-chip-ink:#065f46; --t-chip-border:#99f6e4;
+  --t-table-head:#0f766e; --t-table-border:#e2e8f0;
+}
+
+/* ---- Flat · Indigo ---- */
+[data-theme="flat-indigo"]{
+  --t-heading:#0f172a; --t-label:#4338ca; --t-value:#0f172a;
+  --t-btn-1:#312e81; --t-btn-2:#4338ca; --t-btn-3:#6366f1; --t-btn-shadow:rgba(67,56,202,.32);
+  --t-chip-1:#e0e7ff; --t-chip-2:#eef2ff; --t-chip-ink:#3730a3; --t-chip-border:#c7d2fe;
+  --t-table-head:#4338ca; --t-table-border:#e2e8f0;
+}
+
+/* ---- Flat · Emerald ---- */
+[data-theme="flat-emerald"]{
+  --t-heading:#0f172a; --t-label:#047857; --t-value:#0f172a;
+  --t-btn-1:#065f46; --t-btn-2:#047857; --t-btn-3:#10b981; --t-btn-shadow:rgba(5,150,105,.32);
+  --t-chip-1:#d1fae5; --t-chip-2:#ecfdf5; --t-chip-ink:#065f46; --t-chip-border:#6ee7b7;
+  --t-table-head:#047857; --t-table-border:#e2e8f0;
+}
+
+/* ---- Flat · Graphite ---- */
+[data-theme="flat-slate"]{
+  --t-heading:#0f172a; --t-label:#334155; --t-value:#0f172a;
+  --t-btn-1:#0f172a; --t-btn-2:#334155; --t-btn-3:#475569; --t-btn-shadow:rgba(15,23,42,.34);
+  --t-chip-1:#e2e8f0; --t-chip-2:#f1f5f9; --t-chip-ink:#334155; --t-chip-border:#cbd5e1;
+  --t-table-head:#334155; --t-table-border:#e2e8f0;
+}
+
+/* ---- Flat · Crimson ---- */
+[data-theme="flat-crimson"]{
+  --t-heading:#0f172a; --t-label:#be123c; --t-value:#0f172a;
+  --t-btn-1:#881337; --t-btn-2:#be123c; --t-btn-3:#e11d48; --t-btn-shadow:rgba(190,18,60,.32);
+  --t-chip-1:#ffe4e6; --t-chip-2:#fff1f2; --t-chip-ink:#9f1239; --t-chip-border:#fda4af;
+  --t-table-head:#be123c; --t-table-border:#e2e8f0;
+}

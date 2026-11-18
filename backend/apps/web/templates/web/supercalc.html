@@ -1,0 +1,312 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Super Calculator (সুপার ক্যালকুলেটর){% else %}সুপার ক্যালকুলেটর{% endif %} — FinCore ERP{% endblock %}
+{% block body_class %}page-supercalc{% endblock %}
+{% block extra_head %}
+<style>
+  .sc-hero{border-radius:26px;padding:20px 24px;margin-bottom:18px;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#1c1205,#2f2410 46%,#0b4a4a);color:#fff;border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow-lg)}
+  .sc-hero::after{content:"";position:absolute;right:-70px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(250,204,21,.22),transparent 66%)}
+  .sc-hero .hl{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#d8bd8a}
+  .sc-hero .hv{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin-top:2px}
+  .sc-hero .hs{font-size:12.5px;color:#c8b79a;margin-top:3px}
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;position:relative;z-index:2}
+  .flow-step{display:flex;flex-direction:column;gap:2px;padding:9px 14px;border-radius:13px;min-width:128px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+  .flow-step .k{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#d3c3a4}
+  .flow-step .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:#f4ecdd}
+  .flow-step.in .v{color:#5eead4}
+  .flow-step.out .v{color:#fca5a5}
+  .flow-step.total{background:linear-gradient(135deg,rgba(250,204,21,.20),rgba(255,255,255,.06));border-color:rgba(250,204,21,.36)}
+  .flow-step.total .v{color:#fde68a}
+  .flow-step.net{background:linear-gradient(135deg,rgba(45,212,191,.22),rgba(255,255,255,.06));border-color:rgba(45,212,191,.34)}
+  .flow-step.net.neg .v{color:#fca5a5}
+  .flow-step.net .v{color:#5eead4}
+  .flow-arrow{color:rgba(255,255,255,.4);font-size:15px}
+
+  .sum-presets{display:flex;gap:7px;flex-wrap:wrap}
+  .sum-chip{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:999px;font-size:12.5px;
+    font-weight:700;text-decoration:none;border:1px solid var(--line);background:rgba(255,255,255,.9);color:var(--muted);transition:all .16s var(--ease)}
+  .sum-chip:hover{border-color:rgba(20,184,166,.4);color:var(--brand);transform:translateY(-1px)}
+  .sum-chip.on{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(15,118,110,.22)}
+
+  .sc-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:18px}
+  .sum-card{border-radius:16px;padding:13px 15px;border:1px solid rgba(255,255,255,.8);background:linear-gradient(180deg,#ffffff,#f7fafd);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .sum-card .k{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block}
+  .sum-card .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);display:block;margin-top:3px;letter-spacing:-.02em}
+  .sum-card .s{font-size:11.5px;color:var(--muted-2);font-weight:600;display:block;margin-top:2px}
+  .sum-card.sell{border-left:4px solid var(--ok);background:linear-gradient(135deg,#f0fdf4,#ffffff)} .sum-card.sell .v{color:var(--ok-ink)}
+  .sum-card.spend{border-left:4px solid var(--danger)} .sum-card.spend .v{color:var(--danger-ink)}
+  .sum-card.profit{border-left:4px solid var(--brand);background:linear-gradient(135deg,#f0fdfa,#ffffff)}
+  .sum-card.profit .v{color:var(--brand)}
+  .sum-card.profit.neg{border-left-color:var(--danger);background:linear-gradient(135deg,#fef2f2,#ffffff)}
+  .sum-card.profit.neg .v{color:var(--danger-ink)}
+  .sum-card.cash{border-left:4px solid #38bdf8} .sum-card.cash .v{color:#1d4ed8}
+  .sum-card.due{border-left:4px solid var(--warn)} .sum-card.due .v{color:var(--warn-ink)}
+  .sum-card.coll{border-left:4px solid var(--info)} .sum-card.coll .v{color:var(--info-ink)}
+  .sum-delta{font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;display:inline-block;margin-top:4px}
+  .sum-delta.up{background:var(--ok-soft);color:var(--ok-ink)}
+  .sum-delta.down{background:var(--danger-soft);color:var(--danger-ink)}
+  .sum-delta.flat{background:rgba(241,245,249,.85);color:var(--muted)}
+
+  /* premium day-table header (same language as হিসাব সারাংশ) */
+  .sc-table td{vertical-align:middle}
+  .sc-table th{font-size:10px;letter-spacing:.09em}
+  .sc-table tr.day-row{cursor:pointer}
+  .sc-table tr.day-row:hover td{background:rgba(240,253,250,.55)}
+  .sc-table tr.day-row.active td{background:rgba(204,251,241,.6)}
+  .sc-table tfoot th{
+    position:sticky;bottom:0;z-index:2;
+    background:linear-gradient(180deg,rgba(204,251,241,.96),rgba(240,253,250,.99));
+    font-size:16px;font-weight:800;letter-spacing:-.01em;text-transform:none;
+    color:var(--ink);padding:15px 11px;
+    border-top:2px solid rgba(15,118,110,.30);border-bottom:0}
+  .sc-table tfoot th:first-child{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);text-align:left}
+  .sc-table tfoot th.num{white-space:nowrap}
+  .sc-table tfoot th.in-txt{color:var(--ok-ink)}
+  .sc-table tfoot th.out-txt{color:var(--danger-ink)}
+  .sc-table tfoot th.net-cell{font-size:19px}
+  .sc-table thead tr.grp th{
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;
+    text-align:center;color:#fff;padding:13px 12px;
+    text-shadow:0 1px 3px rgba(8,17,32,.30);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -1px 0 rgba(8,17,32,.14);
+    transition:filter .22s var(--ease)}
+  .sc-table thead tr.grp:hover th{filter:brightness(1.07) saturate(1.04)}
+  .sc-table thead tr.grp .hl{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+  .sc-table thead tr.grp .hl i{font-size:12.5px;opacity:.95;filter:drop-shadow(0 1px 2px rgba(8,17,32,.32))}
+  .sc-table thead tr.grp th.g-sell{background:linear-gradient(135deg,#0a615a,#19b5a0)}
+  .sc-table thead tr.grp th.g-spend{background:linear-gradient(135deg,#8c1616,#ef4444)}
+  .sc-table thead tr.grp th.g-net{background:linear-gradient(135deg,#7a5b06,#c9961b)}
+  .sc-table thead tr.grp th.g-side{background:linear-gradient(135deg,#4c1d95,#7c3aed)}
+  .sc-table thead tr.grp th.g-date{background:linear-gradient(135deg,#0b2545,#1e4d7c)}
+  .sc-table thead tr.grp th:not(:first-child){border-left:1px solid rgba(255,255,255,.42)}
+  .sc-table thead tr.sub th{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;padding:9px 10px;border-bottom:1px solid var(--line)}
+  .sc-table thead tr.sub th.h-sell{background:linear-gradient(180deg,rgba(229,252,246,.95),rgba(248,250,252,.88));color:#0e7467;border-top:2px solid #14b8a6}
+  .sc-table thead tr.sub th.h-spend{background:linear-gradient(180deg,rgba(254,229,229,.95),rgba(250,245,245,.88));color:#a92222;border-top:2px solid #f87171}
+  .sc-table thead tr.sub th.h-net{background:linear-gradient(180deg,rgba(253,243,214,.9),rgba(248,248,252,.88));color:#92580b;border-top:2px solid #d99a1f}
+  .sc-table td{padding:12px 11px;white-space:nowrap}
+  .sc-table th{padding:11px 11px}
+  .sc-table td.net-cell{font-size:15.5px;font-weight:800}
+  .sc-table tfoot td.net-cell{font-size:15.5px;font-weight:800}
+  .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .in-txt{color:var(--ok-ink)} .out-txt{color:var(--danger-ink)}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-calculator" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Super Calculator (সুপার ক্যালকুলেটর){% else %}সুপার ক্যালকুলেটর{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Total sell (cash + due) − total expenses = profit or loss — pulled from the cash book, the partner-due book and the expense book, without ever mixing a collection into a new sale.{% else %}মোট সেল (নগদ + বাকি) − মোট খরচ = লাভ / লস — নগদ, পার্টনার ও বাকি আর খরচের বই থেকে যোগ্যভাবে টেনে আনা, পুরনো সেলের ফেরত টাকা কখনো নতুন সেলে গোনা না হয়।{% endif %}</p>
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span><span class="chip info"><i class="fa-solid fa-calendar-range"></i> {{ dfrom }} → {{ dto }}</span></div>{% endif %}
+</div>
+
+<!-- ============ period picker ============ -->
+<div class="exp-card" style="margin-bottom:18px">
+  <div class="exp-body" style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+    <form method="get" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:0">
+      <div class="f-field">
+        <label for="sc-from">{% if ui_lang == 'en' %}From date{% else %}কোন তারিখ থেকে{% endif %}</label>
+        <input id="sc-from" type="date" name="from" value="{{ dfrom|date:'Y-m-d' }}">
+      </div>
+      <div class="f-field">
+        <label for="sc-to">{% if ui_lang == 'en' %}To date{% else %}কোন তারিখ পর্যন্ত{% endif %}</label>
+        <input id="sc-to" type="date" name="to" value="{{ dto|date:'Y-m-d' }}">
+      </div>
+      <button type="submit" class="btn sm primary" style="height:40px"><i class="fa-solid fa-magnifying-glass"></i> {% if ui_lang == 'en' %}Calculate{% else %}হিসাব করুন{% endif %}</button>
+    </form>
+    <div class="sum-presets" style="margin-left:auto">
+      <a class="sum-chip {% if preset == 'today' %}on{% endif %}" href="?preset=today">{% if ui_lang == 'en' %}Today{% else %}আজ{% endif %}</a>
+      <a class="sum-chip {% if preset == 'week' %}on{% endif %}" href="?preset=week">{% if ui_lang == 'en' %}This week{% else %}এই সপ্তাহ{% endif %}</a>
+      <a class="sum-chip {% if preset == 'month' %}on{% endif %}" href="?preset=month">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</a>
+      <a class="sum-chip {% if preset == 'last_month' %}on{% endif %}" href="?preset=last_month">{% if ui_lang == 'en' %}Last month{% else %}গত মাস{% endif %}</a>
+      <a class="sum-chip {% if preset == 'year' %}on{% endif %}" href="?preset=year">{% if ui_lang == 'en' %}This year{% else %}এই বছর{% endif %}</a>
+    </div>
+    <div class="export-group">
+      <span class="eg-label">{% if ui_lang == 'en' %}Export{% else %}এক্সপোর্ট{% endif %}</span>
+      <a class="btn sm export-btn pdf" href="{% url 'web:export_supercalc' 'pdf' %}?from={{ dfrom|date:'Y-m-d' }}&to={{ dto|date:'Y-m-d' }}" download data-no-transition title="{% if ui_lang == 'en' %}Download PDF{% else %}PDF ডাউনলোড{% endif %}"><i class="fa-solid fa-file-pdf"></i> <span style="font-weight:800">PDF</span></a>
+      <a class="btn sm export-btn xlsx" href="{% url 'web:export_supercalc' 'xlsx' %}?from={{ dfrom|date:'Y-m-d' }}&to={{ dto|date:'Y-m-d' }}" download data-no-transition title="{% if ui_lang == 'en' %}Download Excel{% else %}Excel ডাউনলোড{% endif %}"><i class="fa-solid fa-file-excel"></i> <span style="font-weight:800">Excel</span></a>
+      <a class="btn sm export-btn docx" href="{% url 'web:export_supercalc' 'docx' %}?from={{ dfrom|date:'Y-m-d' }}&to={{ dto|date:'Y-m-d' }}" download data-no-transition title="{% if ui_lang == 'en' %}Download Word{% else %}Word ডাউনলোড{% endif %}"><i class="fa-solid fa-file-word"></i> <span style="font-weight:800">Word</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ profit / loss hero ============ -->
+<div class="sc-hero">
+  <div class="hl">{% if ui_lang == 'en' %}Profit / Loss in this period{% else %}এই সময়ের লাভ / লস{% endif %}</div>
+  <div class="hv">{% if totals.profit >= 0 %}+{% else %}{% endif %}{{ totals.profit|money }}</div>
+  <div class="hs">{% if ui_lang == 'en' %}{{ dfrom }} → {{ dto }} · total sell {{ totals.sell_total|money }} · expenses {{ totals.khoroch|money }}{% else %}{{ dfrom }} → {{ dto }} · মোট সেল {{ totals.sell_total|money }} · খরচ {{ totals.khoroch|money }}{% endif %}</div>
+  <div class="flow">
+    <div class="flow-step in"><span class="k">{% if ui_lang == 'en' %}Cash sell{% else %}নগদে সেল{% endif %}</span><span class="v">{{ totals.sell_cash|money }}</span></div>
+    <span class="flow-arrow"><i class="fa-solid fa-plus"></i></span>
+    <div class="flow-step in"><span class="k">{% if ui_lang == 'en' %}Due sell{% else %}বাকিতে সেল{% endif %}</span><span class="v">{{ totals.sell_due|money }}</span></div>
+    <span class="flow-arrow"><i class="fa-solid fa-equals"></i></span>
+    <div class="flow-step total"><span class="k">{% if ui_lang == 'en' %}Total sell{% else %}মোট সেল{% endif %}</span><span class="v">{{ totals.sell_total|money }}</span></div>
+    <span class="flow-arrow"><i class="fa-solid fa-minus"></i></span>
+    <div class="flow-step out"><span class="k">{% if ui_lang == 'en' %}Total expenses{% else %}মোট খরচ{% endif %}</span><span class="v">{{ totals.khoroch|money }}</span></div>
+    <span class="flow-arrow"><i class="fa-solid fa-equals"></i></span>
+    <div class="flow-step net {% if totals.profit < 0 %}neg{% endif %}"><span class="k">{% if ui_lang == 'en' %}Profit / Loss{% else %}লাভ / লস{% endif %}</span><span class="v">{% if totals.profit >= 0 %}+{% else %}{% endif %}{{ totals.profit|money }}</span></div>
+  </div>
+  {% if totals.stock_complete %}
+  <div class="flow" style="margin-top:10px">
+    <div class="flow-step total"><span class="k">{% if ui_lang == 'en' %}Stock still on the shelf{% else %}শেলে থাকা মজুদ{% endif %}</span><span class="v">+{{ totals.stock_delta|money }}</span></div>
+    <span class="flow-arrow"><i class="fa-solid fa-plus"></i></span>
+    <div class="flow-step out"><span class="k">{% if ui_lang == 'en' %}Cost of goods sold{% else %}বিক্রীত পরিমাণের ক্রয়{% endif %}</span><span class="v">{{ totals.cogs|money }}</span></div>
+    <span class="flow-arrow"><i class="fa-solid fa-equals"></i></span>
+    <div class="flow-step net {% if totals.real_profit < 0 %}neg{% endif %}"><span class="k">{% if ui_lang == 'en' %}Real profit / loss{% else %}সত্য লাভ / লস{% endif %}</span><span class="v">{% if totals.real_profit >= 0 %}+{% else %}{% endif %}{{ totals.real_profit|money }}</span></div>
+  </div>
+  <div class="hs" style="margin-top:8px"><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}Unsold stock is not a loss — it is money on the shelf, so the real profit is higher. Write the stock value in the summary page to keep this number exact.{% else %}অবিক্রীত মাংস ক্ষতি না — শেলে সম্পদ, তাই সত্য লাভ বেশি। সঠিক সংখ্যার জন্য হিসাব সারাংশ পেজে মজুদের মূল্য লিখে দিন।{% endif %}</div>
+  {% endif %}
+</div>
+
+<!-- ============ cards ============ -->
+<div class="sc-cards">
+  <div class="sum-card sell">
+    <span class="k">{% if ui_lang == 'en' %}Total sell{% else %}মোট সেল{% endif %}</span>
+    <span class="v">{{ totals.sell_total|money }}</span>
+    <span class="s">{% if ui_lang == 'en' %}cash + due{% else %}নগদ + বাকি — সব বিক্রি{% endif %}</span>
+    {% with d=comparison.delta.sell_total %}{% if d > 0 %}<span class="sum-delta up">▲ {{ d|money|cut:'-' }}</span>{% elif d < 0 %}<span class="sum-delta down">▼ {{ d|money|cut:'-' }}</span>{% else %}<span class="sum-delta flat">—</span>{% endif %}{% endwith %}<span class="s">{% if ui_lang == 'en' %}vs previous period{% else %}আগের সময়ের তুলনায়{% endif %}</span>
+  </div>
+  <div class="sum-card spend">
+    <span class="k">{% if ui_lang == 'en' %}Total expenses{% else %}মোট খরচ{% endif %}</span>
+    <span class="v">{{ totals.khoroch|money }}</span>
+    <span class="s">{% if ui_lang == 'en' %}expense book only{% else %}শুধু খরচ / ক্রয় বই{% endif %}</span>
+    {% with d=comparison.delta.khoroch %}{% if d > 0 %}<span class="sum-delta down">▲ {{ d|money|cut:'-' }}</span>{% elif d < 0 %}<span class="sum-delta up">▼ {{ d|money|cut:'-' }}</span>{% else %}<span class="sum-delta flat">—</span>{% endif %}{% endwith %}<span class="s">{% if ui_lang == 'en' %}vs previous period{% else %}আগের সময়ের তুলনায়{% endif %}</span>
+  </div>
+  <div class="sum-card profit {% if totals.profit < 0 %}neg{% endif %}">
+    <span class="k">{% if ui_lang == 'en' %}Profit / Loss{% else %}লাভ / লস{% endif %}</span>
+    <span class="v">{% if totals.profit >= 0 %}+{% else %}{% endif %}{{ totals.profit|money }}</span>
+    <span class="s">{% if ui_lang == 'en' %}sell − expenses{% else %}মোট সেল − মোট খরচ{% endif %}</span>
+    {% with d=comparison.delta.profit %}{% if d > 0 %}<span class="sum-delta up">▲ {{ d|money|cut:'-' }}</span>{% elif d < 0 %}<span class="sum-delta down">▼ {{ d|money|cut:'-' }}</span>{% else %}<span class="sum-delta flat">—</span>{% endif %}{% endwith %}<span class="s">{% if ui_lang == 'en' %}vs previous period{% else %}আগের সময়ের তুলনায়{% endif %}</span>
+  </div>
+  <div class="sum-card cash">
+    <span class="k">{% if ui_lang == 'en' %}Cash sell{% else %}নগদে সেল{% endif %}</span>
+    <span class="v">{{ totals.sell_cash|money }}</span>
+    <span class="s">{% if ui_lang == 'en' %}money taken on the spot{% else %}মুহূর্তে টাকা নেওয়া বিক্রি{% endif %}</span>
+  </div>
+  <div class="sum-card due">
+    <span class="k">{% if ui_lang == 'en' %}Due sell{% else %}বাকিতে সেল{% endif %}</span>
+    <span class="v">{{ totals.sell_due|money }}</span>
+    <span class="s">{% if ui_lang == 'en' %}sold, money later{% else %}বিক্রি হয়েছে, টাকা পরে{% endif %}</span>
+  </div>
+  <div class="sum-card coll">
+    <span class="k">{% if ui_lang == 'en' %}Due collected{% else %}বাকি আদায়{% endif %}</span>
+    <span class="v">{{ totals.collection|money }}</span>
+    <span class="s">{% if ui_lang == 'en' %}old sells paying back — not new sell{% else %}পুরনো সেলের ফেরত — সেল না{% endif %}</span>
+  </div>
+</div>
+
+<!-- ============ day-wise breakdown (full width) ============ -->
+<div class="exp-card">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-table-list"></i> <h3>{% if ui_lang == 'en' %}Day-wise profit / loss{% else %}দিনভিত্তিক লাভ / লস{% endif %}</h3></div>
+    <span class="badge b-muted">{{ rows|length }} {% if ui_lang == 'en' %}days{% else %}দিন{% endif %}</span>
+  </div>
+  <div class="exp-body">
+    {% if rows %}
+    <div class="table-wrap">
+    <table class="sc-table">
+      <thead>
+        <tr class="grp">
+          <th rowspan="2" class="g-date"><span class="hl"><i class="fa-solid fa-calendar-day"></i>{% t "Date" %}</span></th>
+          <th colspan="3" class="g-sell"><span class="hl"><i class="fa-solid fa-money-bill-trend-up"></i>{% if ui_lang == 'en' %}Sell{% else %}বিক্রয়{% endif %}</span></th>
+          <th rowspan="2" class="g-spend"><span class="hl"><i class="fa-solid fa-cart-shopping"></i>{% if ui_lang == 'en' %}Expenses{% else %}খরচ / ক্রয়{% endif %}</span></th>
+          <th colspan="2" class="g-net"><span class="hl"><i class="fa-solid fa-scale-balanced"></i>{% if ui_lang == 'en' %}Result{% else %}ফলাফল{% endif %}</span></th>
+        </tr>
+        <tr class="sub">
+          <th class="num h-sell">{% if ui_lang == 'en' %}Cash sell{% else %}নগদে সেল{% endif %}</th>
+          <th class="num h-sell">{% if ui_lang == 'en' %}Due sell{% else %}বাকিতে সেল{% endif %}</th>
+          <th class="num h-sell">{% if ui_lang == 'en' %}Total sell{% else %}মোট সেল{% endif %}</th>
+          <th class="num h-net">{% if ui_lang == 'en' %}Profit / Loss{% else %}লাভ / লস{% endif %}</th>
+          <th class="num h-net">{% if ui_lang == 'en' %}Running{% else %}চলতি ফল{% endif %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="day-row {% if dfrom == r.date and dto == r.date %}active{% endif %}" onclick="location.href='?preset=custom&from={{ r.date|date:'Y-m-d' }}&to={{ r.date|date:'Y-m-d' }}'">
+          <td class="mono muted">{{ r.date|date:'d M Y' }}</td>
+          <td class="num {% if r.sell_cash %}in-txt{% endif %}">{{ r.sell_cash|money }}</td>
+          <td class="num {% if r.sell_due %}out-txt{% endif %}" style="color:var(--text-warn)">{{ r.sell_due|money }}</td>
+          <td class="num" style="font-weight:800">{{ r.sell_total|money }}</td>
+          <td class="num {% if r.khoroch %}out-txt{% endif %}">{{ r.khoroch|money }}</td>
+          <td class="num net-cell" style="color:{% if r.profit >= 0 %}var(--text-ok){% else %}var(--text-danger){% endif %}">{% if r.profit >= 0 %}+{% else %}{% endif %}{{ r.profit|money }}</td>
+          <td class="num muted">{{ r.running_profit|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr>
+        <th>{% if ui_lang == 'en' %}Total{% else %}মোট{% endif %}</th>
+        <th class="num in-txt">{{ totals.sell_cash|money }}</th>
+        <th class="num" style="color:var(--text-warn)">{{ totals.sell_due|money }}</th>
+        <th class="num">{{ totals.sell_total|money }}</th>
+        <th class="num out-txt">{{ totals.khoroch|money }}</th>
+        <th class="num net-cell" style="color:{% if totals.profit >= 0 %}var(--text-ok){% else %}var(--text-danger){% endif %}">{% if totals.profit >= 0 %}+{% else %}{% endif %}{{ totals.profit|money }}</th>
+        <th class="num muted">{% if totals.profit >= 0 %}+{% else %}{% endif %}{{ totals.profit|money }}</th>
+      </tr></tfoot>
+    </table>
+    </div>
+    <div class="muted" style="font-size:11.5px;margin-top:10px;display:flex;gap:16px;flex-wrap:wrap">
+      <span><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}Click any day to see that day only.{% else %}যেকোনো দিনের রোয়ে ক্লিক করলে শুধু ওই দিনের হিসাব।{% endif %}</span>
+      <span><i class="fa-solid fa-arrows-rotate"></i> {% if ui_lang == 'en' %}Due collected is counted in the বাকির বই only — never as new sell, so profit can never double-count.{% else %}বাকি আদায় শুধু বাকির বইয়ে গোনা হয় নতুন সেল হিসেবে না — যাতে ডাবল গণনা কাইও হয় না।{% endif %}</span>
+    </div>
+    {% else %}
+    <div class="exp-empty"><div class="ei"><i class="fa-solid fa-scale-unbalanced"></i></div><h4>{% if ui_lang == 'en' %}No sells or expenses in this period{% else %}এই সময়ে কোনো সেল বা খরচ নেই{% endif %}</h4></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ============ month-wise profit for the whole year ============ -->
+<div class="exp-card" style="margin-top:18px">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-calendar-days"></i> <h3>{% if ui_lang == 'en' %}Month-wise profit / loss{% else %}মাসভিত্তিক লাভ / লস{% endif %}</h3></div>
+    <form method="get" style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <input type="hidden" name="preset" value="{{ preset }}">
+      <input type="hidden" name="from" value="{{ dfrom|date:'Y-m-d' }}">
+      <input type="hidden" name="to" value="{{ dto|date:'Y-m-d' }}">
+      <label for="sc-year" style="font-size:11px;font-weight:800;color:var(--text-soft)">{% if ui_lang == 'en' %}Year{% else %}বছর{% endif %}</label>
+      <select id="sc-year" name="year" onchange="this.form.submit()" style="height:36px">
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == table_year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button class="btn sm" type="submit">{% if ui_lang == 'en' %}Show{% else %}দেখুন{% endif %}</button></noscript>
+    </form>
+  </div>
+  <div class="exp-body">
+    <div class="table-wrap">
+    <table class="sc-table">
+      <thead>
+        <tr class="grp">
+          <th class="g-date"><span class="hl"><i class="fa-solid fa-calendar"></i>{% if ui_lang == 'en' %}Month{% else %}মাস{% endif %}</span></th>
+          <th class="g-sell"><span class="hl"><i class="fa-solid fa-money-bill-trend-up"></i>{% if ui_lang == 'en' %}Sell{% else %}বিক্রয়{% endif %}</span></th>
+          <th class="g-spend"><span class="hl"><i class="fa-solid fa-cart-shopping"></i>{% if ui_lang == 'en' %}Expenses{% else %}খরচ / ক্রয়{% endif %}</span></th>
+          <th class="g-side"><span class="hl"><i class="fa-solid fa-hand-holding-dollar"></i>{% if ui_lang == 'en' %}Collected{% else %}বাকি আদায়{% endif %}</span></th>
+          <th class="g-net"><span class="hl"><i class="fa-solid fa-scale-balanced"></i>{% if ui_lang == 'en' %}Profit / Loss{% else %}লাভ / লস{% endif %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in months %}
+        <tr class="day-row {% if dfrom == m.first_day and dto == m.last_day %}active{% endif %}" onclick="location.href='?preset=custom&from={{ m.first_day|date:'Y-m-d' }}&to={{ m.last_day|date:'Y-m-d' }}&year={{ table_year }}'">
+          <td class="mono muted">{{ m.first_day|date:'M Y' }}</td>
+          <td class="num" style="font-weight:800">{{ m.sell_total|money }}</td>
+          <td class="num out-txt">{{ m.khoroch|money }}</td>
+          <td class="num muted">{{ m.collection|money }}</td>
+          <td class="num net-cell" style="color:{% if m.profit >= 0 %}var(--text-ok){% else %}var(--text-danger){% endif %}">{% if m.profit >= 0 %}+{% else %}{% endif %}{{ m.profit|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr>
+        <th>{% if ui_lang == 'en' %}{{ table_year }} total{% else %}{{ table_year }} মোট{% endif %}</th>
+        <th class="num">{{ year_totals.sell_total|money }}</th>
+        <th class="num out-txt">{{ year_totals.khoroch|money }}</th>
+        <th class="num muted">{{ year_totals.collection|money }}</th>
+        <th class="num net-cell" style="color:{% if year_totals.profit >= 0 %}var(--text-ok){% else %}var(--text-danger){% endif %}">{% if year_totals.profit >= 0 %}+{% else %}{% endif %}{{ year_totals.profit|money }}</th>
+      </tr></tfoot>
+    </table>
+    </div>
+    <div class="muted" style="font-size:11.5px;margin-top:10px"><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}Click any month to open that month only. The year can be changed on the right.{% else %}যেকোনো মাসের রোয়ে ক্লিক করলে শুধু ওই মাসের হিসাব দেখাবে। ডান পাশ থেকে বছর বদলাতে পারবেন।{% endif %}</div>
+  </div>
+</div>
+{% endblock %}

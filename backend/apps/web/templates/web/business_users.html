@@ -1,0 +1,171 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Team &amp; Permissions{% else %}টিম ও পারমিশন{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .bu-hero{position:relative;overflow:hidden;border-radius:22px;color:#fff;margin-bottom:18px;
+    background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 48%,#0b4a4a 100%);
+    box-shadow:0 18px 44px rgba(8,17,32,.24)}
+  .bu-hero::after{content:"";position:absolute;right:-70px;top:-90px;width:250px;height:250px;border-radius:50%;
+    background:radial-gradient(circle,rgba(94,234,212,.24),transparent 66%)}
+  .bu-hero-in{position:relative;z-index:2;display:flex;gap:18px;align-items:center;padding:20px 24px;flex-wrap:wrap}
+  .bu-icon{width:62px;height:62px;border-radius:18px;display:grid;place-items:center;font-size:24px;flex:0 0 auto;
+    background:linear-gradient(135deg,#a5f3fc,#06b6d4);color:#082f3a;box-shadow:0 10px 26px rgba(6,182,212,.35)}
+  .bu-name{margin:0;font-size:23px;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,#e2e8f0);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .bu-sub{color:#8ec6d6;font-size:12px;font-weight:700;margin-top:4px;letter-spacing:.04em;text-transform:uppercase}
+
+  .bu-layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:1080px){.bu-layout{grid-template-columns:1fr}}
+  .bu-card{background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,250,252,.82));border:1px solid rgba(255,255,255,.85);
+    border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+  .bu-card-head{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.6)}
+  .bu-card-head i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:14px;
+    background:linear-gradient(135deg,#e0f2fe,#bae6fd);color:#075985;border:1px solid rgba(6,182,212,.3)}
+  .bu-card-head h3{margin:0;font-size:14.5px;font-weight:800;color:var(--ink-2)}
+  .bu-card-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px}
+
+  .bu-cap{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(248,250,252,.65)}
+  .bu-cap .t{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .bu-cap .r{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);padding:3px 0}
+  .bu-cap .r b{display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:6px;font-size:10px}
+  .bu-cap .yes b{background:rgba(16,185,129,.18);color:#047857}
+  .bu-cap .no{opacity:.66}
+  .bu-cap .no b{background:rgba(244,63,94,.14);color:#be123c}
+
+  .bu-table td{vertical-align:middle}
+  .bu-avatar{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;
+    background:linear-gradient(135deg,#e0e7ff,#c7d2fe);color:#3730a3;font-size:15px}
+  .bu-role{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:11px;
+    font-weight:800;letter-spacing:.03em}
+  .bu-role.owner{background:#fef3c7;color:#92400e}
+  .bu-role.accountant{background:#ccfbf1;color:#065f46}
+  .bu-role.viewer{background:#e0f2fe;color:#075985}
+  .bu-role.partner{background:#f1f5f9;color:#475569}
+  .bu-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+  .bu-actions select{font:inherit;font-size:12px;padding:5px 8px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel-solid);color:var(--ink)}
+  .bu-self{font-size:10px;color:var(--muted)}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bu-hero">
+  <div class="bu-hero-in">
+    <div class="bu-icon"><i class="fa-solid fa-user-shield"></i></div>
+    <div style="min-width:0">
+      <h1 class="bu-name">{{ active_business.name }}</h1>
+      <div class="bu-sub">{% if ui_lang == 'en' %}Team &amp; Permissions{% else %}টিম ও পারমিশন{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="ln-kpis" style="margin-top:4px">
+  <div class="ln-kpi"><span class="k">{% if ui_lang == 'en' %}Members{% else %}মোট সদস্য{% endif %}</span><span class="v">{{ stats.total }}</span></div>
+  <div class="ln-kpi net"><span class="k">{% if ui_lang == 'en' %}Owners{% else %}মালিক{% endif %}</span><span class="v">{{ stats.owners }}</span></div>
+  <div class="ln-kpi"><span class="k">{% if ui_lang == 'en' %}Accountants{% else %}হিসাবরক্ষক{% endif %}</span><span class="v">{{ stats.accountants }}</span></div>
+  <div class="ln-kpi"><span class="k">{% if ui_lang == 'en' %}Viewers{% else %}দর্শক{% endif %}</span><span class="v">{{ stats.viewers }}</span></div>
+</div>
+
+<div class="bu-layout">
+  <div class="bu-card">
+    <div class="bu-card-head">
+      <i class="fa-solid fa-user-plus"></i>
+      <h3>{% if ui_lang == 'en' %}Add a member{% else %}টিমে যোগ করুন{% endif %}</h3>
+    </div>
+    <div class="bu-card-body">
+      <form method="post" class="form-grid" style="display:flex;flex-direction:column;gap:12px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_member">
+        <div class="field" style="margin:0">
+          <label for="bm-search">{% if ui_lang == 'en' %}Username or email{% else %}ইউজারনেম বা ইমেইল{% endif %}</label>
+          <input id="bm-search" name="member" required autocomplete="off"
+                 placeholder="{% if ui_lang == 'en' %}e.g. karim or karim@shop.com{% else %}যেমন: karim বা karim@shop.com{% endif %}">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="bm-role">{% if ui_lang == 'en' %}Role{% else %}রোল{% endif %}</label>
+          <select id="bm-role" name="role">
+            <option value="ACCOUNTANT" selected>{% if ui_lang == 'en' %}Accountant (entries){% else %}হিসাবরক্ষক (এন্ট্রি করবে){% endif %}</option>
+            <option value="VIEWER">{% if ui_lang == 'en' %}Viewer (read only){% else %}দর্শক (শুধু দেখবে){% endif %}</option>
+          </select>
+        </div>
+        <button class="btn primary" type="submit"><i class="fa-solid fa-plus"></i> {% if ui_lang == 'en' %}Add to team{% else %}টিমে যোগ করুন{% endif %}</button>
+      </form>
+
+      <div class="bu-cap">
+        <div class="t">{% if ui_lang == 'en' %}What each role can do{% else %}প্রতিটি রোল কী কী করতে পারবে{% endif %}</div>
+        <div class="r yes"><b><i class="fa-solid fa-check"></i></b> {% if ui_lang == 'en' %}Accountant — entries, expenses, exports; cannot delete or change the business{% else %}হিসাবরক্ষক — এন্ট্রি, খরচ, এক্সপোর্ট; কিন্তু মুছতে বা ব্যবসা বদলাতে পারবে না{% endif %}</div>
+        <div class="r yes"><b><i class="fa-solid fa-check"></i></b> {% if ui_lang == 'en' %}Viewer — views everything; cannot add, edit or delete anything{% else %}দর্শক — সব দেখবে; কিন্তু কোনো এন্ট্রি করতে/মুছতে পারবে না{% endif %}</div>
+        <div class="r no"><b><i class="fa-solid fa-xmark"></i></b> {% if ui_lang == 'en' %}Only the owner manages users, partners, business settings, period locks and hard-deletes{% else %}শুধু মালিক — ইউজার, পার্টনার, সেটিংস, লক ও সম্পূর্ণ মুছা{% endif %}</div>
+      </div>
+
+      <p class="muted" style="font-size:12px;margin:0"><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}Member must already have an account on this site (register at the login page first).{% else %}সদস্যের আগে এই সাইটে অ্যাকাউন্ট থাকতে হবে (লগইন পেজ থেকে রেজিস্টার করুন)।{% endif %}</p>
+    </div>
+  </div>
+
+  <div class="bu-card">
+    <div class="bu-card-head">
+      <i class="fa-solid fa-users"></i>
+      <h3>{% if ui_lang == 'en' %}Team members{% else %}টিম সদস্যগণ{% endif %}</h3>
+    </div>
+    <div class="table-wrap" style="border:0">
+      <table class="bu-table">
+        <thead><tr>
+          <th style="width:34%">{% if ui_lang == 'en' %}Member{% else %}সদস্য{% endif %}</th>
+          <th style="width:16%">{% if ui_lang == 'en' %}Role{% else %}রোল{% endif %}</th>
+          <th style="width:20%">{% if ui_lang == 'en' %}Last login{% else %}সর্বশেষ লগইন{% endif %}</th>
+          <th style="width:30%;text-align:right">{% if ui_lang == 'en' %}Actions{% else %}অ্যাকশন{% endif %}</th>
+        </tr></thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>
+              <div style="display:flex;gap:10px;align-items:center">
+                <div class="bu-avatar">{{ r.initial }}</div>
+                <div>
+                  <div style="font-weight:800;font-size:14px">{{ r.name }}</div>
+                  <div class="muted" style="font-size:11.5px">@{{ r.user.username }}{% if r.is_self %} <span class="bu-self">· {% if ui_lang == 'en' %}you{% else %}আপনি{% endif %}</span>{% endif %}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              {% with role=r.membership.role %}
+              <span class="bu-role {% if role == 'ADMIN' %}owner{% elif role == 'ACCOUNTANT' %}accountant{% elif role == 'VIEWER' %}viewer{% else %}partner{% endif %}">{{ r.role_label }}</span>
+              {% endwith %}
+            </td>
+            <td class="mono muted" style="font-size:12px;white-space:nowrap">{{ r.user.last_login|date:"d M Y, g:i A"|default:"—" }}</td>
+            <td>
+              <div class="bu-actions">
+                {% if not r.is_self %}
+                <form method="post" style="display:inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="set_role">
+                  <input type="hidden" name="user_id" value="{{ r.membership.user.id }}">
+                  <select name="role" aria-label="{% if ui_lang == 'en' %}Role{% else %}রোল{% endif %}" onchange="this.form.submit()">
+                    <option value="ACCOUNTANT" {% if r.membership.role == 'ACCOUNTANT' %}selected{% endif %}>{% if ui_lang == 'en' %}Accountant{% else %}হিসাবরক্ষক{% endif %}</option>
+                    <option value="VIEWER" {% if r.membership.role == 'VIEWER' %}selected{% endif %}>{% if ui_lang == 'en' %}Viewer{% else %}দর্শক{% endif %}</option>
+                    <option value="ADMIN" {% if r.membership.role == 'ADMIN' %}selected{% endif %}>{% if ui_lang == 'en' %}Owner{% else %}মালিক{% endif %}</option>
+                    <option value="PARTNER" {% if r.membership.role == 'PARTNER' %}selected{% endif %}>{% if ui_lang == 'en' %}Partner{% else %}পার্টনার{% endif %}</option>
+                  </select>
+                </form>
+                <form method="post" style="display:inline" onsubmit="return confirm('{% if ui_lang == 'en' %}Remove {{ r.user.username }} from this business? This can be undone only by adding them back as a new member.{% else %}{{ r.user.username }}-কে এই ব্যবসা থেকে সরিয়ে দেবেন? (এটা মনে রাখবেন, ফিরিয়ে আনতে হলে আবার নতুন করে যোগ করতে হবে){% endif %}');">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="remove_member">
+                  <input type="hidden" name="user_id" value="{{ r.membership.user.id }}">
+                  <button type="submit" class="btn sm" title="{% if ui_lang == 'en' %}Remove{% else %}সরিয়ে দিন{% endif %}" style="color:var(--text-danger);border-color:rgba(220,38,38,.25)"><i class="fa-solid fa-user-minus"></i></button>
+                </form>
+                {% else %}
+                <span class="bu-self">{% if ui_lang == 'en' %}the owner{% else %}আপনি মালিক{% endif %}</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="muted" style="text-align:center;padding:28px">{% if ui_lang == 'en' %}No members yet{% else %}এখনো কেউ টিমে নেই{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

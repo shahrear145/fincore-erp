@@ -1,0 +1,787 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Partner & Dues{% else %}পার্টনার ও বাকি{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .partner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .pcard{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:1px solid rgba(255,255,255,.75);
+    background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(248,250,252,.78));
+    color:var(--ink);text-decoration:none;transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s var(--ease);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .pcard::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,184,166,.05),transparent 55%);opacity:0;transition:opacity .18s}
+  .pcard:hover{transform:translateY(-3px);text-decoration:none;box-shadow:var(--shadow);border-color:rgba(255,255,255,.95)}
+  .pcard:hover::before{opacity:1}
+  .pcard.active{background:linear-gradient(135deg,rgba(4,13,28,.96),rgba(18,53,95,.94));color:#fff;border-color:rgba(255,255,255,.12);
+    box-shadow:0 14px 34px rgba(10,31,64,.22),0 1px 0 rgba(255,255,255,.08) inset}
+  .pcard.active::before{background:radial-gradient(180px 80px at 110% -10%,rgba(45,212,191,.28),transparent 60%);opacity:1}
+  .pavatar{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex:0 0 auto;font-weight:800;font-size:16px;
+    color:#042f2e;background:linear-gradient(135deg,#99f6e4,#5eead4 55%,#38bdf8);box-shadow:0 8px 18px rgba(20,184,166,.18)}
+  .pcard.active .pavatar{background:linear-gradient(135deg,#2dd4bf,#14b8a6);color:#042f2e;box-shadow:0 8px 18px rgba(45,212,191,.25)}
+  .pmeta{min-width:0;flex:1}
+  .pname{font-weight:800;font-size:14.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .psub{font-size:11.5px;margin-top:4px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pcard.active .psub{color:rgba(220,233,250,.85)}
+  .pdue{font-variant-numeric:tabular-nums}
+  .pdue.has{color:#b45309}.pcard.active .pdue.has{color:#fcd34d}
+  .pchev{color:var(--muted-2);font-size:12px;transition:transform .18s}
+  .pcard:hover .pchev{transform:translateX(2px);color:var(--brand)}
+  .pcard.active .pchev{color:rgba(255,255,255,.6)}
+  .book-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .bk-left{flex:1 1 320px;min-width:0}
+  .bk-left p{max-width:54ch}
+  .bk-date{flex:0 0 auto;margin-left:auto;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 10px;border:1px solid rgba(20,184,166,.35);background:rgba(240,253,250,.9);border-radius:12px}
+  .bk-date label{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap}
+  .bk-date input[type="date"]{padding:7px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.42);background:#fff;font:inherit;font-size:13px;font-weight:600;color:var(--ink);min-width:155px;width:auto}
+  @media(max-width:1080px){.bk-date{margin-left:0}}
+  .dcircles{display:flex;gap:10px;overflow:auto;padding:4px 2px 10px;scrollbar-width:thin;scroll-snap-type:x proximity;scroll-behavior:smooth}
+  .dc{scroll-snap-align:start;flex:0 0 auto;width:54px;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-decoration:none;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);box-shadow:var(--shadow-sm);transition:transform .16s var(--ease),box-shadow .16s var(--ease),border-color .16s var(--ease)}
+  .dc:hover{transform:translateY(-2px);text-decoration:none;border-color:rgba(20,184,166,.35);box-shadow:var(--shadow)}
+  .dc.active{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;border-color:transparent;box-shadow:0 10px 22px rgba(15,118,110,.22)}
+  .dc .d{font-weight:800;font-size:16px;line-height:1}
+  .dc .m{font-size:9.5px;font-weight:700;opacity:.85;margin-top:2px;text-transform:uppercase}
+  .dcontrols{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .dcrange{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.72)}
+  .dcrange label{font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+  .dcrange input[type="date"]{padding:6px 9px;border-radius:10px;border:1px solid rgba(148,163,184,.45);background:#fff;font:inherit;font-size:12px;font-weight:600;color:var(--ink);height:34px;width:128px;min-width:0;flex:0 0 auto}
+  .dcrange .arrow{color:var(--muted);font-weight:800}
+  .dc-slide{display:inline-flex;align-items:center;gap:8px}
+  .dc-slide-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.9);color:var(--brand);cursor:pointer;display:grid;place-items:center;font-size:17px;box-shadow:var(--shadow-sm);transition:transform .15s var(--ease),box-shadow .15s var(--ease),opacity .15s}
+  .dc-slide-btn:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .dc-slide-btn:disabled{opacity:.3;pointer-events:none}
+  .dc-count{font-size:11.5px;font-weight:700;color:var(--muted);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+  details > summary::-webkit-details-marker{display:none}
+  /* ---- no-reload history drawer ---- */
+  .hd{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);z-index:900;background:#fff;border-left:1px solid var(--line);
+    box-shadow:-20px 0 60px rgba(8,17,32,.15);display:flex;flex-direction:column;
+    transform:translateX(103%);visibility:hidden;will-change:transform;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s}
+  .hd.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .hd-backdrop{position:fixed;inset:0;z-index:899;background:rgba(4,13,28,.18);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+    opacity:0;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s}
+  .hd-backdrop.open{opacity:1;visibility:visible;transition:opacity .22s ease}
+  .hd-anim{display:flex;flex-direction:column;flex:1;min-height:0;animation:hdSwap .26s cubic-bezier(.2,.8,.2,1)}
+  @keyframes hdSwap{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){
+    .hd{transition:none}
+    .hd-backdrop{transition:none}
+    .hd-anim{animation:none}
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-hand-holding-dollar" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Partner & Dues (পার্টনার ও বাকি){% else %}পার্টনার ও বাকি{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}All due accounts live here, partner-wise. Go into a partner’s name to see all dues, add names, and record বাকি. Each partner’s book is separate — never mixed.{% else %}বাকির সব হিসাব এখানে, পার্টনার অনুযায়ী। একটি পার্টনারের নামে ঢুকে তার সব বাকি দেখুন, নাম যোগ করুন, এবং বাকি এন্ট্রি দিন। প্রতিটি পার্টনারের হিসাব আলাদা — কখনো মিশবে না।{% endif %}</p>
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span>{% if selected %}<span class="chip info"><i class="fa-solid fa-user-tie"></i> {{ selected.name }}</span>{% endif %}</div>{% endif %}
+</div>
+
+{% if active_membership.role == 'ADMIN' %}
+<div class="card" style="margin-bottom:18px;overflow:visible">
+  <div class="section-head" style="align-items:flex-start">
+    <div>
+      <h3 style="margin:0">{% if ui_lang == 'en' %}Choose a partner{% else %}পার্টনার নির্বাচন করুন{% endif %}</h3>
+      <span class="muted" style="font-size:12px">{% if ui_lang == 'en' %}Go inside a name{% else %}নামের ভিতরে যান{% endif %}</span>
+    </div>
+    <details {% if not partners %}open{% endif %} style="margin-left:auto;position:relative">
+      <summary class="btn sm primary" style="cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:7px"><i class="fa-solid fa-user-plus"></i> {% if ui_lang == 'en' %}Add partner{% else %}পার্টনার যোগ করুন{% endif %}</summary>
+      <div style="position:absolute;right:0;top:calc(100% + 8px);z-index:50;width:min(420px,92vw);background:var(--panel-solid);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:14px;backdrop-filter:blur(12px)">
+        <form method="post" class="form-grid" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_partner">
+          <div class="field full">
+            <label for="p-name">{% if ui_lang == 'en' %}Partner name{% else %}পার্টনারের নাম{% endif %}</label>
+            <input id="p-name" name="partner_name" required placeholder="{% if ui_lang == 'en' %}e.g., Rahim{% else %}যেমন: রহিম{% endif %}">
+          </div>
+          <div class="field full">
+            <label for="p-phone">{% if ui_lang == 'en' %}Phone{% else %}ফোন{% endif %} <span class="muted" style="font-weight:500">({% if ui_lang == 'en' %}optional{% else %}ঐচ্ছিক{% endif %})</span></label>
+            <input id="p-phone" name="partner_phone" placeholder="01XXXXXXXXX">
+          </div>
+          <div class="field full"><button class="btn primary" type="submit" style="width:100%"><i class="fa-solid fa-plus"></i> {% if ui_lang == 'en' %}Add partner{% else %}পার্টনার যোগ করুন{% endif %}</button></div>
+        </form>
+      </div>
+    </details>
+  </div>
+  {% if partners %}
+  <div class="partner-grid">
+    {% for o in overview %}
+      <a class="pcard {% if selected and selected.id == o.partner.id %}active{% endif %}" href="?partner={{ o.partner.id }}">
+        <div class="pavatar">{{ o.partner.name|slice:":1"|upper }}</div>
+        <div class="pmeta">
+          <div class="pname">{{ o.partner.name }}</div>
+          <div class="psub"><span class="pdue {% if o.total_due > 0 %}has{% endif %}"><i class="fa-solid fa-coins" style="font-size:10px"></i> {{ o.total_due|money }}</span><span>·</span><span>{{ o.count }} {% if ui_lang == 'en' %}name{{ o.count|pluralize }}{% else %}নাম{% endif %}</span></div>
+        </div>
+        <i class="fa-solid fa-chevron-right pchev"></i>
+      </a>
+    {% empty %}
+      {% for p in partners %}
+        <a class="pcard {% if selected and selected.id == p.id %}active{% endif %}" href="?partner={{ p.id }}">
+          <div class="pavatar">{{ p.name|slice:":1"|upper }}</div>
+          <div class="pmeta"><div class="pname">{{ p.name }}</div><div class="psub">{% if ui_lang == 'en' %}Open book{% else %}বাকি খাতা খুলুন{% endif %}</div></div>
+          <i class="fa-solid fa-chevron-right pchev"></i>
+        </a>
+      {% endfor %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted" style="margin:0">{% if ui_lang == 'en' %}No active partners yet. Use “Add partner” (top right) to create one, then go inside their name to add dues.{% else %}এখনো কোনো সক্রিয় পার্টনার নেই। ডান পাশে উপরে “পার্টনার যোগ করুন” থেকে যোগ করুন, তারপর তার নামে ঢুকে বাকি যোগ করুন।{% endif %}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if not selected %}
+  <div class="card"><div class="empty"><div class="ei"><i class="fa-solid fa-user-tie"></i></div><h4>{% if ui_lang == 'en' %}No partner selected{% else %}কোনো পার্টনার নির্বাচন করা নেই{% endif %}</h4><p>{% if ui_lang == 'en' %}Select a partner to view their due book and add dues.{% else %}একটি পার্টনার নির্বাচন করুন তার বাকি হিসাব দেখতে এবং বাকি যোগ করতে।{% endif %}</p></div></div>
+{% else %}
+
+<div class="split">
+  <div>
+    <div class="card">
+      <div class="book-head">
+        <div class="bk-left" style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div style="min-width:0">
+            <div class="section-head" style="margin:0"><h3><i class="fa-solid fa-book" style="color:var(--brand)"></i> {{ selected.name }} — {% if ui_lang == 'en' %}Baki khata (by date){% else %}বাকির খাতা (তারিখ অনুযায়ী){% endif %}</h3></div>
+            <p class="muted" style="margin:6px 0 0;font-size:13px">{% if ui_lang == 'en' %}Tap a date circle to see how much baki (due) was added that day. Click a name for its history on the side.{% else %}তারিখের সার্কেলে ক্লিক করলে ওই দিনে কত বাকি হয়েছে তা দেখাবে। নামের উপর ক্লিক করলে পাশে আগের মতো হিস্ট্রি দেখাবে।{% endif %}</p>
+          </div>
+          <div class="stat-pill" style="min-width:150px"><span class="k">{% if ui_lang == 'en' %}Total due{% else %}মোট বাকি{% endif %}</span><span class="v {% if total_due > 0 %}neg{% else %}pos{% endif %}">{{ total_due|money }}</span></div>
+        </div>
+        <form method="get" class="bk-date">
+          <input type="hidden" name="partner" value="{{ selected.id }}">
+          <label for="pdate-manual">{% if ui_lang == 'en' %}Date:{% else %}তারিখ:{% endif %}</label>
+          <input id="pdate-manual" type="date" name="pdate" value="{{ pdate|default:default_date }}" required aria-label="{% if ui_lang == 'en' %}Pick date{% else %}তারিখ লিখুন{% endif %}" title="{% if ui_lang == 'en' %}Pick date{% else %}তারিখ লিখুন{% endif %}">
+          <button type="submit" class="btn sm primary" style="height:36px;white-space:nowrap"><i class="fa-solid fa-magnifying-glass"></i> {% if ui_lang == 'en' %}Show{% else %}খাতা দেখুন{% endif %}</button>
+        </form>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <div class="muted" style="font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px"><i class="fa-regular fa-calendar"></i> {% if ui_lang == 'en' %}Baki dates — tap a circle{% else %}বাকির তারিখ — সার্কেলে ক্লিক করুন{% endif %}</div>
+          {% if range_active %}<span class="badge b-info"><i class="fa-solid fa-filter"></i> {{ pfrom|default:"…" }} → {{ pto|default:"…" }} · {{ partner_dates|length }}{% if ui_lang == 'en' %} dates{% else %} টি তারিখ{% endif %}</span>{% endif %}
+        </div>
+        <div class="dcircles" id="dcircles">
+          {% for d in partner_dates %}
+            <a class="dc {% if pdate == d|date:'Y-m-d' %}active{% endif %}" href="?partner={{ selected.id }}&pdate={{ d|date:'Y-m-d' }}{% if range_active %}&pfrom={{ pfrom }}&pto={{ pto }}{% endif %}" title="{{ d }}">
+              <span class="d">{{ d|date:"d" }}</span>
+              <span class="m">{{ d|date:"M" }}</span>
+            </a>
+          {% empty %}
+            <span class="muted" style="font-size:13px">{% if ui_lang == 'en' %}No dates in this range — try another range.{% else %}এই রেঞ্জে কোনো তারিখ নেই — অন্য রেঞ্জ চেষ্টা করুন।{% endif %}</span>
+          {% endfor %}
+        </div>
+        <div class="dcontrols">
+          <form method="get" class="dcrange" role="search" aria-label="{% if ui_lang == 'en' %}Filter dates{% else %}তারিখ ফিল্টার{% endif %}">
+            <input type="hidden" name="partner" value="{{ selected.id }}">
+            {% if pdate %}<input type="hidden" name="pdate" value="{{ pdate }}">{% endif %}
+            <label for="dc-from">{% if ui_lang == 'en' %}From{% else %}থেকে{% endif %}</label>
+            <input id="dc-from" type="date" name="pfrom" value="{{ pfrom }}" aria-label="{% if ui_lang == 'en' %}From date{% else %}শুরুর তারিখ{% endif %}">
+            <span class="arrow">→</span>
+            <label for="dc-to">{% if ui_lang == 'en' %}To{% else %}পর্যন্ত{% endif %}</label>
+            <input id="dc-to" type="date" name="pto" value="{{ pto }}" aria-label="{% if ui_lang == 'en' %}To date{% else %}শেষ তারিখ{% endif %}">
+            <button type="submit" class="btn sm primary" style="height:34px"><i class="fa-solid fa-filter"></i> {% if ui_lang == 'en' %}Apply{% else %}প্রয়োগ{% endif %}</button>
+            {% if pfrom or pto %}<a class="btn sm" style="height:34px" href="?partner={{ selected.id }}{% if pdate %}&pdate={{ pdate }}{% endif %}" title="{% if ui_lang == 'en' %}Clear range{% else %}রেঞ্জ ক্লিয়ার{% endif %}"><i class="fa-solid fa-xmark"></i></a>{% endif %}
+          </form>
+          <div class="dc-slide">
+            <button type="button" id="dcPrev" class="dc-slide-btn" aria-label="{% if ui_lang == 'en' %}Slide left{% else %}বামে স্লাইড{% endif %}"><i class="fa-solid fa-chevron-left"></i></button>
+            <span class="dc-count" id="dcCount">{{ partner_dates|length }}</span>
+            <button type="button" id="dcNext" class="dc-slide-btn" aria-label="{% if ui_lang == 'en' %}Slide right{% else %}ডানে স্লাইড{% endif %}"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      {% if pdate %}
+      <div class="khata-panel">
+        <div class="khata-header">
+          <div class="khata-info">
+            <span class="chip b-brand"><i class="fa-regular fa-calendar-check" style="font-size:12px"></i> {{ pdate }}</span>
+            <strong style="display:block;font-size:18px;font-weight:800;color:var(--text-strong);margin-top:5px;letter-spacing:-.01em">{% if ui_lang == 'en' %}Baki khata{% else %}বাকির খাতা{% endif %}</strong>
+            <span class="muted" style="font-size:13px">{{ partner_day_rows|length }} {% if ui_lang == 'en' %}customers{% else %}গ্রাহক{% endif %}</span>
+          </div>
+          <div class="khata-actions">
+            <div class="export-group">
+              <span class="eg-label">{% if ui_lang == 'en' %}Export{% else %}এক্সপোর্ট{% endif %}</span>
+              <a class="btn sm export-btn pdf" href="{% url 'web:export_khata' 'pdf' %}?partner={{ selected.id }}&pdate={{ pdate }}" download data-no-transition title="{% if ui_lang == 'en' %}Download PDF{% else %}PDF ডাউনলোড{% endif %}"><i class="fa-solid fa-file-pdf"></i> <span style="font-weight:800">PDF</span></a>
+              <a class="btn sm export-btn xlsx" href="{% url 'web:export_khata' 'xlsx' %}?partner={{ selected.id }}&pdate={{ pdate }}" download data-no-transition title="{% if ui_lang == 'en' %}Download Excel{% else %}Excel ডাউনলোড{% endif %}"><i class="fa-solid fa-file-excel"></i> <span style="font-weight:800">Excel</span></a>
+              <a class="btn sm export-btn docx" href="{% url 'web:export_khata' 'docx' %}?partner={{ selected.id }}&pdate={{ pdate }}" download data-no-transition title="{% if ui_lang == 'en' %}Download Word{% else %}Word ডাউনলোড{% endif %}"><i class="fa-solid fa-file-word"></i> <span style="font-weight:800">Word</span></a>
+            </div>
+          </div>
+        </div>
+
+        {% if partner_day_rows %}
+        <div class="khata-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="name-search" type="text" placeholder="{% if ui_lang == 'en' %}Search name or ID...{% else %}নাম বা আইডি দিয়ে খুঁজুন...{% endif %}" oninput="filterKhata(this.value)">
+          <span class="muted" style="font-size:12px">{% if ui_lang == 'en' %}Name/ID search{% else %}নাম/আইডি সার্চ{% endif %}</span>
+        </div>
+
+        <div class="table-wrap" style="border:0">
+        <table id="khata-table" class="khata-table">
+          <thead>
+            <tr>
+              <th style="width:5%">{% if ui_lang == 'en' %}SL{% else %}ক্রমিক{% endif %}</th>
+              <th class="hide-sm" style="width:11%">{% if ui_lang == 'en' %}ID{% else %}আইডি{% endif %}</th>
+              <th style="width:26%">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %}</th>
+              <th class="hide-sm" style="width:22%">{% if ui_lang == 'en' %}Phone / Email{% else %}ফোন / ইমেইল{% endif %}</th>
+              <th class="num" style="width:15%">{% if ui_lang == 'en' %}Previous baki{% else %}আগের বাকি{% endif %}</th>
+              <th class="num" style="width:15%">{% if ui_lang == 'en' %}Current baki{% else %}বর্তমান বাকি{% endif %}</th>
+              <th class="hide-sm" style="width:16%">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</th>
+              <th style="width:10%"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in partner_day_rows %}
+            <tr class="krow" data-name="{{ r.customer.name|default:''|lower }}" data-id="{{ r.customer.id }}">
+              <td class="mono muted">{{ forloop.counter }}</td>
+              <td class="mono hide-sm" style="font-size:11px" title="{{ r.customer.id }}"><span class="badge b-muted" style="font-size:10px">#{{ r.customer.id|stringformat:"s"|slice:":8"|upper }}</span></td>
+              <td>
+                <a href="?partner={{ selected.id }}{% if pdate %}&pdate={{ pdate }}{% endif %}&history={{ r.customer.id }}" data-history-link style="color:var(--text-strong);text-decoration:none;display:block;overflow:hidden">
+                  <strong style="display:block;font-size:14.5px">{{ r.customer.name|default:"—" }}</strong>
+                  <span class="muted" style="font-size:10.5px;margin-top:2px;display:block">ID #{{ r.customer.id|stringformat:"s"|slice:":8"|upper }}</span>
+                </a>
+              </td>
+              <td class="muted hide-sm" style="font-size:13px;line-height:1.4;color:var(--text-faint)">{{ r.customer.phone|default:"—" }}{% if r.customer.email %}<div style="font-size:10.5px;margin-top:2px">{{ r.customer.email }}</div>{% endif %}</td>
+              <td class="num" style="font-weight:700">{{ r.amount|money }}</td>
+              <td class="num" style="font-weight:800"><span class="{% if r.remaining > 0 %}neg{% else %}pos{% endif %}">{{ r.remaining|money }}</span></td>
+              <td class="muted hide-sm">{{ r.t.description|default:"—" }}</td>
+              <td class="num" style="white-space:nowrap">
+                <button type="button" class="btn sm" onclick="pickCustomer('{{ r.customer.name|default:''|escapejs }}','{{ r.customer.phone|default:''|escapejs }}','{{ r.customer.email|default:''|escapejs }}','{{ r.customer.id }}')" title="{% if ui_lang == 'en' %}Add/Pay{% else %}বাকি/পরিশোধ{% endif %}"><i class="fa-solid fa-plus"></i></button>
+                <button type="button" class="btn sm" onclick="openEdit('{{ r.customer.id }}','{{ r.customer.name|default:''|escapejs }}','{{ r.customer.phone|default:''|escapejs }}','{{ r.customer.email|default:''|escapejs }}','{{ r.customer.serial_no|default:'' }}','{{ r.remaining }}','{{ r.edit_tx_id }}','{{ r.edit_tx_amount }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
+                {% if r.remaining > 0 and r.assignment_id %}
+                {% if r.customer.phone or r.customer.email %}
+                <button type="button" class="btn sm" data-reminder-btn data-assignment="{{ r.assignment_id }}" title="{% if ui_lang == 'en' %}Send a payment reminder{% else %}বাকির রিমাইন্ডার পাঠান{% endif %}{% if r.last_reminder_at %} · {% if ui_lang == 'en' %}last sent{% else %}শেষ পাঠানো{% endif %} {{ r.last_reminder_at|date:"j M Y" }}{% endif %}"><i class="fa-solid fa-bell"{% if r.last_reminder_at %} style="color:var(--warn)"{% endif %}></i></button>
+                {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+
+        <div class="khata-totals">
+          <div class="stat-pill prev"><span class="k">{% if ui_lang == 'en' %}Total previous baki{% else %}মোট আগের বাকি{% endif %}</span><span class="v">{{ partner_day_total|money }}</span></div>
+          <div class="stat-pill curr{% if partner_day_remaining_total > 0 %} neg{% endif %}"><span class="k">{% if ui_lang == 'en' %}Total current baki{% else %}মোট বর্তমান বাকি{% endif %}</span><span class="v">{{ partner_day_remaining_total|money }}</span></div>
+        </div>
+
+        {% else %}
+        <div class="khata-empty">
+          <div class="ei"><i class="fa-solid fa-book-open"></i></div>
+          <p class="muted" style="margin:0">{% if ui_lang == 'en' %}No baki for this date.{% else %}এই তারিখে কোনো বাকি নেই।{% endif %}</p>
+        </div>
+        <div class="khata-actions" style="padding:10px 22px 18px;justify-content:center">
+          <div class="export-group">
+            <span class="eg-label">{% if ui_lang == 'en' %}Export{% else %}এক্সপোর্ট{% endif %}</span>
+            <a class="btn sm export-btn pdf" href="{% url 'web:export_khata' 'pdf' %}?partner={{ selected.id }}&pdate={{ pdate }}" download data-no-transition><i class="fa-solid fa-file-pdf"></i> PDF</a>
+            <a class="btn sm export-btn xlsx" href="{% url 'web:export_khata' 'xlsx' %}?partner={{ selected.id }}&pdate={{ pdate }}" download data-no-transition><i class="fa-solid fa-file-excel"></i> Excel</a>
+            <a class="btn sm export-btn docx" href="{% url 'web:export_khata' 'docx' %}?partner={{ selected.id }}&pdate={{ pdate }}" download data-no-transition><i class="fa-solid fa-file-word"></i> Word</a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% elif partner_dates %}
+      <div class="msg info"><i class="fa-solid fa-hand-pointer"></i><div>{% if ui_lang == 'en' %}Select a date circle above to open that day’s baki khata.{% else %}ওই দিনের বাকির খাতা দেখতে উপরের তারিখের সার্কেলে ক্লিক করুন।{% endif %}</div></div>
+      {% else %}
+      <div class="empty"><div class="ei"><i class="fa-solid fa-book-open"></i></div><h4>{% if ui_lang == 'en' %}No baki yet{% else %}এখনো কোনো বাকি নেই{% endif %}</h4><p>{% if ui_lang == 'en' %}Add baki using the form. Dates will appear here.{% else %}ফর্ম থেকে বাকি যোগ করুন। তারিখ এখানে দেখাবে।{% endif %}</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div class="card">
+      <div class="section-head"><h3><i class="fa-solid fa-hand-holding-dollar" style="color:var(--warn)"></i> {% if ui_lang == 'en' %}Add due (বাকি){% else %}বাকি যোগ করুন{% endif %}</h3><span class="badge b-muted"><i class="fa-solid fa-clock-rotate-left"></i> {% if ui_lang == 'en' %}date remembered{% else %}তারিখ মনে থাকে{% endif %}</span></div>
+      <form method="post" class="form-grid" id="baki-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_baki">
+        <input type="hidden" name="partner_id" value="{{ selected.id }}">
+        <input type="hidden" name="customer_id" id="b-customer-id" value="">
+        <input type="hidden" name="pdate" value="{{ pdate }}">
+        <div class="field">
+          <label for="b-type">{% if ui_lang == 'en' %}Type{% else %}ধরন{% endif %}</label>
+          <select id="b-type" name="transaction_type">
+            <option value="CREDIT">{% if ui_lang == 'en' %}Due (বাকি){% else %}বাকি{% endif %}</option>
+            <option value="PAYMENT">{% if ui_lang == 'en' %}Payment (পরিশোধ/আদায়){% else %}পরিশোধ (আদায়){% endif %}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="b-name">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %} <span style="color:var(--danger)">*</span></label>
+          <input id="b-name" name="name" required placeholder="{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %}">
+          <div id="picked-info" style="display:none;margin-top:6px;font-size:12px;color:var(--brand);font-weight:600"><i class="fa-solid fa-id-badge"></i> <span id="picked-label"></span> <button type="button" class="btn sm" style="padding:2px 8px;font-size:11px;margin-left:6px" onclick="clearPick()">{% if ui_lang == 'en' %}Clear{% else %}বাদ দিন{% endif %}</button></div>
+        </div>
+        <div class="field">
+          <label for="b-phone">{% if ui_lang == 'en' %}Phone number{% else %}ফোন নম্বর{% endif %}</label>
+          <input id="b-phone" name="phone" placeholder="01XXXXXXXXX">
+        </div>
+        <div class="field full">
+          <label for="b-email">{% if ui_lang == 'en' %}Email{% else %}ইমেইল{% endif %}</label>
+          <input id="b-email" name="email" type="email" placeholder="{% if ui_lang == 'en' %}Email (optional){% else %}ইমেইল (ঐচ্ছিক){% endif %}">
+        </div>
+        <div class="field">
+          <label for="b-amount">{% if ui_lang == 'en' %}Amount ৳{% else %}টাকার পরিমাণ (৳){% endif %} <span style="color:var(--danger)">*</span></label>
+          <input id="b-amount" name="amount" type="number" step="0.01" min="0.01" required placeholder="0.00" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label for="b-date">{% if ui_lang == 'en' %}Date (তারিখ){% else %}তারিখ{% endif %}</label>
+          <input id="b-date" name="transaction_date" type="date" value="{{ default_date }}" required>
+        </div>
+        <div class="field full">
+          <label for="b-desc">{% if ui_lang == 'en' %}Description (বিবরণ){% else %}বিবরণ{% endif %}</label>
+          <input id="b-desc" name="description" placeholder="{% if ui_lang == 'en' %}Description (optional){% else %}বিবরণ (ঐচ্ছিক){% endif %}">
+        </div>
+        <div class="field full">
+          <button class="btn primary" type="submit"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save due{% else %}বাকি সংরক্ষণ করুন{% endif %}</button>
+          <div class="mini-hint muted" style="font-size:12px;margin-top:8px">{% if ui_lang == 'en' %}Saved in {{ selected.name }}’s book only (server-enforced). The date you use becomes the default next time (until you change it).{% else %}শুধু {{ selected.name }} এর হিসাবেই সংরক্ষণ হবে (সার্ভার-নিয়ন্ত্রিত)। আপনি যে তারিখ দেবেন সেটাই পরের বার ডিফল্ট থাকবে (আপনি না বদলানো পর্যন্ত)।{% endif %}</div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card mt" style="background:var(--note-card-bg);border-color:var(--note-card-border)">
+  <div style="display:flex;gap:14px;align-items:flex-start">
+    <div class="icon i-teal" style="width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto"><i class="fa-solid fa-circle-info"></i></div>
+    <div>
+      <div style="font-weight:800;margin-bottom:3px">{% t "How dues stay accurate" %}</div>
+      <div class="muted" style="font-size:14px;line-height:1.6">{% if ui_lang == 'en' %}Each partner keeps an independent book. Dues saved here affect only {{ selected.name|default:"the selected partner" }}’s book. Reversals restore records (no hard deletes).{% else %}প্রতিটি পার্টনারের হিসাব আলাদা। এখানে দেওয়া বাকি শুধু {{ selected.name|default:"নির্বাচিত পার্টনার" }} এর হিসাবেই প্রভাব ফেলে। বাতিল হলে রেকর্ড ফেরত আসে (স্থায়ী মুছা নয়)।{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+{% if selected %}
+<div id="edit-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,13,28,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(520px,100%);max-height:90vh;overflow:auto;background:var(--panel-solid);border:1px solid var(--panel-solid-border);border-radius:20px;box-shadow:var(--shadow-lg);padding:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+      <div style="font-weight:800;font-size:17px"><i class="fa-solid fa-pen" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}</div>
+      <button type="button" class="btn sm" onclick="closeEdit()">{% if ui_lang == 'en' %}Close{% else %}বন্ধ{% endif %}</button>
+    </div>
+
+    <div id="tx-fix-sec" style="display:none;background:linear-gradient(135deg,rgba(37,99,235,.06),rgba(255,255,255,0));border:1px solid rgba(37,99,235,.18);border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-weight:800;margin-bottom:8px;color:var(--text-strong)"><i class="fa-solid fa-pen-to-square" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Fix this amount (2000 → 3000){% else %}এই টাকাটা ঠিক করুন (২০০০ → ৩০০০){% endif %}</div>
+      <form method="post" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit_tx_amount">
+        <input type="hidden" name="partner_id" value="{{ selected.id }}">
+        <input type="hidden" name="tx_id" id="tx-id" value="">
+        <input type="hidden" name="pdate" value="{{ pdate }}">
+        <div class="field" style="flex:1 1 180px;margin:0">
+          <label style="font-size:12px">{% if ui_lang == 'en' %}Correct amount (৳){% else %}সঠিক টাকা (৳){% endif %}</label>
+          <input id="new-amount" name="new_amount" type="number" step="0.01" min="0.01" placeholder="0.00" inputmode="decimal" required style="font-weight:700">
+        </div>
+        <button type="submit" class="btn primary" style="height:42px"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save{% else %}ঠিক করুন{% endif %}</button>
+      </form>
+      <div class="muted" style="font-size:11px;margin-top:8px">{% if ui_lang == 'en' %}Updates this entry and total baki (ledger-safe).{% else %}এন্ট্রি ও মোট বাকি দুটোই আপডেট হবে (লেজার-নিরাপদ)।{% endif %}</div>
+    </div>
+
+    <details>
+      <summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--brand);list-style:none;display:inline-flex;align-items:center;gap:6px;padding:6px 0"><i class="fa-solid fa-user-pen"></i> {% if ui_lang == 'en' %}Edit name / phone / serial{% else %}নাম / ফোন / ক্রমিক এডিট{% endif %}</summary>
+      <form method="post" class="form-grid" id="edit-form" style="margin-top:10px">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit_name">
+        <input type="hidden" name="partner_id" value="{{ selected.id }}">
+        <input type="hidden" name="customer_id" id="e-id" value="">
+        <input type="hidden" name="pdate" value="{{ pdate }}">
+        <div class="field"><label for="e-serial">{% if ui_lang == 'en' %}Serial{% else %}ক্রমিক{% endif %}</label><input id="e-serial" name="serial_no" placeholder="1"></div>
+        <div class="field"><label for="e-name">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %}</label><input id="e-name" name="name" required></div>
+        <div class="field"><label for="e-phone">{% if ui_lang == 'en' %}Phone{% else %}ফোন{% endif %}</label><input id="e-phone" name="phone"></div>
+        <div class="field"><label for="e-email">{% if ui_lang == 'en' %}Email{% else %}ইমেইল{% endif %}</label><input id="e-email" name="email" type="email"></div>
+        <div class="field full" style="display:flex;justify-content:flex-end"><button type="submit" class="btn primary"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save{% else %}সংরক্ষণ{% endif %}</button></div>
+      </form>
+    </details>
+
+    <details style="margin-top:6px">
+      <summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--text-soft);list-style:none;display:inline-flex;align-items:center;gap:6px;padding:6px 0"><i class="fa-solid fa-sliders"></i> {% if ui_lang == 'en' %}More options{% else %}আরও অপশন{% endif %}</summary>
+      <div style="margin-top:10px">
+        <div style="font-weight:700;margin-bottom:6px;font-size:13px">{% if ui_lang == 'en' %}Set total remaining baki{% else %}মোট বাকি সেট করুন{% endif %} <span class="muted" style="font-weight:600">(বর্তমান: <strong id="cur-due">—</strong>)</span></div>
+        <form method="post" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="adjust_baki">
+          <input type="hidden" name="partner_id" value="{{ selected.id }}">
+          <input type="hidden" name="customer_id" id="set-id" value="">
+          <input type="hidden" name="pdate" value="{{ pdate }}">
+          <div class="field" style="flex:1 1 140px;margin:0"><label style="font-size:12px">{% if ui_lang == 'en' %}Baki will be (৳){% else %}বাকি থাকবে (৳){% endif %}</label><input id="set-baki" name="set_baki_amount" type="number" step="0.01" min="0" placeholder="0.00" inputmode="decimal" required></div>
+          <input type="hidden" name="transaction_date" value="{{ default_date }}">
+          <button type="submit" class="btn sm primary">{% if ui_lang == 'en' %}Set{% else %}সেট{% endif %}</button>
+        </form>
+
+        <details>
+          <summary class="muted" style="cursor:pointer;font-size:12px;font-weight:700">{% if ui_lang == 'en' %}Advanced: +/- amount{% else %}অ্যাডভান্সড: +/- টাকা{% endif %}</summary>
+          <form method="post" class="form-grid" style="margin-top:8px">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="adjust_baki">
+            <input type="hidden" name="partner_id" value="{{ selected.id }}">
+            <input type="hidden" name="customer_id" id="adj-id" value="">
+            <input type="hidden" name="pdate" value="{{ pdate }}">
+            <div class="field"><select name="adjustment_direction"><option value="UP">বাকি +</option><option value="DOWN">বাকি -</option></select></div>
+            <div class="field"><input name="adjust_amount" type="number" step="0.01" min="0.01" placeholder="৳" inputmode="decimal"></div>
+            <input type="hidden" name="transaction_date" value="{{ default_date }}">
+            <div class="field full" style="display:flex;justify-content:flex-end"><button type="submit" class="btn sm">{% if ui_lang == 'en' %}Apply{% else %}প্রয়োগ{% endif %}</button></div>
+          </form>
+        </details>
+
+        {% if can_manage %}
+        <form method="post" style="margin-top:12px" onsubmit="return confirm('{% if ui_lang == 'en' %}Delete this name AND all their history from this partner?{% else %}এই নাম এবং এর সব হিস্ট্রি এই পার্টনারের খাতা থেকে মুছবেন?{% endif %}');">
+          {% csrf_token %}<input type="hidden" name="action" value="delete_name"><input type="hidden" name="partner_id" value="{{ selected.id }}"><input type="hidden" name="customer_id" id="del-id" value="">
+          <button type="submit" class="btn sm" style="color:var(--danger);border-color:rgba(220,38,38,.25)"><i class="fa-solid fa-trash"></i> {% if ui_lang == 'en' %}Remove from khata{% else %}খাতা থেকে সরান{% endif %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </details>
+  </div>
+</div>
+{% endif %}
+
+<div id="tx-edit-modal" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(4,13,28,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(480px,100%);background:var(--panel-solid);border:1px solid var(--panel-solid-border);border-radius:20px;box-shadow:var(--shadow-lg);padding:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+      <div style="font-weight:800;font-size:17px"><i class="fa-solid fa-pen" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Edit this baki entry{% else %}এই বাকি এন্ট্রিটি ঠিক করুন{% endif %}</div>
+      <button type="button" class="btn sm" onclick="closeTxEdit()">{% if ui_lang == 'en' %}Close{% else %}বন্ধ{% endif %}</button>
+    </div>
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_tx_amount">
+      <input type="hidden" name="partner_id" value="{{ selected.id }}">
+      <input type="hidden" name="tx_id" id="txe-id" value="">
+      <input type="hidden" name="pdate" value="{{ pdate }}">
+      <input type="hidden" name="history" value="{{ history_customer.id|default:'' }}">
+      <div class="field full"><label for="txe-amount">{% if ui_lang == 'en' %}Amount (৳){% else %}টাকার পরিমাণ (৳){% endif %}</label><input id="txe-amount" name="new_amount" type="number" step="0.01" min="0.01" placeholder="0.00" inputmode="decimal" required style="font-weight:700"></div>
+      <div class="field full"><label for="txe-note">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</label><input id="txe-note" name="new_note" type="text" maxlength="200" placeholder="{% if ui_lang == 'en' %}e.g. গরু ১ পিস{% else %}যেমন: গরু ১ পিস{% endif %}"></div>
+      <div class="field full" style="display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" class="btn" onclick="closeTxEdit()">{% if ui_lang == 'en' %}Cancel{% else %}বাতিল{% endif %}</button>
+        <button type="submit" class="btn primary"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save{% else %}সেভ করুন{% endif %}</button>
+      </div>
+    </form>
+    <div class="muted" style="font-size:11.5px;margin-top:10px"><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}The old entry is cancelled and the corrected one is posted — the baki and the cash stay exact.{% else %}পুরনো এন্ট্রিটি বাতিল হয়ে ঠিক করা এন্ট্রি বসবে — বাকি আর নগদ দুটোই ঠিক থাকবে।{% endif %}</div>
+  </div>
+</div>
+
+<div id="reminder-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,13,28,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(520px,100%);max-height:90vh;overflow:auto;background:var(--panel-solid);border:1px solid var(--panel-solid-border);border-radius:20px;box-shadow:var(--shadow-lg);padding:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+      <div style="font-weight:800;font-size:17px"><i class="fa-solid fa-bell" style="color:var(--warn)"></i> {% if ui_lang == 'en' %}Payment reminder{% else %}বাকির রিমাইন্ডার{% endif %}</div>
+      <button type="button" class="btn sm" onclick="closeReminder()">{% if ui_lang == 'en' %}Close{% else %}বন্ধ{% endif %}</button>
+    </div>
+
+    <div id="rem-loading" class="muted" style="font-size:13px">{% if ui_lang == 'en' %}Loading…{% else %}লোড হচ্ছে…{% endif %}</div>
+
+    <div id="rem-body" style="display:none">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px">
+        <div style="font-weight:800;font-size:16px" id="rem-name">—</div>
+        <div style="font-weight:800;font-size:20px;color:var(--danger)" id="rem-amount">—</div>
+      </div>
+      <div class="muted" style="font-size:12px;margin-bottom:10px" id="rem-meta"></div>
+
+      <div id="rem-warn" style="display:none;background:var(--fill-warn);border:1px solid var(--warn-panel-border);border-radius:12px;padding:10px;margin-bottom:10px;font-size:12.5px;color:var(--text-warn)"></div>
+
+      <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px">{% if ui_lang == 'en' %}Message{% else %}মেসেজ{% endif %}</label>
+      <textarea id="rem-message" readonly rows="6" style="width:100%;border-radius:12px;padding:10px;font-size:13px;line-height:1.5;background:rgba(248,250,252,.9)"></textarea>
+
+      <div id="rem-status" style="display:none;margin-top:10px;padding:10px;border-radius:12px;font-size:13px"></div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button type="button" class="btn primary" id="rem-wa"><i class="fa-brands fa-whatsapp" style="font-size:16px"></i> WhatsApp</button>
+        <button type="button" class="btn" id="rem-email"><i class="fa-solid fa-envelope"></i> {% if ui_lang == 'en' %}Email{% else %}ইমেইল{% endif %}</button>
+        <button type="button" class="btn" id="rem-copy"><i class="fa-solid fa-copy"></i> {% if ui_lang == 'en' %}Copy{% else %}কপি{% endif %}</button>
+      </div>
+      <div class="muted" style="font-size:11px;margin-top:10px">{% if ui_lang == 'en' %}WhatsApp opens with the message already typed — press Send there. Email goes out right away and is recorded in the customer’s history.{% else %}WhatsApp-এ মেসেজ আগেই লেখা খুলবে — সেখানে Send চাপুন। ইমেইল সাথে সাথেই পাঠানো হবে এবং কাস্টমারের হিস্ট্রিতে লেখা থাকবে।{% endif %}</div>
+    </div>
+  </div>
+</div>
+{{ rem_i18n|json_script:"rem-i18n" }}
+
+<script>
+  // ---- Payment reminder (WhatsApp / email) ------------------------------
+  // The bell button on a khata row opens this modal. The message is built
+  // server-side (right name, right amount, right book); the shop then hands
+  // it to WhatsApp (message pre-typed) or sends it by email. Every attempt
+  // is written to the server log and shown in the customer history drawer.
+  (function(){
+    var modal = document.getElementById('reminder-modal');
+    if(!modal) return;
+    var i18nEl = document.getElementById('rem-i18n');
+    var i18n = {};
+    try { i18n = JSON.parse(i18nEl.textContent); } catch(e) { i18n = {}; }
+    var bodyEl = document.getElementById('rem-body');
+    var loadEl = document.getElementById('rem-loading');
+    var nameEl = document.getElementById('rem-name');
+    var amountEl = document.getElementById('rem-amount');
+    var metaEl = document.getElementById('rem-meta');
+    var warnEl = document.getElementById('rem-warn');
+    var msgEl = document.getElementById('rem-message');
+    var statusEl = document.getElementById('rem-status');
+    var waBtn = document.getElementById('rem-wa');
+    var mailBtn = document.getElementById('rem-email');
+    var copyBtn = document.getElementById('rem-copy');
+    var assignmentId = '', canWa = false, canMail = false, cooldown = false;
+
+    function t(key, vars){
+      var s = i18n[key] || '';
+      Object.keys(vars || {}).forEach(function(k){ s = s.split('{'+k+'}').join(vars[k]); });
+      return s;
+    }
+    function csrfToken(){
+      var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+      if(m) return decodeURIComponent(m[1]);
+      // HttpOnly cookie setups fall back to a form's hidden token
+      var i = document.querySelector('input[name=csrfmiddlewaretoken]');
+      return i ? i.value : '';
+    }
+    function say(text, kind){
+      statusEl.textContent = text;
+      statusEl.style.display = 'block';
+      statusEl.style.background = kind === 'bad' ? 'rgba(220,38,38,.10)' : 'rgba(16,185,129,.12)';
+      statusEl.style.color = kind === 'bad' ? '#b91c1c' : '#047857';
+      statusEl.style.border = '1px solid ' + (kind === 'bad' ? 'rgba(220,38,38,.28)' : 'rgba(16,185,129,.28)');
+    }
+    function openReminder(id){
+      assignmentId = id; canWa = false; canMail = false; cooldown = false;
+      modal.style.display = 'flex';
+      bodyEl.style.display = 'none';
+      loadEl.style.display = 'block';
+      statusEl.style.display = 'none';
+      warnEl.style.display = 'none';
+      fetch('/customers/reminder/' + encodeURIComponent(id) + '/preview/', {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.ok ? r.json() : Promise.reject({status:r.status}); })
+        .then(function(d){
+          loadEl.style.display = 'none';
+          bodyEl.style.display = 'block';
+          nameEl.textContent = d.name || '';
+          amountEl.textContent = d.amount || '';
+          metaEl.textContent = [d.partner, d.business, d.phone, d.email].filter(Boolean).join(' · ');
+          msgEl.value = d.message || '';
+          canWa = !!d.can_whatsapp; canMail = !!d.can_email;
+          waBtn.disabled = !canWa; mailBtn.disabled = !canMail;
+          waBtn.title = canWa ? '' : t('no_phone');
+          mailBtn.title = canMail ? '' : t('no_email');
+          cooldown = !!d.cooldown_active;
+          if(cooldown && d.last_reminder){
+            warnEl.textContent = t('cooldown', {days: d.cooldown_days, date: String(d.last_reminder.at||'').slice(0,10)});
+            warnEl.style.display = 'block';
+          }
+        })
+        .catch(function(){ say(t('failed'), 'bad'); });
+    }
+    function post(channel, win, repeat){
+      say(t('sending'), 'ok');
+      fetch('/customers/reminder/' + encodeURIComponent(assignmentId) + '/send/', {
+        method: 'POST',
+        headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest',
+                 'Content-Type':'application/x-www-form-urlencoded'},
+        body: 'channel=' + channel + (repeat ? '&confirm_repeat=1' : '')
+      })
+        .then(function(r){ return r.json().then(function(j){ return {status:r.status, data:j}; }); })
+        .then(function(res){
+          var d = res.data || {};
+          if(d.ok){
+            if(channel === 'WHATSAPP' && d.wa_url){
+              if(win && !win.closed) win.location = d.wa_url;
+              else window.open(d.wa_url, '_blank');
+              say(t('wa_sent'), 'ok');
+            } else {
+              say(t('email_sent'), 'ok');
+            }
+            waBtn.disabled = true; mailBtn.disabled = true;
+            return;
+          }
+          if(d.code === 'cooldown'){
+            if(win && !win.closed) win.close();
+            if(window.confirm(t('cooldown', {days: d.cooldown_days, date: String((d.last_reminder&&d.last_reminder.at)||'').slice(0,10)}))){
+              post(channel, null, true);
+            } else {
+              say(t('cooldown_blocked'), 'bad');
+            }
+            return;
+          }
+          if(win && !win.closed) win.close();
+          if(d.error === 'no_phone') say(t('no_phone'), 'bad');
+          else if(d.error === 'no_email') say(t('no_email'), 'bad');
+          else if(d.error === 'no_due') say(t('no_due'), 'bad');
+          else say(t('failed'), 'bad');
+        })
+        .catch(function(){ if(win && !win.closed) win.close(); say(t('failed'), 'bad'); });
+    }
+    window.closeReminder = function(){ modal.style.display = 'none'; };
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest ? e.target.closest('[data-reminder-btn]') : null;
+      if(!btn) return;
+      e.preventDefault();
+      openReminder(btn.getAttribute('data-assignment'));
+    });
+    waBtn.addEventListener('click', function(){
+      if(!canWa) return;
+      var w = window.open('about:blank', '_blank');   // opened now: browsers block late popups
+      post('WHATSAPP', w, false);
+    });
+    mailBtn.addEventListener('click', function(){ if(canMail) post('EMAIL', null, false); });
+    copyBtn.addEventListener('click', function(){
+      var txt = msgEl.value || '';
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(function(){ say(t('copied'), 'ok'); });
+      } else {
+        msgEl.removeAttribute('readonly'); msgEl.select();
+        document.execCommand('copy'); msgEl.setAttribute('readonly','readonly');
+        say(t('copied'), 'ok');
+      }
+    });
+    modal.addEventListener('click', function(e){ if(e.target === modal) modal.style.display = 'none'; });
+  })();
+</script>
+
+<script>
+  // date-circle strip: slide buttons + auto-scroll to the active date
+  (function(){
+    var strip = document.getElementById('dcircles');
+    var prev = document.getElementById('dcPrev');
+    var next = document.getElementById('dcNext');
+    if(!strip || !prev || !next) return;
+    function step(){ return Math.max(180, Math.floor(strip.clientWidth * 0.75)); }
+    function update(){
+      var max = strip.scrollWidth - strip.clientWidth;
+      prev.disabled = strip.scrollLeft <= 4;
+      next.disabled = strip.scrollLeft >= max - 4;
+    }
+    prev.addEventListener('click', function(){ strip.scrollBy({left: -step(), behavior: 'smooth'}); });
+    next.addEventListener('click', function(){ strip.scrollBy({left: step(), behavior: 'smooth'}); });
+    strip.addEventListener('scroll', update, {passive: true});
+    window.addEventListener('resize', update);
+    var active = strip.querySelector('.dc.active');
+    if(active){
+      strip.scrollLeft = Math.max(0, active.offsetLeft - strip.clientWidth / 2 + active.offsetWidth / 2);
+    }
+    update();
+  })();
+</script>
+<script>
+  function pickCustomer(name, phone, email, id){
+    var n=document.getElementById('b-name'); if(n){ n.value=name||''; }
+    var p=document.getElementById('b-phone'); if(p){ p.value=phone||''; }
+    var e=document.getElementById('b-email'); if(e){ e.value=email||''; }
+    var cid=document.getElementById('b-customer-id'); if(cid){ cid.value=id||''; }
+    var info=document.getElementById('picked-info'), lab=document.getElementById('picked-label');
+    if(id && info && lab){ lab.textContent = (name||'') + '  ·  ID: #' + String(id).substring(0,8).toUpperCase(); info.style.display='block'; }
+    else if(info){ info.style.display='none'; }
+    var a=document.getElementById('b-amount'); if(a){ a.focus(); }
+    var f=document.getElementById('baki-form'); if(f){ f.scrollIntoView({behavior:'smooth', block:'center'}); }
+  }
+  function clearPick(){
+    var cid=document.getElementById('b-customer-id'); if(cid) cid.value='';
+    var info=document.getElementById('picked-info'); if(info) info.style.display='none';
+    ['b-name','b-phone','b-email','b-amount'].forEach(function(i){ var el=document.getElementById(i); if(el) el.value=''; });
+    var n=document.getElementById('b-name'); if(n) n.focus();
+  }
+  var _bn=document.getElementById('b-name');
+  if(_bn){ _bn.addEventListener('input', function(){ var cid=document.getElementById('b-customer-id'); if(cid && cid.value){ cid.value=''; var info=document.getElementById('picked-info'); if(info) info.style.display='none'; } }); }
+  function filterKhata(q){
+    q=(q||'').toLowerCase().trim();
+    var rows=document.querySelectorAll('#khata-table tr.krow');
+    rows.forEach(function(r){
+      var name=r.getAttribute('data-name')||'';
+      var id=(r.getAttribute('data-id')||'').toLowerCase();
+      var show=!q || name.indexOf(q)!==-1 || id.indexOf(q)!==-1 || id.substring(0,8).indexOf(q)!==-1;
+      r.style.display = show ? '' : 'none';
+    });
+  }
+  function openEdit(id, name, phone, email, serial, due, txId, txAmount){
+    var m=document.getElementById('edit-modal'); if(!m) return;
+    document.getElementById('e-id').value=id||'';
+    var a=document.getElementById('adj-id'); if(a) a.value=id||'';
+    var s=document.getElementById('set-id'); if(s) s.value=id||'';
+    var d=document.getElementById('del-id'); if(d) d.value=id||'';
+    var ti=document.getElementById('tx-id'); if(ti) ti.value=txId||'';
+    document.getElementById('e-name').value=name||'';
+    document.getElementById('e-phone').value=phone||'';
+    document.getElementById('e-email').value=email||'';
+    document.getElementById('e-serial').value=serial||'';
+    var sb=document.getElementById('set-baki'); if(sb){ sb.value=(due!==undefined && due!==null && due!=='') ? due : ''; }
+    var cd=document.getElementById('cur-due'); if(cd){ cd.textContent='৳'+((due!==undefined && due!==null && due!=='') ? due : '0.00'); }
+    var na=document.getElementById('new-amount'); if(na){ na.value=(txAmount!==undefined && txAmount!==null && txAmount!=='') ? txAmount : ''; }
+    var txsec=document.getElementById('tx-fix-sec'); if(txsec){ txsec.style.display=txId ? 'block' : 'none'; }
+    m.style.display='flex';
+    if(txId && na){ na.focus(); na.select(); } else if(sb){ sb.focus(); sb.select(); }
+  }
+  function closeEdit(){ var m=document.getElementById('edit-modal'); if(m) m.style.display='none'; }
+
+  // ---- edit one baki entry from the history drawer ----------------------
+  function openTxEdit(txId, amount, note){
+    var m=document.getElementById('tx-edit-modal'); if(!m) return;
+    document.getElementById('txe-id').value=txId||'';
+    document.getElementById('txe-amount').value=(amount!==undefined && amount!==null) ? amount : '';
+    document.getElementById('txe-note').value=note||'';
+    m.style.display='flex';
+    var a=document.getElementById('txe-amount'); if(a){ a.focus(); a.select(); }
+  }
+  function closeTxEdit(){ var m=document.getElementById('tx-edit-modal'); if(m) m.style.display='none'; }
+</script>
+
+<div id="history-drawer" class="hd{% if history_customer and selected %} open{% endif %}" role="dialog" aria-modal="true" aria-label="{% if ui_lang == 'en' %}Customer history{% else %}কাস্টমার হিস্ট্রি{% endif %}">
+  {% if history_customer and selected %}{% include "web/partials/history_drawer.html" %}{% endif %}
+</div>
+<div id="history-backdrop" class="hd-backdrop{% if history_customer and selected %} open{% endif %}" aria-hidden="true"{% if selected %} onclick="location.href='?partner={{ selected.id }}{% if pdate %}&pdate={{ pdate }}{% endif %}'"{% endif %}></div>
+
+<script>
+  // ---- No-reload history drawer: clicking a customer name fetches the
+  // drawer fragment (?partial=history) and slides it in without a page
+  // reload. URL is kept shareable via pushState; Esc / backdrop / X close
+  // it with an animation. Without JS the links keep the old reload flow.
+  // This script sits BELOW the drawer markup so the elements exist. ----
+  (function(){
+    var drawer = document.getElementById('history-drawer');
+    var backdrop = document.getElementById('history-backdrop');
+    if(!drawer || !backdrop) return;
+
+    function qs(){ return new URLSearchParams(location.search); }
+    function isOpen(){ return drawer.classList.contains('open'); }
+    function closeUrl(){
+      var p = qs(); p.delete('history'); p.delete('partial');
+      var s = p.toString();
+      return location.pathname + (s ? '?' + s : '');
+    }
+    function show(){
+      drawer.classList.add('open');
+      backdrop.classList.add('open');
+    }
+    function hide(){
+      drawer.classList.remove('open');
+      backdrop.classList.remove('open');
+    }
+    function load(url, push){
+      var sep = url.indexOf('?') === -1 ? '?' : '&';
+      fetch(url + sep + 'partial=history', {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ if(!r.ok) throw new Error('http ' + r.status); return r.text(); })
+        .then(function(html){
+          drawer.innerHTML = html;
+          if(push !== false) history.pushState({drawer:1}, '', url);
+          show();
+        })
+        .catch(function(){ location.href = url; });   // graceful fallback: old reload flow
+    }
+    function close(push){
+      hide();
+      if(push !== false) history.replaceState(null, '', closeUrl());
+    }
+
+    // capture phase wins before the global view-transition navigation
+    document.addEventListener('click', function(e){
+      if(e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var el = e.target;
+      if(!el.closest) return;
+      if(el === backdrop || el.closest('#history-drawer a[data-hd-close]')){
+        e.preventDefault(); e.stopPropagation(); close(); return;
+      }
+      var link = el.closest('a[data-history-link]');
+      if(link){
+        e.preventDefault(); e.stopPropagation();
+        load(link.getAttribute('href'), true);
+      }
+    }, true);
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && isOpen()) close();
+    });
+
+    // back / forward: match the drawer to the URL without reloading
+    addEventListener('popstate', function(){
+      if(qs().get('history')) load(location.pathname + location.search, false);
+      else hide();
+    });
+  })();
+</script>
+{% endblock %}

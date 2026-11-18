@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FinCore ERP — অফলাইন</title>
+<meta name="theme-color" content="#08162c">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:"Hind Siliguri","Noto Sans Bengali",Inter,system-ui,sans-serif;
+    background:radial-gradient(1200px 700px at 70% -10%,#16244a 0%,#08162c 55%,#050d1d 100%);
+    color:#e6ecff;display:grid;place-items:center;overflow:hidden;
+  }
+  .stars{position:fixed;inset:0;pointer-events:none;opacity:.5}
+  .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#c7d2fe;animation:twinkle 3.4s ease-in-out infinite}
+  @keyframes twinkle{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:.9;transform:scale(1.4)}}
+
+  .wrap{text-align:center;padding:32px 22px;max-width:520px;position:relative}
+  .logo{position:relative;width:112px;height:112px;margin:0 auto 22px}
+  .logo svg{width:100%;height:100%;filter:drop-shadow(0 18px 40px rgba(34,211,238,.28))}
+  .orbit{position:absolute;inset:-16px;border-radius:50%;border:1px solid rgba(199,210,254,.25);animation:spin 9s linear infinite}
+  .orbit::after{content:"";position:absolute;top:-4px;left:50%;width:9px;height:9px;border-radius:50%;background:#22d3ee;box-shadow:0 0 12px #22d3ee}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  h1{font-size:clamp(24px,5.4vw,32px);font-weight:800;letter-spacing:-.02em;color:#fff}
+  h1 em{font-style:normal;background:linear-gradient(135deg,#a5b4fc,#818cf8 45%,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+  p{margin-top:12px;font-size:15px;line-height:1.65;color:#a9b8de}
+  .en{margin-top:6px;font-size:12px;color:#66759e;letter-spacing:.04em}
+
+  .retry{margin-top:26px;display:inline-flex;align-items:center;gap:10px;border:0;cursor:pointer;
+    padding:13px 26px;border-radius:999px;font:inherit;font-weight:700;font-size:15px;color:#08162c;
+    background:linear-gradient(160deg,#fde68a,#f59e0b 70%,#d97706);
+    box-shadow:0 14px 34px rgba(245,158,11,.4),inset 0 2px 0 rgba(255,255,255,.6),0 3px 0 #92400e;
+    transition:transform .18s,box-shadow .18s}
+  .retry:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(245,158,11,.5),inset 0 2px 0 rgba(255,255,255,.6),0 5px 0 #92400e}
+  .retry:active{transform:translateY(1px);box-shadow:0 8px 20px rgba(245,158,11,.4),inset 0 2px 0 rgba(255,255,255,.6),0 1px 0 #92400e}
+
+  .hint{margin-top:22px;font-size:12px;color:#5b6a94}
+  .hint code{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:2px 8px;color:#9fb3d8}
+
+  @media (prefers-reduced-motion:reduce){
+    .orbit,.stars i{animation:none}
+  }
+</style>
+</head>
+<body>
+  <div class="stars" aria-hidden="true">
+    <i style="top:12%;left:18%;animation-delay:0s"></i>
+    <i style="top:24%;left:78%;animation-delay:.8s"></i>
+    <i style="top:40%;left:8%;animation-delay:1.6s"></i>
+    <i style="top:62%;left:88%;animation-delay:.4s"></i>
+    <i style="top:78%;left:30%;animation-delay:2.1s"></i>
+    <i style="top:16%;left:52%;animation-delay:1.2s"></i>
+    <i style="top:84%;left:66%;animation-delay:2.8s"></i>
+  </div>
+
+  <div class="wrap">
+    <div class="logo">
+      <div class="orbit"></div>
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FinCore লোগো">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#a5b4fc"/>
+            <stop offset="0.46" stop-color="#6366f1"/>
+            <stop offset="1" stop-color="#22d3ee"/>
+          </linearGradient>
+        </defs>
+        <rect width="64" height="64" rx="16" fill="#0d1730"/>
+        <circle cx="32" cy="32" r="17" fill="url(#g)"/>
+        <circle cx="32" cy="32" r="12.4" fill="none" stroke="#060f22" stroke-opacity="0.55" stroke-width="3"/>
+        <text x="32" y="40" text-anchor="middle" font-family="Hind Siliguri,Noto Sans Bengali,Inter,sans-serif" font-size="21" font-weight="800" fill="#060f22">৳</text>
+      </svg>
+    </div>
+
+    <h1>ইন্টারনেট <em>সংযোগ নেই</em></h1>
+    <p>ঘাবড়াবেন না — আপনার হিসাবের ডেটা সার্ভারে নিরাপদে আছে। সংযোগ ফিরে এলেই FinCore আবার সব হিসাব দিয়ে দেবে।</p>
+    <div class="en">You're offline. Your ledger is safe on the server — reconnect and everything will be right where you left it.</div>
+
+    <button class="retry" type="button" onclick="location.reload()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+      আবার সংযোগ চেষ্টা করুন
+    </button>
+
+    <div class="hint">ইন্টারনেট ফিরে এলে <code>ফিনকোর</code>-এ স্বয়ংক্রিয়ভাবে ঢুকবেন — স্ক্রিনে কিছুই হারাননি।</div>
+  </div>
+</body>
+</html>

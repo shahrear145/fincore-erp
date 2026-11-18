@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinCore ERP — Dark Neon Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08162c; --bg2:#0b1e3d;
+    --violet:#8b5cf6; --cyan:#22d3ee; --mint:#34d399;
+    --ink:#eaf2ff; --muted:#93a8c7;
+    --glass:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Hind Siliguri","Inter",system-ui,sans-serif;
+    background:radial-gradient(1200px 700px at 15% -10%, #1b2f63 0%, transparent 55%),
+               radial-gradient(900px 600px at 95% 10%, #2a1b5e 0%, transparent 50%),
+               linear-gradient(180deg,#08162c 0%,#06122a 60%,#040d1f 100%);
+    color:var(--ink); min-height:100vh; overflow-x:hidden;
+  }
+  canvas#stars{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.75}
+  .wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* ---------- nav ---------- */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.3px;font-size:20px}
+  .logo{
+    width:40px;height:40px;border-radius:13px;
+    background:linear-gradient(135deg,var(--violet),var(--cyan));
+    display:grid;place-items:center;font-size:20px;
+    box-shadow:0 10px 30px rgba(139,92,246,.45), inset 0 1px 0 rgba(255,255,255,.5);
+    transform-style:preserve-3d; animation:logoSpin 9s ease-in-out infinite;
+  }
+  @keyframes logoSpin{0%,100%{transform:rotateY(0) rotateX(0)}50%{transform:rotateY(180deg) rotateX(12deg)}}
+  .nav-links{display:flex;gap:26px;color:var(--muted);font-size:15px}
+  .nav-links a{color:inherit;text-decoration:none;transition:.2s}
+  .nav-links a:hover{color:#fff}
+  .nav-cta{
+    padding:11px 22px;border-radius:12px;font-weight:600;font-size:14px;color:#fff;
+    background:linear-gradient(135deg,var(--violet),#6d28d9);
+    border:1px solid rgba(255,255,255,.2);text-decoration:none;
+    box-shadow:0 12px 30px rgba(109,40,217,.45);transition:.25s;
+  }
+  .nav-cta:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(109,40,217,.6)}
+
+  /* ---------- hero ---------- */
+  .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:46px 0 80px}
+  .badge{
+    display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:999px;
+    background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);
+    color:#a5f3fc;font-size:13px;font-weight:600;margin-bottom:22px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint);animation:pulse 1.8s infinite}
+  @keyframes pulse{50%{opacity:.35;transform:scale(.8)}}
+  h1{font-size:52px;line-height:1.15;font-weight:800;letter-spacing:-.5px;margin-bottom:18px}
+  h1 .grad{
+    background:linear-gradient(100deg,#c4b5fd 0%,#22d3ee 50%,#34d399 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .sub{color:var(--muted);font-size:17.5px;line-height:1.75;max-width:520px;margin-bottom:30px}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:38px}
+  .btn{
+    padding:14px 28px;border-radius:14px;font-weight:700;font-size:15px;text-decoration:none;
+    display:inline-flex;align-items:center;gap:9px;transition:.25s;border:1px solid transparent;
+  }
+  .btn-primary{
+    color:#08122a;background:linear-gradient(135deg,#67e8f9,#a78bfa);
+    box-shadow:0 16px 40px rgba(103,232,249,.28);
+  }
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 55px rgba(103,232,249,.42)}
+  .btn-ghost{color:#dbeafe;border-color:var(--stroke);background:var(--glass);backdrop-filter:blur(8px)}
+  .btn-ghost:hover{background:rgba(255,255,255,.1);transform:translateY(-3px)}
+
+  .stats{display:flex;gap:34px;flex-wrap:wrap}
+  .stat b{display:block;font-size:26px;font-weight:800;font-family:"Inter",sans-serif;letter-spacing:-.5px}
+  .stat span{font-size:13px;color:var(--muted)}
+
+  /* ---------- 3D dashboard ---------- */
+  .scene{perspective:1400px;position:relative;display:grid;place-items:center;min-height:430px}
+  .float-card{
+    width:100%;max-width:420px;border-radius:24px;padding:22px;
+    background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.03));
+    border:1px solid var(--stroke);backdrop-filter:blur(22px);
+    box-shadow:0 40px 90px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.22);
+    transform-style:preserve-3d;transition:transform .12s ease-out;will-change:transform;
+    animation:hover 7s ease-in-out infinite;
+  }
+  @keyframes hover{0%,100%{translate:0 0}50%{translate:0 -14px}}
+  .fc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .fc-head h3{font-size:15px;font-weight:600;color:#dbeafe}
+  .chip{font-size:11px;padding:4px 10px;border-radius:999px;background:rgba(52,211,153,.15);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)}
+  .balance{font-family:"Inter",sans-serif;font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+  .balance small{font-size:14px;color:var(--muted);font-weight:500;letter-spacing:0}
+  .delta{font-size:12.5px;color:var(--mint);margin-bottom:20px}
+  .bars{display:flex;align-items:flex-end;gap:9px;height:104px;margin-bottom:18px}
+  .bar{
+    flex:1;border-radius:7px 7px 3px 3px;
+    background:linear-gradient(180deg,#67e8f9,#7c3aed);
+    box-shadow:0 0 18px rgba(103,232,249,.25);
+    animation:grow 1.4s cubic-bezier(.2,.8,.2,1) both;
+    transform-origin:bottom;
+  }
+  @keyframes grow{from{transform:scaleY(0);opacity:.2}to{transform:scaleY(1);opacity:1}}
+  .rows{display:grid;gap:10px}
+  .row{
+    display:flex;justify-content:space-between;align-items:center;font-size:13.5px;
+    padding:10px 13px;border-radius:12px;background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .row span:first-child{color:#c7d6ee;display:flex;align-items:center;gap:9px}
+  .row b{font-family:"Inter",sans-serif;font-weight:700}
+  .ico{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:12px}
+  .ico.g{background:rgba(52,211,153,.16);color:#6ee7b7}
+  .ico.v{background:rgba(139,92,246,.18);color:#c4b5fd}
+  .ico.c{background:rgba(34,211,238,.16);color:#a5f3fc}
+
+  /* floating coins */
+  .coin{
+    position:absolute;width:62px;height:62px;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%,#fde68a,#f59e0b 55%,#b45309);
+    border:2px solid rgba(255,255,255,.5);
+    box-shadow:0 18px 40px rgba(245,158,11,.35), inset 0 -4px 10px rgba(0,0,0,.35);
+    display:grid;place-items:center;color:#78350f;font-weight:900;font-size:22px;
+    font-family:"Inter",sans-serif;transform-style:preserve-3d;
+    animation:coinSpin 7s linear infinite;
+  }
+  .coin.c1{top:-16px;right:-6px;animation-duration:9s}
+  .coin.c2{bottom:36px;left:-26px;width:46px;height:46px;font-size:16px;animation-duration:11s}
+  .coin.c3{top:44%;right:-40px;width:34px;height:34px;font-size:12px;animation-duration:8s}
+  @keyframes coinSpin{
+    0%{transform:rotateY(0) translateY(0)}
+    50%{transform:rotateY(180deg) translateY(-16px)}
+    100%{transform:rotateY(360deg) translateY(0)}
+  }
+
+  /* ---------- features ---------- */
+  .features{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:10px 0 90px}
+  .feat{
+    padding:24px 20px;border-radius:20px;background:var(--glass);
+    border:1px solid var(--stroke);backdrop-filter:blur(12px);
+    transition:.3s;transform-style:preserve-3d;
+  }
+  .feat:hover{transform:translateY(-8px) rotateX(4deg);border-color:rgba(139,92,246,.45);box-shadow:0 26px 50px rgba(0,0,0,.45)}
+  .feat .fi{
+    width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:20px;margin-bottom:16px;
+    background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(34,211,238,.2));
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .feat h4{font-size:15.5px;margin-bottom:7px}
+  .feat p{font-size:13px;color:var(--muted);line-height:1.65}
+
+  .switcher{
+    position:fixed;left:18px;bottom:18px;z-index:20;display:flex;gap:8px;
+    background:rgba(8,22,44,.8);border:1px solid var(--stroke);border-radius:14px;padding:8px;
+    backdrop-filter:blur(10px);
+  }
+  .switcher a{font-size:12px;padding:7px 12px;border-radius:9px;color:var(--muted);text-decoration:none}
+  .switcher a.on{background:linear-gradient(135deg,var(--violet),var(--cyan));color:#08122a;font-weight:700}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;padding-top:20px}
+    h1{font-size:38px}
+    .features{grid-template-columns:repeat(2,1fr)}
+    .nav-links{display:none}
+    .scene{min-height:380px}
+  }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+  <nav>
+    <div class="brand"><div class="logo">◈</div> FinCore ERP</div>
+    <div class="nav-links">
+      <a href="#">ফিচার</a><a href="#">দাম</a><a href="#">ব্যাকআপ</a><a href="#">সাপোর্ট</a>
+    </div>
+    <a class="nav-cta" href="#">লগইন</a>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="badge"><span class="dot"></span> নতুন · 3D ড্যাশবোর্ড</div>
+      <h1>আপনার ব্যবসার হিসাব,<br><span class="grad">এখন জীবন্ত</span></h1>
+      <p class="sub">নগদ, বাকি খাতা, ঋণ, বিনিয়োগ আর ব্যাকআপ — সব এক জায়গায়। হিসাব রাখা এখন আরও সহজ, দ্রুত আর নিরাপদ।</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#">বিনামূল্যে শুরু করুন →</a>
+        <a class="btn btn-ghost" href="#">▷ ডেমো দেখুন</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>৳২.৪ লক্ষ</b><span>মোট নগদ</span></div>
+        <div class="stat"><b>১২৪</b><span>সক্রিয় বাকি</span></div>
+        <div class="stat"><b>৯৯.৯%</b><span>হিসাব নির্ভুল</span></div>
+      </div>
+    </div>
+
+    <div class="scene">
+      <div class="float-card" id="tiltCard">
+        <div class="fc-head">
+          <h3>আজকের অবস্থা</h3>
+          <span class="chip">● লাইভ</span>
+        </div>
+        <div class="balance">৳ ২,৪৮,৬৫০<small> .০০</small></div>
+        <div class="delta">▲ ১২.৪% গত সপ্তাহের তুলনায়</div>
+        <div class="bars">
+          <div class="bar" style="height:38%;animation-delay:.05s"></div>
+          <div class="bar" style="height:62%;animation-delay:.12s"></div>
+          <div class="bar" style="height:48%;animation-delay:.19s"></div>
+          <div class="bar" style="height:84%;animation-delay:.26s"></div>
+          <div class="bar" style="height:56%;animation-delay:.33s"></div>
+          <div class="bar" style="height:96%;animation-delay:.40s"></div>
+          <div class="bar" style="height:72%;animation-delay:.47s"></div>
+        </div>
+        <div class="rows">
+          <div class="row"><span><i class="ico g">৳</i> আজকের বিক্রি</span><b>৳ ৩২,৪০০</b></div>
+          <div class="row"><span><i class="ico v">🧾</i> আজকের বাকি</span><b>৳ ৮,২০০</b></div>
+          <div class="row"><span><i class="ico c">☁</i> Drive ব্যাকআপ</span><b style="color:#6ee7b7">সম্পন্ন</b></div>
+        </div>
+      </div>
+      <div class="coin c1">৳</div>
+      <div class="coin c2">৳</div>
+      <div class="coin c3">৳</div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feat"><div class="fi">💰</div><h4>নগদ হিসাব</h4><p>প্রতিদিনের আয়-ব্যয়, হাতে নগদ আর ব্যাংক — সব এক নজরে।</p></div>
+    <div class="feat"><div class="fi">📒</div><h4>বাকি খাতা</h4><p>কাস্টমারের বাকি, আদায় আর রিমাইন্ডার — কোনো টাকা আর হারাবে না।</p></div>
+    <div class="feat"><div class="fi">🤝</div><h4>ঋণ ও বিনিয়োগ</h4><p>ঋণদাতা ও বিনিয়োগকারীর হিসাব আলাদা, সবসময় ব্যালান্সড।</p></div>
+    <div class="feat"><div class="fi">☁️</div><h4>Drive ব্যাকআপ</h4><p>এক ক্লিকে Google Drive-এ ব্যাকআপ, যেকোনো সময় ফিরিয়ে আনুন।</p></div>
+  </section>
+</div>
+
+<div class="switcher">
+  <a class="on" href="demo1-dark-neon.html">১ · ডার্ক নিয়ন</a>
+  <a href="demo2-light-clean.html">২ · লাইট ক্লিন</a>
+  <a href="index.html">← সব ডিজাইন</a>
+</div>
+
+<script>
+  /* ---- starfield ---- */
+  const cv = document.getElementById('stars'), ctx = cv.getContext('2d');
+  let stars = [];
+  function resize(){
+    cv.width = innerWidth; cv.height = innerHeight;
+    stars = Array.from({length: Math.min(120, Math.floor(innerWidth/12))}, () => ({
+      x: Math.random()*cv.width, y: Math.random()*cv.height,
+      r: Math.random()*1.6+.3, v: Math.random()*.25+.05,
+      a: Math.random()*.6+.2
+    }));
+  }
+  addEventListener('resize', resize); resize();
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(const s of stars){
+      s.y -= s.v; if(s.y < -4){ s.y = cv.height+4; s.x = Math.random()*cv.width; }
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(160,200,255,${s.a})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  })();
+
+  /* ---- 3D tilt ---- */
+  const card = document.getElementById('tiltCard');
+  const scene = card.parentElement;
+  scene.addEventListener('mousemove', e => {
+    const r = scene.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - .5;
+    const py = (e.clientY - r.top) / r.height - .5;
+    card.style.transform = `rotateY(${px*22}deg) rotateX(${-py*18}deg) translateZ(30px)`;
+    card.style.animation = 'none';
+  });
+  scene.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+    card.style.animation = 'hover 7s ease-in-out infinite';
+  });
+</script>
+</body>
+</html>

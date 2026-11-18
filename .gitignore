@@ -1,0 +1,38 @@
+# Python / Django
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+backend/.venv/
+db.sqlite3
+**/db.sqlite3
+backend/.dev_secret_key
+.env
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+staticfiles/
+media/
+
+# Deploy bundles — contain live data snapshots
+fincore-pythonanywhere.zip
+*.zip
+release/
+
+# Logs / temp
+*.log
+*.tmp
+.dev-server*.log
+
+# IDE / OS
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db
+
+backups/
+*.fernet
+
+# Personal working notes (contains business history)
+docs/PROJECT_CHECKLIST.md

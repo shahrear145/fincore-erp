@@ -1,0 +1,47 @@
+{
+  "name": "FinCore ERP — ব্যবসা ও ব্যক্তিগত হিসাব",
+  "short_name": "FinCore",
+  "description": "লেনদেন, পার্টনার বাকি, বিক্রয়, মজুদ ও Drive ব্যাকআপ — সব হিসাব এক জায়গায়।",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "bn",
+  "dir": "ltr",
+  "background_color": "#f4f7ff",
+  "theme_color": "#08162c",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    { "src": "/static/web/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/web/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/web/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/static/web/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/static/web/favicon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/static/web/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/static/web/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "ড্যাশবোর্ড",
+      "short_name": "ড্যাশবোর্ড",
+      "url": "/",
+      "description": "সার্বিক হিসাব ও KPI",
+      "icons": [{ "src": "/static/web/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "লেনদেন",
+      "short_name": "লেনদেন",
+      "url": "/transactions/",
+      "description": "সব আয়-ব্যয়ের খাতা",
+      "icons": [{ "src": "/static/web/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "ড্রাইভ ব্যাকআপ",
+      "short_name": "ব্যাকআপ",
+      "url": "/drive/",
+      "description": "ক্লাউড সিঙ্ক ও রিস্টোর",
+      "icons": [{ "src": "/static/web/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

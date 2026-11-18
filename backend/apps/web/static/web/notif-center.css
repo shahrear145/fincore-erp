@@ -1,0 +1,128 @@
+/* ==================================================================
+   Notification Center — bell, badge, drawer, center page
+   Loaded last; purely additive.
+   ================================================================== */
+.notif-fab{position:relative}
+.notif-bell{position:relative;width:56px;height:56px;border-radius:50%;border:1px solid var(--m-line-soft, rgba(148,163,184,.24));padding:0;cursor:pointer;
+  display:grid;place-items:center;
+  background:linear-gradient(165deg,var(--panel-solid),rgba(241,245,249,.9));
+  color:var(--ink-2);font-family:inherit;font-size:20px;
+  box-shadow:var(--shadow-sm);
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
+.notif-bell:hover{transform:translateY(-2px)}
+.notif-bell:active{transform:translateY(0) scale(.97)}
+.notif-bell.has-unread{
+  background:linear-gradient(150deg,#fb7185,#e11d48 58%,#be123c 120%);
+  border-color:rgba(255,255,255,.25);color:#fff;
+  box-shadow:0 0 0 3px rgba(255,255,255,.9),0 8px 16px -6px rgba(225,29,72,.5),0 18px 40px -12px rgba(225,29,72,.45)}
+.notif-bell.shake{animation:bellShake .7s var(--ease) 1}
+@keyframes bellShake{
+  0%,100%{transform:rotate(0)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-11deg)}
+  45%{transform:rotate(8deg)} 60%{transform:rotate(-6deg)} 75%{transform:rotate(3deg)}}
+
+/* badge */
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:24px;height:24px;padding:0 7px;
+  border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#f87171,#dc2626 70%);color:#fff;
+  font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;
+  border:2.5px solid var(--bg, #f8fafc);
+  box-shadow:0 4px 10px -2px rgba(220,38,38,.6);
+  animation:badgePop .45s var(--ease)}
+@keyframes badgePop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* backdrop + drawer */
+.notif-backdrop{position:fixed;inset:0;z-index:70;background:rgba(4,13,28,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .25s var(--ease)}
+.notif-backdrop.open{opacity:1;pointer-events:auto}
+.notif-drawer{position:fixed;top:0;right:0;bottom:0;z-index:71;width:min(430px,100vw);
+  display:flex;flex-direction:column;
+  background:var(--m-glass, var(--panel-solid));border-left:1px solid var(--m-border, var(--line));
+  box-shadow:-30px 0 80px -20px rgba(8,17,32,.45);
+  transform:translateX(103%);transition:transform .34s var(--ease);visibility:hidden}
+.notif-drawer.open{transform:none;visibility:visible}
+.notif-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:16px 18px 14px;border-bottom:1px solid var(--m-border, var(--line))}
+.notif-drawer-title{display:flex;align-items:center;gap:9px;font-size:16.5px;font-weight:800;color:var(--m-ink, var(--ink));letter-spacing:-.01em}
+.notif-drawer-sub{font-size:12px;color:var(--m-muted, var(--muted))}
+.notif-mark-all{background:transparent;border:1px solid var(--m-border, var(--line));color:var(--m-ink-2, var(--muted));
+  font:inherit;font-size:12px;font-weight:700;border-radius:10px;padding:7px 12px;cursor:pointer;white-space:nowrap;
+  transition:all .15s var(--ease)}
+.notif-mark-all:hover{color:var(--pb-a, var(--brand));border-color:var(--pb-a, var(--brand))}
+.notif-clear-btn{color:#f87171;border-color:rgba(248,113,113,.35)}
+.notif-clear-btn:hover{color:#fca5a5;border-color:#f87171;box-shadow:0 0 0 3px rgba(248,113,113,.12)}
+
+/* tabs */
+.notif-tabs{display:flex;gap:5px;padding:10px 14px;border-bottom:1px solid var(--m-border, var(--line))}
+.notif-tab{flex:1;font:inherit;font-size:12px;font-weight:800;padding:8px 10px;border-radius:11px;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--m-muted, var(--muted));
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  transition:all .16s var(--ease)}
+.notif-tab:hover{color:var(--m-ink, var(--ink))}
+.notif-tab.on{background:linear-gradient(135deg,var(--pb-a, var(--brand-3)),var(--pb-b, var(--brand-2)));
+  color:#fff;box-shadow:0 8px 18px -10px var(--pb-glow, rgba(13,148,136,.5))}
+.notif-tab .cnt{font-size:10px;padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.25);font-variant-numeric:tabular-nums}
+
+.notif-drawer-body{flex:1;overflow-y:auto;padding:10px 12px 18px}
+.notif-loading{display:grid;place-items:center;padding:40px 0;color:var(--m-muted, var(--muted))}
+.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.notif-foot{padding:11px 16px;border-top:1px solid var(--m-border, var(--line));display:flex;justify-content:space-between;align-items:center;gap:12px}
+.notif-foot a{font-size:12.5px;font-weight:800;color:var(--pb-a, var(--brand));text-decoration:none}
+.notif-foot a:hover{text-decoration:underline}
+.notif-foot .note{font-size:10.5px;color:var(--m-muted, var(--muted))}
+
+/* group label */
+.notif-group{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--m-muted, var(--muted));padding:8px 10px 6px}
+
+/* items */
+.notif-item{position:relative;display:flex;gap:12px;align-items:flex-start;text-decoration:none;
+  padding:11px 12px;border-radius:16px;border:1px solid transparent;
+  transition:background .15s var(--ease),transform .16s var(--ease),border-color .15s var(--ease);cursor:pointer;color:inherit}
+.notif-item:hover{background:rgba(255,255,255,.055);transform:translateX(-3px)}
+.notif-item.unread{background:rgba(255,255,255,.045)}
+.notif-item.unread .notif-ttl{color:var(--m-ink, var(--ink))}
+.notif-item + .notif-item{margin-top:4px}
+.notif-aur{flex:0 0 auto;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:17px;
+  border:1px solid rgba(255,255,255,.14)}
+.notif-aur.red{background:radial-gradient(120% 120% at 30% 30%,rgba(248,113,113,.4),rgba(190,24,60,.25));color:#fda4af;border-color:rgba(248,113,113,.3)}
+.notif-aur.blue{background:radial-gradient(120% 120% at 30% 30%,rgba(96,165,250,.4),rgba(37,99,235,.25));color:#93c5fd;border-color:rgba(96,165,250,.3)}
+.notif-aur.amber{background:radial-gradient(120% 120% at 30% 30%,rgba(252,211,77,.4),rgba(217,119,6,.25));color:#fde68a;border-color:rgba(252,211,77,.3)}
+.notif-aur.violet{background:radial-gradient(120% 120% at 30% 30%,rgba(196,181,253,.4),rgba(124,58,237,.25));color:#c4b5fd;border-color:rgba(196,181,253,.3)}
+.notif-aur.slate{background:rgba(148,163,184,.18);color:#cbd5e1;border-color:rgba(148,163,184,.25)}
+.notif-txt{flex:1;min-width:0}
+.notif-ttl{display:block;font-size:13px;font-weight:700;color:var(--m-ink-2, var(--ink-2));letter-spacing:-.01em;line-height:1.45}
+.notif-sub{display:flex;align-items:center;gap:7px;margin-top:4px;font-size:11px;color:var(--m-muted, var(--muted))}
+.notif-amt{font-variant-numeric:tabular-nums;font-weight:800;color:var(--m-ink, var(--ink))}
+.notif-unread-dot{position:absolute;top:14px;right:12px;width:9px;height:9px;border-radius:50%;background:#f43f5e;
+  box-shadow:0 0 0 3px rgba(244,63,94,.25)}
+
+/* live alert additions */
+.notif-progress{height:5px;border-radius:999px;background:rgba(148,163,184,.2);overflow:hidden;margin:6px 0 2px}
+.notif-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#fbbf24,#f59e0b 60%,#ef4444);width:0%;transition:width .6s var(--ease)}
+.notif-countdown{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
+  background:rgba(248,113,113,.18);color:#fca5a5;border:1px solid rgba(248,113,113,.3)}
+.notif-countdown.ok{background:rgba(96,165,250,.16);color:#93c5fd;border-color:rgba(96,165,250,.3)}
+.notif-live-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--m-accent-2, #2dd4bf)}
+.notif-empty{text-align:center;color:var(--m-muted, var(--muted));padding:44px 20px}
+.notif-empty .ei{width:66px;height:66px;border-radius:20px;display:grid;place-items:center;margin:0 auto 12px;
+  background:linear-gradient(180deg,rgba(16,185,129,.12),rgba(16,185,129,.04));color:#34d399;font-size:26px;box-shadow:0 10px 26px rgba(16,185,129,.1)}
+@media(max-width:640px){.mobile-bar .notif-fab{display:none}.notif-bell{width:44px;height:44px;font-size:17px}.notif-badge{min-width:20px;height:20px;font-size:10px;border-width:2px}}
+@media(prefers-reduced-motion:reduce){.notif-bell,.notif-bell.shake,.notif-badge,.notif-drawer,.notif-item{transition:none;animation:none}}
+
+/* Android-style staggered clear-all: items fly away one by one */
+@keyframes notifItemFlyAway{
+  0%{opacity:1;transform:translateX(0)}
+  22%{opacity:1;transform:translateX(-10px)}
+  100%{opacity:0;transform:translateX(112%)}
+}
+.notif-item.notif-clearing{overflow:hidden;pointer-events:none;
+  animation:notifItemFlyAway .38s cubic-bezier(.5,-.1,.6,.4) forwards;
+  animation-delay:calc(var(--clear-i,0)*55ms)}
+.notif-item.notif-collapse{
+  max-height:0 !important;margin-top:0 !important;margin-bottom:0 !important;
+  padding-top:0 !important;padding-bottom:0 !important;border-width:0 !important;
+  opacity:0;
+  transition:max-height .32s var(--ease),margin .32s var(--ease),padding .32s var(--ease),opacity .18s var(--ease);
+  transition-delay:calc(var(--clear-i,0)*55ms + .16s)}
+@media(prefers-reduced-motion:reduce){.notif-item.notif-clearing,.notif-item.notif-collapse{animation:none;transition:none}}

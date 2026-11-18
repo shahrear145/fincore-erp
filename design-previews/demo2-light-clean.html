@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinCore ERP — Light Clean Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f7ff; --card:#ffffff;
+    --ink:#0f2244; --muted:#64748b;
+    --blue:#2563eb; --sky:#0ea5e9; --emerald:#10b981;
+    --line:#e2e8f5;
+    --shadow:0 24px 60px rgba(30,64,175,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Hind Siliguri","Inter",system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(900px 500px at 85% -5%, #dbeafe 0%, transparent 55%),
+      radial-gradient(700px 500px at 0% 25%, #d1fae5 0%, transparent 45%),
+      var(--bg);
+    min-height:100vh;overflow-x:hidden;
+  }
+  .grid-bg{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(37,99,235,.055) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(37,99,235,.055) 1px,transparent 1px);
+    background-size:46px 46px;
+    mask-image:radial-gradient(circle at 50% 30%,#000 30%,transparent 80%);
+  }
+  .wrap{position:relative;z-index:2;max-width:1160px;margin:0 auto;padding:0 24px}
+
+  nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px}
+  .logo{
+    width:40px;height:40px;border-radius:13px;display:grid;place-items:center;color:#fff;font-size:19px;
+    background:linear-gradient(135deg,var(--blue),var(--emerald));
+    box-shadow:0 12px 26px rgba(37,99,235,.32), inset 0 1px 0 rgba(255,255,255,.6);
+    transition:transform .4s;
+  }
+  .brand:hover .logo{transform:rotate(-12deg) scale(1.06)}
+  .nav-links{display:flex;gap:26px;font-size:15px;color:var(--muted)}
+  .nav-links a{color:inherit;text-decoration:none;transition:.2s}
+  .nav-links a:hover{color:var(--blue)}
+  .nav-cta{
+    padding:11px 22px;border-radius:12px;background:var(--ink);color:#fff;text-decoration:none;
+    font-size:14px;font-weight:600;box-shadow:0 12px 26px rgba(15,34,68,.22);transition:.25s;
+  }
+  .nav-cta:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(15,34,68,.3)}
+
+  .hero{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;padding:40px 0 70px}
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:999px;
+    background:#fff;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--blue);
+    box-shadow:0 8px 22px rgba(37,99,235,.1);margin-bottom:20px;
+  }
+  h1{font-size:50px;line-height:1.16;letter-spacing:-1px;font-weight:800;margin-bottom:18px}
+  h1 em{font-style:normal;background:linear-gradient(100deg,var(--blue),var(--emerald));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:17px;line-height:1.75;max-width:500px;margin-bottom:28px}
+  .cta-row{display:flex;gap:13px;flex-wrap:wrap;margin-bottom:36px}
+  .btn{padding:14px 26px;border-radius:13px;font-weight:700;font-size:15px;text-decoration:none;display:inline-flex;gap:8px;align-items:center;transition:.25s}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;box-shadow:0 16px 34px rgba(37,99,235,.32)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 46px rgba(37,99,235,.42)}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:0 10px 24px rgba(30,64,175,.08)}
+  .btn-ghost:hover{transform:translateY(-3px);border-color:#bfdbfe}
+  .stats{display:flex;gap:32px;flex-wrap:wrap}
+  .stat b{display:block;font-family:"Inter",sans-serif;font-size:24px;font-weight:800;letter-spacing:-.6px}
+  .stat span{font-size:13px;color:var(--muted)}
+
+  /* ---- isometric scene ---- */
+  .iso-scene{perspective:1600px;display:grid;place-items:center;min-height:440px;position:relative}
+  .iso{transform-style:preserve-3d;transform:rotateX(56deg) rotateZ(-38deg);animation:isoFloat 8s ease-in-out infinite}
+  @keyframes isoFloat{0%,100%{transform:rotateX(56deg) rotateZ(-38deg) translateZ(0)}50%{transform:rotateX(53deg) rotateZ(-34deg) translateZ(26px)}}
+  .iso-board{
+    width:330px;height:330px;border-radius:34px;position:relative;transform-style:preserve-3d;
+    background:linear-gradient(145deg,#ffffff,#eef4ff);
+    box-shadow:0 60px 90px rgba(30,64,175,.22), inset 0 1px 0 #fff;
+    border:1px solid #dbe6fb;
+  }
+  .tile{
+    position:absolute;border-radius:18px;transform-style:preserve-3d;
+    box-shadow:0 26px 46px rgba(30,64,175,.18);border:1px solid rgba(255,255,255,.8);
+  }
+  .t-hero{
+    width:200px;height:120px;left:24px;top:26px;
+    background:linear-gradient(140deg,#2563eb,#0ea5e9);color:#fff;padding:16px;
+    transform:translateZ(52px);
+  }
+  .t-hero small{font-size:11px;opacity:.85;letter-spacing:.4px}
+  .t-hero b{display:block;font-family:"Inter",sans-serif;font-size:26px;margin-top:6px;letter-spacing:-1px}
+  .t-hero .spark{display:flex;gap:4px;align-items:flex-end;height:26px;margin-top:10px}
+  .t-hero .spark i{flex:1;border-radius:3px;background:rgba(255,255,255,.75);animation:sparkGrow 1.2s ease both}
+  @keyframes sparkGrow{from{height:0}to{height:var(--h)}}
+  .t-chart{
+    width:118px;height:118px;right:22px;top:24px;background:#fff;transform:translateZ(96px);
+    display:grid;place-items:center;
+  }
+  .donut{
+    width:78px;height:78px;border-radius:50%;
+    background:conic-gradient(var(--emerald) 0 68%, #e2e8f5 68% 100%);
+    display:grid;place-items:center;position:relative;
+  }
+  .donut::after{content:"";position:absolute;inset:13px;background:#fff;border-radius:50%}
+  .donut b{position:relative;z-index:2;font-family:"Inter",sans-serif;font-size:16px}
+  .t-row{
+    width:236px;height:58px;left:24px;bottom:26px;background:#fff;transform:translateZ(140px);
+    display:flex;align-items:center;gap:12px;padding:0 14px;
+  }
+  .t-row .av{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#a7f3d0,#34d399);display:grid;place-items:center;font-size:15px}
+  .t-row .ln{flex:1}
+  .t-row .ln b{display:block;font-size:12.5px}
+  .t-row .ln span{font-size:10.5px;color:var(--muted)}
+  .t-row .amt{font-family:"Inter",sans-serif;font-weight:800;font-size:13px;color:var(--emerald)}
+  .t-coin{
+    width:74px;height:74px;border-radius:50%;left:180px;bottom:104px;transform:translateZ(180px);
+    background:radial-gradient(circle at 32% 28%,#fef3c7,#f59e0b 60%,#d97706);
+    border:2px solid #fff;display:grid;place-items:center;color:#7c2d12;font-weight:900;font-size:24px;
+    font-family:"Inter",sans-serif;box-shadow:0 30px 50px rgba(217,119,6,.35);
+    animation:coinBob 5s ease-in-out infinite;
+  }
+  @keyframes coinBob{0%,100%{transform:translateZ(180px) translateY(0)}50%{transform:translateZ(200px) translateY(-16px)}}
+  .t-float{
+    position:absolute;border-radius:16px;background:#fff;box-shadow:0 20px 40px rgba(30,64,175,.16);
+    padding:12px 14px;font-size:12px;display:flex;gap:9px;align-items:center;z-index:5;
+    animation:bob 6s ease-in-out infinite;
+  }
+  .t-float i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-style:normal;font-size:14px}
+  .f1{top:36px;left:-14px;animation-delay:.2s}
+  .f2{bottom:66px;right:-6px;animation-delay:1.4s}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  /* ---- features ---- */
+  .features{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:6px 0 80px}
+  .feat{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 20px;
+    box-shadow:0 14px 34px rgba(30,64,175,.07);transition:.3s;
+  }
+  .feat:hover{transform:translateY(-8px);box-shadow:var(--shadow);border-color:#bfdbfe}
+  .feat .fi{
+    width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:20px;margin-bottom:15px;
+    background:linear-gradient(135deg,#eff6ff,#d1fae5);border:1px solid #e0ecff;
+  }
+  .feat h4{font-size:15.5px;margin-bottom:7px}
+  .feat p{font-size:13px;color:var(--muted);line-height:1.65}
+
+  .switcher{
+    position:fixed;left:18px;bottom:18px;z-index:20;display:flex;gap:8px;
+    background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;
+    box-shadow:0 14px 30px rgba(30,64,175,.14);
+  }
+  .switcher a{font-size:12px;padding:7px 12px;border-radius:9px;color:var(--muted);text-decoration:none}
+  .switcher a.on{background:linear-gradient(135deg,var(--blue),var(--emerald));color:#fff;font-weight:700}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;padding-top:14px}
+    h1{font-size:36px}
+    .features{grid-template-columns:repeat(2,1fr)}
+    .nav-links{display:none}
+    .iso-board{transform:scale(.82)}
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="wrap">
+  <nav>
+    <div class="brand"><div class="logo">◈</div> FinCore ERP</div>
+    <div class="nav-links"><a href="#">ফিচার</a><a href="#">দাম</a><a href="#">ব্যাকআপ</a><a href="#">সাপোর্ট</a></div>
+    <a class="nav-cta" href="#">লগইন</a>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <div class="pill">✨ বিশ্বস্ত ব্যবসার হিসাব সফটওয়্যার</div>
+      <h1>ব্যবসার সব হিসাব,<br><em>একটি পরিষ্কার জায়গায়</em></h1>
+      <p class="sub">নগদ, বাকি খাতা, ঋণ, বিনিয়োগ আর Drive ব্যাকআপ — সহজ ইন্টারফেসে, নির্ভুল হিসাবে। ছোট দোকান থেকে বড় ব্যবসা, সবার জন্য।</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#">বিনামূল্যে শুরু করুন →</a>
+        <a class="btn btn-ghost" href="#">ডেমো দেখুন</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>৳২.৪ লক্ষ</b><span>মোট নগদ</span></div>
+        <div class="stat"><b>১২৪</b><span>সক্রিয় বাকি</span></div>
+        <div class="stat"><b>৯৯.৯%</b><span>হিসাব নির্ভুল</span></div>
+      </div>
+    </div>
+
+    <div class="iso-scene">
+      <div class="iso">
+        <div class="iso-board">
+          <div class="tile t-hero">
+            <small>মোট নগদ</small>
+            <b>৳ ২,৪৮,৬৫০</b>
+            <div class="spark">
+              <i style="--h:40%;height:40%"></i><i style="--h:70%;height:70%"></i>
+              <i style="--h:55%;height:55%"></i><i style="--h:90%;height:90%"></i>
+              <i style="--h:64%;height:64%"></i><i style="--h:100%;height:100%"></i>
+            </div>
+          </div>
+          <div class="tile t-chart"><div class="donut"><b>৬৮%</b></div></div>
+          <div class="tile t-row">
+            <div class="av">🧾</div>
+            <div class="ln"><b>আজকের বিক্রি</b><span>১২টি লেনদেন</span></div>
+            <div class="amt">+৳৩২,৪০০</div>
+          </div>
+          <div class="tile t-coin">৳</div>
+        </div>
+      </div>
+      <div class="t-float f1"><i style="background:#d1fae5">✅</i> ব্যাকআপ সম্পন্ন</div>
+      <div class="t-float f2"><i style="background:#dbeafe">📈</i> +১২.৪% বৃদ্ধি</div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feat"><div class="fi">💰</div><h4>নগদ হিসাব</h4><p>প্রতিদিনের আয়-ব্যয়, হাতে নগদ আর ব্যাংক — সব এক নজরে।</p></div>
+    <div class="feat"><div class="fi">📒</div><h4>বাকি খাতা</h4><p>কাস্টমারের বাকি, আদায় আর রিমাইন্ডার — কোনো টাকা হারাবে না।</p></div>
+    <div class="feat"><div class="fi">🤝</div><h4>ঋণ ও বিনিয়োগ</h4><p>ঋণদাতা ও বিনিয়োগকারীর হিসাব আলাদা, সবসময় ব্যালান্সড।</p></div>
+    <div class="feat"><div class="fi">☁️</div><h4>Drive ব্যাকআপ</h4><p>এক ক্লিকে Google Drive-এ ব্যাকআপ, যেকোনো সময় ফিরিয়ে আনুন।</p></div>
+  </section>
+</div>
+
+<div class="switcher">
+  <a href="demo1-dark-neon.html">১ · ডার্ক নিয়ন</a>
+  <a class="on" href="demo2-light-clean.html">২ · লাইট ক্লিন</a>
+  <a href="index.html">← সব ডিজাইন</a>
+</div>
+
+<script>
+  // parallax tilt of the whole iso scene
+  const scene = document.querySelector('.iso-scene');
+  const iso = document.querySelector('.iso');
+  scene.addEventListener('mousemove', e => {
+    const r = scene.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - .5;
+    const py = (e.clientY - r.top) / r.height - .5;
+    iso.style.animation = 'none';
+    iso.style.transform = `rotateX(${56 - py*14}deg) rotateZ(${-38 + px*14}deg)`;
+  });
+  scene.addEventListener('mouseleave', () => {
+    iso.style.transform = '';
+    iso.style.animation = '';
+  });
+</script>
+</body>
+</html>

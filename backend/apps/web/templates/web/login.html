@@ -1,0 +1,228 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% t "Sign in" %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .auth{min-height:100vh;display:grid;place-items:center;padding:26px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(1100px 640px at 6% -8%,rgba(99,102,241,.32),transparent 56%),
+      radial-gradient(880px 560px at 104% -2%,rgba(34,211,238,.22),transparent 54%),
+      radial-gradient(980px 700px at 50% 118%,rgba(99,102,241,.20),transparent 60%),
+      linear-gradient(180deg,#e7edf6 0%,#eef2f8 100%)}
+  .auth::before{content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(165,180,252,.12) 1px,transparent 1.4px),radial-gradient(rgba(34,211,238,.09) 1px,transparent 1.4px);
+    background-size:26px 26px,52px 52px;background-position:0 0,13px 13px;opacity:.6;pointer-events:none}
+  .auth::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 130%,rgba(4,13,28,.22),transparent 55%)}
+  .auth-wrap{width:100%;max-width:1080px;display:grid;grid-template-columns:1.05fr .95fr;position:relative;z-index:1;
+    border-radius:28px;overflow:hidden;border:1px solid rgba(255,255,255,.65);
+    box-shadow:0 42px 96px -24px rgba(4,13,28,.42),0 2px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(15,23,42,.05);
+    animation:authIn .55s cubic-bezier(.16,1,.3,1)}
+  @keyframes authIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+
+  /* ------------- left panel: the brand stage ------------- */
+  .auth-side{position:relative;padding:44px 42px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+    background:
+      radial-gradient(560px 400px at -14% -12%,rgba(99,102,241,.38),transparent 62%),
+      radial-gradient(480px 380px at 116% 118%,rgba(34,211,238,.28),transparent 60%),
+      radial-gradient(300px 240px at 55% -18%,rgba(129,140,248,.22),transparent 65%),
+      linear-gradient(163deg,#070a18 0%,#0d1230 46%,#0e1c38 118%);
+    color:#eaf2ff}
+  .auth-side::after{content:"";position:absolute;right:-90px;bottom:-90px;width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle,rgba(99,102,241,.30),transparent 66%);pointer-events:none}
+  .auth-side::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 30%)}
+  .auth-brand{display:flex;align-items:center;gap:14px;margin-bottom:32px;position:relative}
+  .auth-logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;
+    background:linear-gradient(140deg,#a5b4fc 0%,#6366f1 46%,#22d3ee 100%);color:#05070f;font-size:22px;
+    box-shadow:0 16px 36px rgba(99,102,241,.45),0 0 0 1px rgba(255,255,255,.3) inset,0 0 30px rgba(34,211,238,.32)}
+  .auth-brand b{display:block;font-size:21px;color:#fff;letter-spacing:-.015em;font-weight:800}
+  .auth-brand span{color:#7dd3fc;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-top:3px;display:block}
+  .auth-kicker{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.16em;
+    text-transform:uppercase;color:#7dd3fc;margin-bottom:14px;
+    padding:6px 12px;border-radius:999px;border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.10);width:max-content}
+  .auth-kicker i{font-size:10px}
+  .auth-side h2{margin:0 0 14px;font-size:clamp(30px,3.1vw,38px);line-height:1.14;font-weight:800;color:#fff;letter-spacing:-.03em;position:relative}
+  .auth-side h2 .accent{background:linear-gradient(100deg,#a5b4fc 0%,#22d3ee 55%,#5eead4 120%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .auth-side p{margin:0;color:#a9c2e4;line-height:1.7;font-size:15px;max-width:44ch;position:relative}
+  .trust{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:30px;position:relative;z-index:1}
+  .trust-card{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);border-radius:16px;
+    padding:13px 14px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .25s,border-color .25s}
+  .trust-card:hover{transform:translateY(-2px);border-color:rgba(165,180,252,.35)}
+  .trust-card .t{font-weight:800;font-size:13px;color:#fff;display:flex;align-items:center;gap:9px;letter-spacing:-.01em}
+  .trust-card .t i{width:28px;height:28px;flex:0 0 auto;display:grid;place-items:center;border-radius:9px;
+    background:rgba(99,102,241,.18);color:#a5b4fc;font-size:13px}
+  .trust-card .s{color:#8fa9cf;font-size:11.5px;margin-top:6px;line-height:1.45;padding-left:37px}
+  .auth-foot{margin-top:26px;display:flex;align-items:center;gap:14px;color:#6f8ab2;font-size:11.5px;font-weight:700;letter-spacing:.05em;position:relative}
+  .auth-foot .dot{width:5px;height:5px;border-radius:50%;background:#22d3ee;box-shadow:0 0 8px #22d3ee}
+
+  /* ------------- right panel: the form ------------- */
+  .auth-form{padding:42px 42px;display:flex;flex-direction:column;justify-content:center;
+    background:linear-gradient(180deg,rgba(13,17,36,.98) 0%,rgba(9,12,26,.98) 100%)}
+  .auth-form h3{margin:0 0 5px;font-size:25px;font-weight:800;letter-spacing:-.025em;color:#eef1fa}
+  .auth-form .lead{margin:0 0 22px;color:#9aa7c7;font-size:14px}
+  .input-wrap{position:relative}
+  .input-wrap > i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#8f9cb8;font-size:14px;pointer-events:none;z-index:1}
+  .input-wrap input{padding-left:42px}
+  .input-wrap.has-toggle input{padding-right:46px}
+  .toggle-pass{position:absolute;right:9px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#64748b;
+    width:36px;height:36px;border-radius:10px;cursor:pointer;display:grid;place-items:center;transition:background .15s,color .15s}
+  .toggle-pass:hover{background:rgba(165,180,252,.12);color:#eef1fa}
+  .auth-submit{width:100%;justify-content:center;padding:14px 16px;font-size:15.5px;margin-top:6px;border-radius:14px}
+  .auth-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px;flex-wrap:wrap}
+  .auth-actions a{font-size:13px;font-weight:700}
+  .divider{display:flex;align-items:center;gap:12px;color:#6f7ba3;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin:14px 0 2px}
+  .divider::before,.divider::after{content:"";height:1px;background:linear-gradient(90deg,transparent,rgba(165,180,252,.25),transparent);flex:1}
+  .lang-fab{position:fixed;top:16px;right:16px;display:flex;flex-direction:column;gap:8px;z-index:5;align-items:flex-end}
+  .lang-fab .row{display:flex;gap:8px}
+  .lang-fab .btn{box-shadow:var(--shadow-sm);background:rgba(255,255,255,.88);backdrop-filter:blur(10px)}
+  .secure-note{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;color:#8f9cb8;font-size:12px;font-weight:600}
+
+  /* ------------- 3D isometric ledger mock ------------- */
+  .iso-scene{perspective:1300px;display:grid;place-items:center;min-height:190px;margin-top:20px;position:relative;z-index:1}
+  .iso{transform-style:preserve-3d;transform:rotateX(54deg) rotateZ(-34deg);transition:transform .22s var(--ease);will-change:transform}
+  .iso-base{width:212px;height:158px;border-radius:22px;padding:15px 14px;position:relative;transform-style:preserve-3d;
+    background:linear-gradient(160deg,rgba(165,180,252,.18),rgba(99,102,241,.10));
+    border:1px solid rgba(165,180,252,.40);
+    box-shadow:0 30px 60px rgba(2,6,18,.60),0 1px 0 rgba(255,255,255,.16) inset,0 0 44px rgba(99,102,241,.34);
+    animation:isoFloat 7s ease-in-out infinite}
+  @keyframes isoFloat{0%,100%{transform:translateZ(0)}50%{transform:translateZ(22px)}}
+  .ib-row{display:flex;align-items:center;gap:8px;height:34px;margin-bottom:9px;padding:0 10px;border-radius:12px;
+    background:rgba(9,12,26,.56);border:1px solid rgba(165,180,252,.18)}
+  .ib-row:last-child{margin-bottom:0}
+  .ib-dot{width:9px;height:9px;border-radius:50%;background:#22d3ee;box-shadow:0 0 8px #22d3ee;flex:0 0 auto}
+  .ib-dot.ok{background:#34d399;box-shadow:0 0 8px #34d399}
+  .ib-dot.warn{background:#fbbf24;box-shadow:0 0 8px #fbbf24}
+  .ib-bar{display:block;height:6px;border-radius:99px;background:rgba(165,180,252,.30);flex:1}
+  .ib-bar.w60{flex:0 0 54px}.ib-bar.w80{flex:0 0 74px}
+  .ib-val{font-size:10px;font-weight:800;color:#eef1fa;font-variant-numeric:tabular-nums}
+  .ib-tag{font-size:8.5px;font-weight:800;letter-spacing:.04em;color:#c7d2fe;padding:2px 7px;border-radius:99px;background:rgba(99,102,241,.24)}
+  .ib-tag.danger{color:#fda4af;background:rgba(244,63,94,.18)}
+  .iso-chip{position:absolute;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
+    background:linear-gradient(140deg,rgba(165,180,252,.38),rgba(99,102,241,.16));
+    border:1px solid rgba(165,180,252,.42);color:#c7d2fe;font-size:18px;
+    box-shadow:0 12px 28px rgba(2,6,18,.55),0 0 22px rgba(99,102,241,.30);
+    transform-style:preserve-3d}
+  .iso-chip.c1{right:-15px;top:-17px;transform:translateZ(56px);animation:chipBob 5.2s ease-in-out infinite}
+  .iso-chip.c2{left:-13px;bottom:-15px;transform:translateZ(72px);animation:chipBob 6.4s ease-in-out infinite reverse}
+  @keyframes chipBob{0%,100%{margin-top:0}50%{margin-top:-13px}}
+  @media (prefers-reduced-motion:reduce){
+    .iso,.iso-base,.iso-chip{animation:none;transition:none}
+  }
+  @media(max-width:960px){
+    .auth-wrap{grid-template-columns:1fr;max-width:540px}
+    .auth-side{display:none}
+    .auth-form{padding:32px 24px}
+  }
+</style>
+{% endblock %}
+{% block body %}
+<div class="auth">
+  <div class="lang-fab">
+    <div class="row">
+      <form method="post" action="{% url 'web:set_language' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn sm {% if ui_lang != 'en' %}primary{% endif %}" name="lang" value="bn" type="submit">বাংলা</button></form>
+      <form method="post" action="{% url 'web:set_language' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn sm {% if ui_lang == 'en' %}primary{% endif %}" name="lang" value="en" type="submit">English</button></form>
+    </div>
+    <div class="row" aria-label="ভিউ মোড">
+      <form method="post" action="{% url 'web:set_view_mode' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn sm {% if ui_view == 'desktop' %}primary{% endif %}" name="view" value="desktop" type="submit" title="ডেস্কটপ ভিউ"><i class="fa-solid fa-desktop"></i></button></form>
+      <form method="post" action="{% url 'web:set_view_mode' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn sm {% if ui_view == 'mobile' %}primary{% endif %}" name="view" value="mobile" type="submit" title="মোবাইল ভিউ"><i class="fa-solid fa-mobile-screen"></i></button></form>
+      {% if ui_view != 'auto' %}<form method="post" action="{% url 'web:set_view_mode' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn sm" name="view" value="auto" type="submit" title="অটো ভিউ"><i class="fa-solid fa-rotate-left"></i></button></form>{% endif %}
+    </div>
+  </div>
+
+  <div class="auth-wrap">
+    <div class="auth-side">
+      <div>
+        <div class="auth-brand">
+          <div class="auth-logo"><i class="fa-solid fa-coins"></i></div>
+          <div><b>FinCore ERP</b><span>{% t "Personal Finance" %} &amp; {% t "Business" %}</span></div>
+        </div>
+        <span class="auth-kicker"><i class="fa-solid fa-bolt"></i> {% if ui_lang == 'en' %}Live ledger workspace{% else %}লাইভ লেজার ওয়ার্কস্পেস{% endif %}</span>
+        <h2>{% t "Your money, organized." %}<br><span class="accent">{% t "Your business, clear." %}</span></h2>
+        <p>{% if ui_lang == 'en' %}A premium workspace for transactions, partner-wise dues, sales, inventory, and accounting — with a private personal ledger kept completely separate.{% else %}লেনদেন, পার্টনার-ভিত্তিক বাকি, বিক্রয়, মজুদ ও হিসাবের জন্য একটি প্রিমিয়াম ওয়ার্কস্পেস — সাথে সম্পূর্ণ আলাদা ব্যক্তিগত লেজার।{% endif %}</p>
+        <div class="iso-scene" aria-hidden="true">
+          <div class="iso" id="isoScene">
+            <div class="iso-base">
+              <div class="ib-row"><span class="ib-dot"></span><span class="ib-bar"></span><span class="ib-val">৳590,000</span></div>
+              <div class="ib-row"><span class="ib-dot ok"></span><span class="ib-bar w60"></span><span class="ib-tag">POSTED</span></div>
+              <div class="ib-row"><span class="ib-dot warn"></span><span class="ib-bar w80"></span><span class="ib-tag danger">বাকি ৳100,000</span></div>
+            </div>
+            <div class="iso-chip c1"><i class="fa-solid fa-coins"></i></div>
+            <div class="iso-chip c2"><i class="fa-solid fa-chart-line"></i></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="trust">
+          <div class="trust-card"><div class="t"><i class="fa-solid fa-bangladeshi-taka-sign"></i> {% t "Decimal-accurate" %}</div><div class="s">{% t "No floats, no guesswork" %}</div></div>
+          <div class="trust-card"><div class="t"><i class="fa-solid fa-shield-halved"></i> {% t "Role-safe" %}</div><div class="s">{% t "Server-enforced access" %}</div></div>
+          <div class="trust-card"><div class="t"><i class="fa-solid fa-scale-balanced"></i> {% if ui_lang == 'en' %}Audited ledger{% else %}অডিটেড লেজার{% endif %}</div><div class="s">{% if ui_lang == 'en' %}Traceable, reversal-safe{% else %}ট্রেসযোগ্য, রিভার্সাল-নিরাপদ{% endif %}</div></div>
+          <div class="trust-card"><div class="t"><i class="fa-solid fa-lock"></i> {% if ui_lang == 'en' %}Private space{% else %}ব্যক্তিগত স্পেস{% endif %}</div><div class="s">{% if ui_lang == 'en' %}Personal &amp; business kept apart{% else %}ব্যক্তিগত ও ব্যবসা আলাদা{% endif %}</div></div>
+        </div>
+        <div class="auth-foot"><span class="dot"></span> {% if ui_lang == 'en' %}SERVER-ENFORCED RULES{% else %}সার্ভার-নিয়ন্ত্রিত নিয়ম{% endif %}<span class="dot"></span> {% if ui_lang == 'en' %}DOUBLE-ENTRY{% else %}ডবল-এন্ট্রি{% endif %}<span class="dot"></span> BDT</div>
+      </div>
+    </div>
+
+    <div class="auth-form">
+      <h3>{% t "Welcome back" %}</h3>
+      <p class="lead">{% t "Sign in with your username or email." %}</p>
+
+      {% if messages %}
+        <div class="messages">{% for message in messages %}<div class="msg {{ message.tags }}"><i class="fa-solid {% if 'success' in message.tags %}fa-circle-check{% elif 'error' in message.tags %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i><div>{{ message }}</div></div>{% endfor %}</div>
+      {% endif %}
+
+      <form method="post" style="display:flex;flex-direction:column;gap:14px">
+        {% csrf_token %}
+        <div class="field">
+          <label for="id_user">{% t "Username or Email" %}</label>
+          <div class="input-wrap">
+            <i class="fa-regular fa-user"></i>
+            <input id="id_user" name="username" autocomplete="username" required autofocus
+                   placeholder="{% if ui_lang == 'en' %}e.g. name@company.com{% else %}ইউজারনেম বা ইমেইল{% endif %}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="id_pass">{% t "Password" %}</label>
+          <div class="input-wrap has-toggle">
+            <i class="fa-solid fa-lock"></i>
+            <input id="id_pass" name="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+            <button class="toggle-pass" type="button" aria-label="{% if ui_lang == 'en' %}Show password{% else %}পাসওয়ার্ড দেখান{% endif %}" onclick="var p=document.getElementById('id_pass'),i=this.querySelector('i'); if(p.type==='password'){p.type='text';i.className='fa-regular fa-eye-slash';}else{p.type='password';i.className='fa-regular fa-eye';}"><i class="fa-regular fa-eye"></i></button>
+          </div>
+        </div>
+        <button class="btn primary auth-submit" type="submit">
+          <i class="fa-solid fa-right-to-bracket"></i> {% t "Sign in" %}
+        </button>
+      </form>
+      <div class="divider" style="margin-top:2px">{% if ui_lang == 'en' %}or{% else %}অথবা{% endif %}</div>
+      <a href="{% url 'web:google_login' %}" class="btn" style="justify-content:center;width:100%;padding:12px 14px;background:#fff;color:#0f172a;border:1px solid #e2e8f0;font-weight:600">
+        <i class="fa-brands fa-google" style="color:#ea4335"></i> {% if ui_lang == 'en' %}Sign in with Google{% else %}গুগল দিয়ে সাইন ইন{% endif %}
+      </a>
+      <div class="auth-actions" style="margin-top:-2px">
+        <a href="{% url 'web:password_forgot' %}" style="color:#7dd3fc"><i class="fa-solid fa-key" style="opacity:.7"></i> {% if ui_lang == 'en' %}Forgot password?{% else %}পাসওয়ার্ড ভুলে গেছেন?{% endif %}</a>
+      </div>
+
+      <div class="divider">{% if ui_lang == 'en' %}New to FinCore?{% else %}FinCore-এ নতুন?{% endif %}</div>
+      <a class="btn" href="{% url 'web:register' %}" style="justify-content:center;width:100%;padding:12px 14px"><i class="fa-solid fa-user-plus"></i> {% if ui_lang == 'en' %}Create a new account{% else %}নতুন অ্যাকাউন্ট তৈরি করুন{% endif %}</a>
+
+      <div class="secure-note"><i class="fa-solid fa-shield-halved" style="color:#7dd3fc"></i> {% if ui_lang == 'en' %}Secure sign-in · Your data stays on this server{% else %}নিরাপদ সাইন-ইন · আপনার ডাটা এই সার্ভারেই থাকে{% endif %}</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var scene = document.querySelector('.iso-scene');
+  var iso = document.getElementById('isoScene');
+  if (!scene || !iso || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  scene.addEventListener('mousemove', function(e){
+    var r = scene.getBoundingClientRect();
+    var px = (e.clientX - r.left) / r.width - .5;
+    var py = (e.clientY - r.top) / r.height - .5;
+    iso.style.transform = 'rotateX(' + (54 - py * 10) + 'deg) rotateZ(' + (-34 + px * 12) + 'deg)';
+  });
+  scene.addEventListener('mouseleave', function(){
+    iso.style.transform = 'rotateX(54deg) rotateZ(-34deg)';
+  });
+})();
+</script>
+{% endblock %}

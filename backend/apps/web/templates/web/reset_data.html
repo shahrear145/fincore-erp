@@ -1,0 +1,39 @@
+﻿{% extends "web/base.html" %}
+{% load i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Reset data{% else %}ডাটা রিসেট{% endif %} — FinCore ERP{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2 style="color:#991b1b"><i class="fa-solid fa-triangle-exclamation"></i> {% if ui_lang == 'en' %}Reset / wipe all data{% else %}সব ডাটা মুছে ফেলুন (Reset){% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}This permanently erases <strong>every business your account belongs to</strong> — transactions, dues, customers, partners, ledger, sales, inventory — plus your personal finance and logs. <strong>Your login account is kept</strong> so you can start fresh. This cannot be undone.{% else %}এটি <strong>আপনার অ্যাকাউন্টের সব ব্যবসা</strong> স্থায়ীভাবে মুছে ফেলবে — লেনদেন, বাকি, গ্রাহক, পার্টনার, লেজার, বিক্রয়, মজুদ — সাথে আপনার ব্যক্তিগত হিসাব ও লগ। <strong>আপনার লগইন অ্যাকাউন্ট থাকবে</strong>, তাই নতুন করে শুরু করতে পারবেন। এটি ফেরত নেওয়া যাবে না।{% endif %}</p>
+  </div>
+  <div class="chips"><span class="chip" style="background:rgba(254,226,226,.75);color:#991b1b;border-color:rgba(254,202,202,.7)"><i class="fa-solid fa-triangle-exclamation"></i> {% if ui_lang == 'en' %}Careful{% else %}সতর্ক{% endif %}</span></div>
+</div>
+
+<div class="card" style="max-width:720px;border-color:var(--danger-panel-border);background:var(--danger-panel-bg)">
+  <div class="msg error" style="margin-bottom:16px"><i class="fa-solid fa-radiation"></i><div>
+    <strong>{% if ui_lang == 'en' %}Danger zone{% else %}ডেঞ্জার জোন{% endif %}</strong><br>
+    {% if ui_lang == 'en' %}Wipes: every business you belong to (with its memberships, partners, customers & dues, transactions, ledger/journal, expenses, inventory), your personal finance, assistant history, session/OTP and audit rows. Keeps: your login account.{% else %}মুছবে: আপনার সব ব্যবসা (মেম্বারশিপ, পার্টনার, গ্রাহক ও বাকি, লেনদেন, লেজার/জার্নাল, খরচ, মজুদ), আপনার ব্যক্তিগত হিসাব, অ্যাসিস্ট্যান্ট হিস্ট্রি, সেশন/OTP ও অডিট রেকর্ড। রাখবে: আপনার লগইন অ্যাকাউন্ট।{% endif %}
+  </div></div>
+
+  <form method="post" class="form-grid" id="wipe-form">
+    {% csrf_token %}
+    <input type="hidden" id="confirm" name="confirm" value="DELETE">
+    <div class="field full" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn" type="button" style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border-color:transparent;padding:12px 18px;font-size:15px" onclick="document.getElementById('wipe-modal').style.display='flex'"><i class="fa-solid fa-trash-can"></i> {% if ui_lang == 'en' %}Delete all data{% else %}সব ডাটা মুছে ফেলুন{% endif %}</button>
+      <a class="btn" href="{% url 'web:dashboard' %}">{% t "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+
+<div id="wipe-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,13,28,.45);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(520px,100%);background:var(--danger-panel-solid);border:1px solid var(--danger-panel-border);border-radius:20px;box-shadow:var(--shadow-lg);padding:20px">
+    <div style="display:flex;align-items:center;gap:10px;color:#991b1b;font-weight:800;font-size:18px;margin-bottom:8px"><i class="fa-solid fa-triangle-exclamation"></i> {% if ui_lang == 'en' %}Delete all data?{% else %}সব ডাটা মুছে ফেলবেন?{% endif %}</div>
+    <p class="muted" style="margin:0 0 16px;line-height:1.55">{% if ui_lang == 'en' %}Every business your account belongs to will be deleted, with all of its records. Your login account will be kept. Are you sure?{% else %}আপনার অ্যাকাউন্টের সব ব্যবসা ও তার সব রেকর্ড মুছে যাবে। আপনার লগইন অ্যাকাউন্ট থাকবে। আপনি কি নিশ্চিত?{% endif %}</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button type="button" class="btn" onclick="document.getElementById('wipe-modal').style.display='none'">{% if ui_lang == 'en' %}Cancel{% else %}না{% endif %}</button>
+      <button type="button" class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border-color:transparent" onclick="document.getElementById('wipe-form').submit();"><i class="fa-solid fa-trash-can"></i> {% if ui_lang == 'en' %}Yes, delete{% else %}হ্যাঁ, মুছে ফেলুন{% endif %}</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

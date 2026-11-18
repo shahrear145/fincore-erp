@@ -1,0 +1,35 @@
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path("personal/bootstrap/", views.BootstrapView.as_view()),
+    path("personal/accounts/", views.PersonalAccountListCreateView.as_view()),
+    path("personal/accounts/<uuid:account_id>/",
+         views.PersonalAccountDetailView.as_view()),
+    path("personal/categories/",
+         views.PersonalCategoryListCreateView.as_view()),
+    path("personal/categories/<uuid:category_id>/",
+         views.PersonalCategoryDetailView.as_view()),
+    path("personal/transactions/",
+         views.PersonalTransactionListCreateView.as_view()),
+    path("personal/transactions/<uuid:txn_id>/",
+         views.PersonalTransactionDetailView.as_view()),
+    path("personal/transactions/<uuid:txn_id>/reversal/",
+         views.PersonalTransactionReversalView.as_view()),
+    path("personal/budgets/", views.PersonalBudgetListCreateView.as_view()),
+    path("personal/budgets/<uuid:budget_id>/",
+         views.PersonalBudgetDetailView.as_view()),
+    path("personal/goals/", views.SavingsGoalListCreateView.as_view()),
+    path("personal/goals/<uuid:goal_id>/",
+         views.SavingsGoalDetailView.as_view()),
+    path("personal/goals/<uuid:goal_id>/contribute/",
+         views.SavingsGoalContributeView.as_view()),
+    path("personal/loans/", views.PersonalLoanListCreateView.as_view()),
+    path("personal/loans/<uuid:loan_id>/",
+         views.PersonalLoanDetailView.as_view()),
+    path("personal/loans/<uuid:loan_id>/payment/",
+         views.PersonalLoanPaymentView.as_view()),
+    path("personal/dashboard/", views.PersonalDashboardView.as_view()),
+    path("personal/alerts/", views.PersonalAlertsView.as_view()),
+]

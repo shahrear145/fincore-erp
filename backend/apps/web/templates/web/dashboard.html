@@ -1,0 +1,159 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% t "Dashboard" %} — FinCore ERP{% endblock %}
+{% block extra_head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>{% endblock %}
+{% block content %}
+<div class="hero">
+  <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;position:relative;z-index:1">
+    <div>
+      <h2>{% t "Good to see you" %}, {{ request.user.first_name|default:request.user.username }}</h2>
+      <p>{% if ui_lang == 'en' %}Here's a clear, live snapshot of {% if active_business %}<strong>{{ active_business.name }}</strong> and {% endif %}your personal finances — {{ today }}. All figures come from real ledger data (no estimates).{% else %}এখানে {% if active_business %}<strong>{{ active_business.name }}</strong> এবং {% endif %}আপনার ব্যক্তিগত হিসাবের একটি পরিষ্কার, লাইভ সারসংক্ষেপ — {{ today }}। সব সংখ্যা আসল লেজার ডাটা থেকে (কোনো অনুমান নয়)।{% endif %}</p>
+      <div class="actions">
+        <a class="btn primary" href="{% url 'web:transactions' %}"><i class="fa-solid fa-plus"></i> {% if ui_lang == 'en' %}Add cash{% else %}নগদ যোগ করুন{% endif %}</a>
+        <a class="btn" href="{% url 'web:personal' %}"><i class="fa-solid fa-wallet"></i> {% t "Personal ledger" %}</a>
+        <a class="btn" href="{% url 'web:assistant' %}"><i class="fa-solid fa-wand-magic-sparkles"></i> {% t "Ask FinCore" %}</a>
+      </div>
+    </div>
+    <div class="chips">
+      {% if active_business %}<span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span>{% endif %}
+      <span class="chip"><i class="fa-regular fa-calendar"></i> {{ today }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="period-bar mt">
+  <div class="pb-seg" role="group" aria-label="{% if ui_lang == 'en' %}Period{% else %}সময়কাল{% endif %}">
+    <a class="pb-btn {% if preset == 'today' %}on{% endif %}" href="?preset=today">{% if ui_lang == 'en' %}Today{% else %}আজ{% endif %}</a>
+    <a class="pb-btn {% if preset == 'week' %}on{% endif %}" href="?preset=week">{% if ui_lang == 'en' %}This week{% else %}এই সপ্তাহ{% endif %}</a>
+    <a class="pb-btn {% if preset == 'month' %}on{% endif %}" href="?preset=month">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</a>
+    <a class="pb-btn {% if preset == 'last_month' %}on{% endif %}" href="?preset=last_month">{% if ui_lang == 'en' %}Last month{% else %}গত মাস{% endif %}</a>
+    <a class="pb-btn {% if preset == '30d' %}on{% endif %}" href="?preset=30d">{% if ui_lang == 'en' %}Last 30 days{% else %}গত ৩০ দিন{% endif %}</a>
+    <a class="pb-btn {% if preset == 'year' %}on{% endif %}" href="?preset=year">{% if ui_lang == 'en' %}This year{% else %}এই বছর{% endif %}</a>
+  </div>
+  <form class="pb-custom" method="get" action="">
+    <input type="hidden" name="preset" value="custom">
+    <input type="date" name="from" value="{{ dfrom|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" aria-label="{% if ui_lang == 'en' %}From date{% else %}শুরুর তারিখ{% endif %}">
+    <span class="pb-range">—</span>
+    <input type="date" name="to" value="{{ dto|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" aria-label="{% if ui_lang == 'en' %}To date{% else %}শেষ তারিখ{% endif %}">
+    <button class="btn sm pb-apply" type="submit"><i class="fa-solid fa-filter"></i> {% if ui_lang == 'en' %}Apply{% else %}দেখান{% endif %}</button>
+  </form>
+</div>
+
+<div class="section-head mt"><h3><i class="fa-solid fa-wallet" style="color:var(--brand)"></i> {% t "Personal overview" %} <span class="badge b-muted">{{ period_label }}{% if preset != 'custom' %} · {{ dfrom|date:'d M' }} – {{ dto|date:'d M Y' }}{% endif %}</span></h3>
+  <a class="btn sm" href="{% url 'web:personal' %}">{% t "Open personal finance" %} <i class="fa-solid fa-arrow-right"></i></a></div>
+<div class="grid g4">
+  <div class="card kpi"><div class="icon i-teal"><i class="fa-solid fa-scale-balanced"></i></div>
+    <h3>{% t "Net worth" %}</h3><div class="value">{{ personal.net_worth.net_worth|money }}</div>
+    <div class="sub">{% t "Assets" %} {{ personal.net_worth.total_assets|money }} · {% t "Payables" %} {{ personal.net_worth.payables|money }}</div></div>
+  <div class="card kpi"><div class="icon i-green"><i class="fa-solid fa-arrow-trend-up"></i></div>
+    <h3>{% if ui_lang == 'en' %}Income ({{ period_label }}){% else %}আয় ({{ period_label }}){% endif %}</h3><div class="value pos">{{ personal.month.total_income|money }}</div>
+    <div class="sub">{% t "From your personal ledger" %}</div></div>
+  <div class="card kpi"><div class="icon i-red"><i class="fa-solid fa-arrow-trend-down"></i></div>
+    <h3>{% if ui_lang == 'en' %}Expense ({{ period_label }}){% else %}ব্যয় ({{ period_label }}){% endif %}</h3><div class="value neg">{{ personal.month.total_expense|money }}</div>
+    <div class="sub">{% t "Committed, ledger-derived" %}</div></div>
+  <div class="card kpi"><div class="icon i-blue"><i class="fa-solid fa-piggy-bank"></i></div>
+    <h3>{% if ui_lang == 'en' %}Net saved ({{ period_label }}){% else %}নিট সঞ্চয় ({{ period_label }}){% endif %}</h3><div class="value {{ personal.month.net_saved|signclass }}">{{ personal.month.net_saved|money }}</div>
+    <div class="sub">{% t "Income − expense" %}</div></div>
+</div>
+
+{% if business %}
+<div class="section-head mt"><h3><i class="fa-solid fa-building" style="color:var(--info)"></i> {{ business.biz.name }} — {{ period_label }}</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn sm" href="{% url 'web:supercalc' %}">{% if ui_lang == 'en' %}Calculator{% else %}ক্যালকুলেটর{% endif %}</a><a class="btn sm" href="{% url 'web:transactions' %}">{% if ui_lang == 'en' %}Cash{% else %}নগদ{% endif %} <i class="fa-solid fa-arrow-right"></i></a></div></div>
+<div class="grid g5">
+  <div class="card kpi"><div class="icon i-teal"><i class="fa-solid fa-money-bill-wave"></i></div>
+    <h3>{% if ui_lang == 'en' %}Cash in hand{% else %}হাতে নগদ{% endif %}</h3><div class="value">{{ business.cash_in_hand|money }}</div>
+    <div class="sub">{% if ui_lang == 'en' %}drawer {{ business.cash|money }} · mobile/bank {{ business.wallet|money }}{% else %}ড্রয়ার {{ business.cash|money }} · মোবাইল/ব্যাংক {{ business.wallet|money }}{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-amber"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+    <h3>{% t "Total receivables" %}</h3><div class="value">{{ business.total_due|money }}</div>
+    <div class="sub">{% t "Partner-wise due (never merged)" %}</div></div>
+  <div class="card kpi"><div class="icon i-green"><i class="fa-solid fa-sack-dollar"></i></div>
+    <h3>{% t "Revenue" %}</h3><div class="value pos">{{ business.income_statement.total_revenue|money }}</div>
+    <div class="sub">{% if ui_lang == 'en' %}Selected period, per accounting engine{% else %}নির্বাচিত সময়, অ্যাকাউন্টিং ইঞ্জিন অনুযায়ী{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-red"><i class="fa-solid fa-receipt"></i></div>
+    <h3>{% t "Expenses" %}</h3><div class="value neg">{{ business.income_statement.total_expenses|money }}</div>
+    <div class="sub">{% if ui_lang == 'en' %}Selected period, per accounting engine{% else %}নির্বাচিত সময়, অ্যাকাউন্টিং ইঞ্জিন অনুযায়ী{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-teal"><i class="fa-solid fa-chart-line"></i></div>
+    <h3>{% t "Net profit" %}</h3><div class="value {{ business.income_statement.net_profit|signclass }}">{{ business.income_statement.net_profit|money }}</div>
+    <div class="sub">{% t "Revenue − expenses" %}</div></div>
+</div>
+
+{% if business.loans %}
+<div class="section-head mt"><h3><i class="fa-solid fa-hand-holding-dollar" style="color:var(--info)"></i> {% if ui_lang == 'en' %}Loan & Investment — two separate books{% else %}ঋণ ও বিনিয়োগ — দুটি আলাদা বই{% endif %}</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn sm" href="{% url 'web:loans' %}">{% if ui_lang == 'en' %}Loan (ঋণ){% else %}ঋণ{% endif %}</a>
+    <a class="btn sm" href="{% url 'web:investments' %}">{% if ui_lang == 'en' %}Investment (বিনিয়োগ){% else %}বিনিয়োগ{% endif %}</a>
+  </div>
+</div>
+<div class="grid g4">
+  <div class="card kpi"><div class="icon i-blue"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+    <h3>{% if ui_lang == 'en' %}Loan outstanding{% else %}চলতি ঋণ বকেয়া{% endif %}</h3><div class="value neg">{{ business.loans.loan.outstanding|money }}</div>
+    <div class="sub">{% if ui_lang == 'en' %}Borrowed {{ business.loans.loan.received|money }} · repaid {{ business.loans.loan.returned|money }}{% else %}নিয়েছেন {{ business.loans.loan.received|money }} · পরিশোধ {{ business.loans.loan.returned|money }}{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-violet"><i class="fa-solid fa-piggy-bank"></i></div>
+    <h3>{% if ui_lang == 'en' %}Investor capital{% else %}বিনিয়োগকারীর মূল{% endif %}</h3><div class="value" style="color:#6d28d9">{{ business.loans.invest.outstanding|money }}</div>
+    <div class="sub">{% if ui_lang == 'en' %}Invested {{ business.loans.invest.received|money }} · withdrawn {{ business.loans.invest.returned|money }} — your own money{% else %}বিনিয়োগ {{ business.loans.invest.received|money }} · উত্তোলন {{ business.loans.invest.returned|money }} — আপনার নিজের টাকা{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-green"><i class="fa-solid fa-arrow-trend-up"></i></div>
+    <h3>{% if ui_lang == 'en' %}Main account impact{% else %}মূল হিসাবে প্রভাব{% endif %}</h3><div class="value {{ business.loans.net_main_account|signclass }}">{{ business.loans.net_main_account|money }}</div>
+    <div class="sub">{% if ui_lang == 'en' %}Loan {{ business.loans.loan.net_main_account|money }} · investment {{ business.loans.invest.net_main_account|money }}{% else %}ঋণ {{ business.loans.loan.net_main_account|money }} · বিনিয়োগ {{ business.loans.invest.net_main_account|money }}{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-teal"><i class="fa-solid fa-scale-balanced"></i></div>
+    <h3>{% if ui_lang == 'en' %}Total outside money{% else %}মোট বাইরের টাকা{% endif %}</h3><div class="value">{{ business.loans.total_outstanding|money }}</div>
+    <div class="sub">{% if ui_lang == 'en' %}Loan {{ business.loans.loan.outstanding|money }} + investor capital {{ business.loans.invest.outstanding|money }} — never counted as income{% else %}ঋণ {{ business.loans.loan.outstanding|money }} + বিনিয়োগকারীর মূল {{ business.loans.invest.outstanding|money }} — কখনো আয় হিসেবে ধরা হয় না{% endif %}</div></div>
+</div>
+{% endif %}
+
+<div class="split mt">
+  <div class="card">
+    <div class="section-head"><h3>{% t "Cash movement (recent days)" %}</h3><span class="badge b-muted">{{ period_label }}{% if preset != 'custom' %} · {{ dfrom|date:'d M' }} – {{ dto|date:'d M Y' }}{% endif %}</span></div>
+    {% if chart.labels %}
+      <canvas id="cashChart" height="130" aria-label="{% t 'Cash movement (recent days)' %}"></canvas>
+    {% else %}
+      <div class="empty"><div class="ei"><i class="fa-solid fa-chart-area"></i></div><h4>{% t "No cash series yet" %}</h4><p>{% if ui_lang == 'en' %}Cash in/out by day will appear here as wallet transactions are posted.{% else %}ওয়ালেট লেনদেন পোস্ট হলে এখানে দৈনিক নগদ আনাগোনা দেখাবে।{% endif %}</p></div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <div class="section-head"><h3>{% t "Top outstanding dues" %}</h3><a class="btn sm" href="{% url 'web:customers' %}">{% if ui_lang == 'en' %}Partner & Dues{% else %}পার্টনার ও বাকি{% endif %}</a></div>
+    {% if business.top_dues %}
+    <div class="table-wrap"><table><thead><tr><th>{% t "Customer" %}</th><th>{% t "Partner book" %}</th><th class="num">{% t "Balance" %}</th></tr></thead><tbody>
+      {% for r in business.top_dues %}
+      <tr><td><strong>{{ r.customer.name }}</strong></td><td class="muted">{{ r.partner.name }}</td><td class="num neg">{{ r.due|money }}</td></tr>
+      {% endfor %}
+    </tbody></table></div>
+    {% else %}<div class="empty"><div class="ei"><i class="fa-regular fa-circle-check"></i></div><h4>{% t "All clear" %}</h4><p>{% t "No outstanding dues right now." %}</p></div>{% endif %}
+  </div>
+</div>
+
+{% elif memberships %}
+<div class="card mt"><div class="empty"><div class="ei"><i class="fa-solid fa-building-circle-exclamation"></i></div><h4>{% t "Select a business" %}</h4><p>{% if ui_lang == 'en' %}Choose an active business from the sidebar to see its summary, dues, and reports.{% else %}সারাংশ, বাকি ও রিপোর্ট দেখতে সাইডবার থেকে একটি সক্রিয় ব্যবসা নির্বাচন করুন।{% endif %}</p></div></div>
+{% else %}
+<div class="card mt"><div class="empty"><div class="ei"><i class="fa-solid fa-rocket"></i></div><h4>{% t "No business yet" %}</h4><p>{% if ui_lang == 'en' %}Create your first business to start tracking transactions, customers, partner-wise dues, and reports. Your personal finance space is ready now.{% else %}লেনদেন, গ্রাহক, পার্টনার-ভিত্তিক বাকি ও রিপোর্ট শুরু করতে আপনার প্রথম ব্যবসা তৈরি করুন। আপনার ব্যক্তিগত হিসাব জায়গা এখন প্রস্তুত।{% endif %}</p><p style="margin-top:14px"><a class="btn primary" href="{% url 'web:create_business' %}"><i class="fa-solid fa-building-circle-check"></i> {% if ui_lang == 'en' %}Create business{% else %}ব্যবসা তৈরি করুন{% endif %}</a></p></div></div>
+{% endif %}
+
+{% if chart.labels %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const ctx = document.getElementById('cashChart');
+  if(!ctx || typeof Chart === 'undefined') return;
+  const labels = {{ chart.labels|tojson }};
+  const inflow = {{ chart.inflow|tojson }}.map(Number);
+  const outflow = {{ chart.outflow|tojson }}.map(Number);
+  new Chart(ctx, {type:'bar', data:{labels, datasets:[
+    {label:'{% if ui_lang == "en" %}Inflow{% else %}আসা{% endif %}', data:inflow,
+     backgroundColor:function(c){var g=c.chart.ctx.createLinearGradient(0,0,0,c.chart.height);g.addColorStop(0,'rgba(52,211,153,.95)');g.addColorStop(1,'rgba(16,185,129,.35)');return g;},
+     borderColor:'rgba(5,150,105,.9)',borderWidth:1,borderRadius:9,borderSkipped:false,maxBarThickness:44,categoryPercentage:.62},
+    {label:'{% if ui_lang == "en" %}Outflow{% else %}যাওয়া{% endif %}', data:outflow,
+     backgroundColor:function(c){var g=c.chart.ctx.createLinearGradient(0,0,0,c.chart.height);g.addColorStop(0,'rgba(251,113,133,.95)');g.addColorStop(1,'rgba(244,63,94,.32)');return g;},
+     borderColor:'rgba(190,18,60,.85)',borderWidth:1,borderRadius:9,borderSkipped:false,maxBarThickness:44,categoryPercentage:.62}
+  ]}, options:{responsive:true, maintainAspectRatio:true,
+    animation:{duration:700,easing:'easeOutQuart'},
+    plugins:{
+      legend:{position:'bottom', labels:{boxWidth:9, usePointStyle:true, pointStyle:'circle', padding:18, color:'#475569', font:{weight:'700', size:12}}},
+      tooltip:{backgroundColor:'rgba(4,13,28,.92)',titleColor:'#5eead4',bodyColor:'#eaf2ff',padding:12,cornerRadius:12,boxPadding:8,titleFont:{weight:'800'},callbacks:{label:function(item){return ' ৳' + Number(item.parsed.y).toLocaleString('en-IN');}}}
+    },
+    scales:{
+      x:{grid:{display:false}, ticks:{color:'#64748b', font:{weight:'600'}}},
+      y:{border:{dash:[4,4]}, grid:{color:'rgba(148,163,184,.18)'}, ticks:{color:'#64748b', callback:v=>'৳'+Number(v).toLocaleString('en-IN')}}
+    }
+  }});
+});
+</script>
+{% endif %}
+{% endblock %}

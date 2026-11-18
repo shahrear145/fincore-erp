@@ -1,0 +1,32 @@
+# FinCore ERP — PythonAnywhere (free plan) dependencies
+#
+# The free plan gives 512 MB of disk, so this list leaves out packages that
+# are not needed for a single-shop SQLite deployment:
+#   * psycopg   — SQLite is used (POSTGRES_* stay empty)
+#   * celery / redis — Celery runs in eager mode; the import is guarded in
+#                      config/__init__.py, so the app works without them
+#   * boto3     — S3 backups only; imported lazily inside apps/ops/backup.py
+#   * gunicorn  — PythonAnywhere runs the app with its own uWSGI server
+#
+# Install with:
+#   pip install -r deploy/pythonanywhere/requirements-pythonanywhere.txt
+
+Django~=5.2.0
+djangorestframework~=3.16.0
+djangorestframework-simplejwt~=5.5.0
+django-filter~=25.1
+django-cors-headers~=4.7.0
+django-environ~=0.12.0
+
+# ImageField support (customer photos, business logo, avatars)
+Pillow>=11
+
+# Report exports (PDF / Excel / Word) with Bangla shaping
+reportlab~=4.4.0
+openpyxl~=3.1.5
+python-docx~=1.2.0
+fpdf2~=2.9.0
+uharfbuzz>=0.45,<1
+
+# Backup encryption (Fernet) and other crypto helpers
+cryptography>=44

@@ -1,0 +1,69 @@
+/* View modes + the mobile drawer.
+   Loaded last (after app.css / premium.css / themes.css) so the
+   user-selected view always wins over the responsive defaults.
+
+   Two jobs:
+
+   1) Forced Android/Mobile view — when the user picks "Android view" the app
+      renders the mobile layout even on a desktop screen.
+   2) The drawer backdrop.
+
+   IMPORTANT (the real cause of "the page blurs and nothing can be clicked"):
+   `.app` is a stacking context (premium.css: .app{position:relative;
+   z-index:1}). The backdrop therefore has to live INSIDE .app - as a
+   sibling it would paint over the sidebar itself, no matter how high its
+   z-index was. Inside .app, the sidebar (1001) sits above the backdrop
+   (1000), so the menu stays clickable while the page behind is dimmed. */
+
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root){ animation-duration: .18s; }
+.btn[disabled]{opacity:.7;cursor:wait;transform:none!important}
+
+/* --- the drawer backdrop (shared by every viewport) ---------------------- */
+.backdrop{position:fixed;inset:0;background:rgba(4,13,28,.4);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .22s}
+body.nav-open .backdrop{opacity:1;pointer-events:auto}
+
+/* --- forced Android/Mobile view ----------------------------------------- */
+html[data-view="mobile"] .app{grid-template-columns:1fr}
+html[data-view="mobile"] .sidebar{position:fixed;left:0;top:0;bottom:0;width:288px;transform:translateX(-105%);transition:transform .26s var(--ease);box-shadow:var(--shadow-lg);will-change:transform;z-index:1001}
+html[data-view="mobile"] body.nav-open .sidebar{transform:none}
+html[data-view="mobile"] .backdrop{position:fixed;inset:0;background:rgba(4,13,28,.4);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .22s}
+html[data-view="mobile"] body.nav-open .backdrop{opacity:1;pointer-events:auto}
+html[data-view="mobile"] .main{padding:12px 10px 32px}
+html[data-view="mobile"] .sidebar-close{display:flex}
+html[data-view="mobile"] .mobile-bar{display:flex}
+html[data-view="mobile"] .g4,html[data-view="mobile"] .g3,html[data-view="mobile"] .g2,html[data-view="mobile"] .form-grid{grid-template-columns:1fr}
+/* forced Android view: KPI tiles auto-fit the screen width */
+html[data-view="mobile"] .g4,html[data-view="mobile"] .g5{grid-template-columns:repeat(auto-fit,minmax(min(84px,100%),1fr));gap:6px}
+html[data-view="mobile"] .g5>:last-child{grid-column:1/-1}
+html[data-view="mobile"] .g4 .card,html[data-view="mobile"] .g5 .card{padding:8px 7px}
+html[data-view="mobile"] .kpi .icon{width:22px;height:22px;border-radius:7px;font-size:9.5px;margin-bottom:6px}
+html[data-view="mobile"] .g4 .card h3,html[data-view="mobile"] .g5 .card h3{font-size:8px;letter-spacing:.04em}
+html[data-view="mobile"] .g4 .card .value,html[data-view="mobile"] .g5 .card .value{font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-view="mobile"] .g4 .card .sub,html[data-view="mobile"] .g5 .card .sub{display:none}
+
+/* Phones in auto view: these must come after premium.css (which loads
+   earlier) so the compact sizes always win. Tiles auto-fit any width. */
+@media(max-width:640px){
+  .g4 .card,.g5 .card{padding:8px 7px}
+  .kpi .icon{width:22px;height:22px;border-radius:7px;font-size:9.5px;margin-bottom:6px}
+  .g4 .card h3,.g5 .card h3{font-size:8px;letter-spacing:.04em}
+  .g4 .card .value,.g5 .card .value{font-size:12px;margin-top:2px;letter-spacing:-.02em}
+  .g4 .card .sub,.g5 .card .sub{display:none}
+}
+html[data-view="mobile"] .topbar{flex-direction:column;gap:10px;padding-right:0}
+html[data-view="mobile"] .hide-m{display:none!important}
+html[data-view="mobile"] .hide-sm{display:none!important}
+html[data-view="mobile"] .card{padding:15px}
+html[data-view="mobile"] th,html[data-view="mobile"] td{padding:10px 10px}
+html[data-view="mobile"] .topbar h2{font-size:22px}
+html[data-view="mobile"] .table-wrap{border-radius:14px}
+html[data-view="mobile"] .dcircles{gap:6px}
+html[data-view="mobile"] .dc{min-width:46px;padding:7px 8px}
+html[data-view="mobile"] .btn{padding:10px 13px}
+html[data-view="mobile"] input,html[data-view="mobile"] select,html[data-view="mobile"] textarea{padding:11px 12px;font-size:16px}
+html[data-view="mobile"] .hero .chips{margin-right:0}
+html[data-view="mobile"] .profile-fab{top:11px;right:64px}
+html[data-view="mobile"] .avatar-btn{width:44px;height:44px;font-size:14px}
+html[data-view="mobile"] .avatar-menu{top:58px;right:-8px;width:264px}
+html[data-view="mobile"] .split,html[data-view="mobile"] .split-eq{grid-template-columns:1fr}

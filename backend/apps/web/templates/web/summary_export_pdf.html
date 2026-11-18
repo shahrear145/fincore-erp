@@ -1,0 +1,150 @@
+{% load fmt %}<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<title>{{ data.title }} — {{ data.business }}</title>
+<style>
+  @font-face{font-family:'NotoBengali';src:url('NotoSansBengaliLatin-Regular.ttf') format('truetype');font-weight:400}
+  @font-face{font-family:'NotoBengali';src:url('NotoSansBengaliLatin-Bold.ttf') format('truetype');font-weight:700}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:'NotoBengali','Noto Sans Bengali',sans-serif;margin:0;padding:26px 30px;color:#1e293b;background:#fff;font-size:12px}
+  .banner{display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#1c1205,#2f2410 46%,#0b4a4a);color:#fff;border-radius:16px;padding:18px 22px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#fde68a,#d99a1f);color:#4a3408;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+  h1{margin:0;font-size:20px;letter-spacing:-.01em}
+  .sub{font-size:12px;color:#d8bd8a;margin-top:2px}
+  .meta{text-align:right;font-size:11px;color:#c7b48c}
+  .meta b{display:block;color:#f4ecdd;font-size:13px;margin-top:2px}
+  .hero{display:flex;align-items:center;justify-content:space-between;gap:16px;border:2px solid #b8860b;border-radius:16px;padding:14px 20px;margin-bottom:16px;background:linear-gradient(135deg,#fffdf5,#fdf6e6)}
+  .hero .k{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8a6a12;font-weight:700}
+  .hero .v{font-size:26px;font-weight:700;color:#0b2545;margin-top:2px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .card{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;break-inside:avoid}
+  .card h2{margin:0;padding:11px 15px;font-size:13px;background:#0b2545;color:#fff}
+  .card.owe h2{background:#9f1239}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 15px;border-bottom:1px solid #f1f5f9}
+  .row .l{font-size:11.5px;color:#5c6b80}
+  .row .v{font-size:13px;font-weight:700;color:#0b2545}
+  .row.tot{background:#faf7ef;font-weight:700}
+  .row.tot .l{color:#8a6a12;font-weight:700}
+  .note{font-size:10px;color:#94a3b8;margin-top:2px}
+  h3{font-size:13px;margin:18px 0 8px;color:#0b2545}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  thead th{background:#0b2545;color:#fff;padding:7px 8px;text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+  tbody td{padding:6px 8px;border-bottom:1px solid #eef2f7}
+  tbody tr:nth-child(even){background:#fafafa}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tfoot td{padding:8px;background:#fdf6e6;font-weight:700;color:#0b2545;border-top:2px solid #b8860b}
+  .foot{margin-top:16px;font-size:10px;color:#94a3b8;display:flex;justify-content:space-between}
+  .invest{margin-bottom:16px;border:1px solid #ddd6fe;border-radius:12px;padding:10px 14px;background:linear-gradient(135deg,#f5f3ff,#fdf6e6)}
+  .invest b{display:block;font-size:12.5px;color:#2e1065}
+  .invest span{display:block;font-size:10.5px;color:#615b7a;margin-top:2px}
+</style>
+</head>
+<body>
+  <div class="banner">
+    <div class="brand">
+      <div class="mark">৳</div>
+      <div>
+        <h1>{{ data.title }}</h1>
+        <div class="sub">{{ data.subtitle }}</div>
+      </div>
+    </div>
+    <div class="meta">BUSINESS<b>{{ data.business }}</b>{{ data.generated_label }}</div>
+  </div>
+
+  <div class="hero">
+    <div>
+      <div class="k">{{ data.labels.net }}</div>
+      <div class="v">{{ data.net_display }}</div>
+    </div>
+    <div style="font-size:11.5px;color:#5c6b80;text-align:right">
+      {{ data.labels.in_hand }} <b style="color:#047857">{{ data.cash_in_hand_display }}</b>
+      &nbsp;+&nbsp;
+      {{ data.labels.coming }} <b style="color:#b45309">{{ data.due_display }}</b>
+      &nbsp;−&nbsp;
+      {{ data.labels.owe }} <b style="color:#be123c">{{ data.owe_total_display }}</b>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>{{ data.labels.have }}</h2>
+      {% for item in data.have %}
+      <div class="row">
+        <div><div class="l">{{ item.label }}</div>{% if item.note %}<div class="note">{{ item.note }}</div>{% endif %}</div>
+        <div class="v">{{ item.display }}</div>
+      </div>
+      {% endfor %}
+      <div class="row tot"><div class="l">{{ data.labels.total }}</div><div class="v">{{ data.have_total_display }}</div></div>
+    </div>
+    <div class="card owe">
+      <h2>{{ data.labels.owe }}</h2>
+      {% for item in data.owe %}
+      <div class="row">
+        <div><div class="l">{{ item.label }}</div>{% if item.note %}<div class="note">{{ item.note }}</div>{% endif %}</div>
+        <div class="v">{{ item.display }}</div>
+      </div>
+      {% endfor %}
+      <div class="row tot"><div class="l">{{ data.labels.total }}</div><div class="v">{{ data.owe_total_display }}</div></div>
+    </div>
+  </div>
+
+  {% if data.invest %}
+  <div class="invest">
+    <b>{{ data.labels.invest }} {{ data.invest.display }}</b>
+    <span>{{ data.invest.received }} · {{ data.invest.returned }} — {{ data.invest.note }}</span>
+  </div>
+  {% endif %}
+
+  <h3>{{ data.labels.period }}</h3>
+  <div class="cols">
+    {% for item in data.period %}
+    <div class="card"><div class="row"><div class="l">{{ item.label }}</div><div class="v">{{ item.display }}</div></div></div>
+    {% endfor %}
+  </div>
+
+  <h3>{{ data.labels.day_table }}</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>{{ data.labels.date }}</th>
+        <th class="num">{{ data.labels.in }}</th>
+        <th class="num">{{ data.labels.out }}</th>
+        <th class="num">{{ data.labels.loan_cap }}</th>
+        <th class="num">{{ data.labels.baki_book }}</th>
+        <th class="num">{{ data.labels.drawer }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in data.rows %}
+      {% if r.has_data %}
+      <tr>
+        <td>{{ r.date_label }}</td>
+        <td class="num">{{ r.cash_in_display }}</td>
+        <td class="num">{{ r.cash_out_display }}</td>
+        <td class="num">{{ r.loan_cap }}</td>
+        <td class="num">{{ r.baki }}</td>
+        <td class="num">{{ r.closing_cash_display }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>{{ data.labels.total }}</td>
+        <td class="num">{{ data.totals.cash_in_display }}</td>
+        <td class="num">{{ data.totals.cash_out_display }}</td>
+        <td class="num">{{ data.totals.loan_cap }}</td>
+        <td class="num">{{ data.totals.baki }}</td>
+        <td class="num">{{ data.totals.closing_cash_display }}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="foot">
+    <span>{{ data.labels.footer }} · {{ data.labels.note }}</span>
+    <span>{{ data.generated_label }}</span>
+  </div>
+</body>
+</html>

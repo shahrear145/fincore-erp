@@ -1,0 +1,168 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Notification Center{% else %}নোটিফিকেশন সেন্টার{% endif %} — FinCore ERP{% endblock %}
+{% block content %}
+{% load static %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-bell" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Notification Center{% else %}নোটিফিকেশন সেন্টার{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Baki, reminders, budget crossings and bill schedules — one feed, newest first.{% else %}বাকি, রিমাইন্ডার, বাজেটের ঘটনা — সব এক জায়গায়, নতুন আগে।{% endif %}</p>
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span></div>{% endif %}
+</div>
+
+<div class="ln-kpis" style="margin-top:4px">
+  <div class="ln-kpi"><span class="k">{% if ui_lang == 'en' %}Unread{% else %}না পড়া{% endif %}</span><span class="v" style="color:var(--danger)">{{ unread }}</span></div>
+  <div class="ln-kpi net"><span class="k">{% if ui_lang == 'en' %}This week{% else %}এই সপ্তাহে{% endif %}</span><span class="v">{{ week_count }}</span></div>
+  <div class="ln-kpi"><span class="k">{% if ui_lang == 'en' %}Showing{% else %}দেখানো হচ্ছে{% endif %}</span><span class="v">{{ total_shown }}</span></div>
+</div>
+
+<!-- filter chips -->
+<div class="f-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 16px">
+  <a class="exp-chip {% if not current_filter %}on{% endif %}" href="{% url 'web:notifications' %}">{% if ui_lang == 'en' %}All{% else %}সব{% endif %}</a>
+  <a class="exp-chip {% if current_filter == 'unread' %}on{% endif %}" href="?kind=unread"><i class="fa-solid fa-circle-dot"></i> {% if ui_lang == 'en' %}Unread{% else %}না পড়া{% endif %}</a>
+  <a class="exp-chip {% if current_filter == 'DUE_INCREASED' %}on{% endif %}" href="?kind=DUE_INCREASED"><i class="fa-solid fa-hand-holding-dollar"></i> {% if ui_lang == 'en' %}Baki{% else %}বাকি{% endif %}</a>
+  <a class="exp-chip {% if current_filter == 'REMINDER_SENT' %}on{% endif %}" href="?kind=REMINDER_SENT"><i class="fa-solid fa-bell"></i> {% if ui_lang == 'en' %}Reminders{% else %}রিমাইন্ডার{% endif %}</a>
+  <a class="exp-chip {% if current_filter == 'BUDGET_OVER' %}on{% endif %}" href="?kind=BUDGET_OVER"><i class="fa-solid fa-receipt"></i> {% if ui_lang == 'en' %}Budget{% else %}বাজেট{% endif %}</a>
+  <button type="button" id="notifMarkAllPage" class="exp-chip" style="margin-left:auto;background:transparent;color:var(--brand);border-color:transparent;cursor:pointer"><i class="fa-solid fa-check-double"></i> {% if ui_lang == 'en' %}Mark all read{% else %}সব পড়েছি{% endif %}</button>
+  <button type="button" id="notifClearPage" class="exp-chip notif-clear-page" style="background:transparent;color:#f87171;border-color:transparent;cursor:pointer"><i class="fa-solid fa-trash-can"></i> {% if ui_lang == 'en' %}Clear all{% else %}সব মুছুন{% endif %}</button>
+</div>
+
+<div class="split notif-split" style="align-items:start">
+  <!-- LEFT: live alerts -->
+  <div class="exp-card">
+    <div class="exp-head">
+      <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-bolt" style="color:var(--warn)"></i> <h3>{% if ui_lang == 'en' %}Live alerts{% else %}লাইভ অ্যালার্ট{% endif %}</h3></div>
+      <span class="notif-live-tag"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;animation:badgePop 1.2s var(--ease) infinite alternate"></span> Live</span>
+    </div>
+    <div class="exp-body">
+      {% if alerts %}
+      {% for a in alerts %}
+      <div class="notif-item tone-{{ a.tone }}" style="border:1px solid var(--line);margin-bottom:10px">
+        <span class="notif-aur {{ a.tone }}"><i class="fa-solid {{ a.icon }}"></i></span>
+        <span class="notif-txt">
+          <span class="notif-ttl">{{ a.title }}</span>
+          <span class="notif-sub"><span>{{ a.body }}</span></span>
+          {% if a.kind == 'BUDGET_OVER' %}
+          <span class="notif-progress" aria-hidden="true"><i style="width:{{ a.pct|default:100 }}%"></i></span>
+          <span class="notif-sub" style="margin-top:3px">
+            <span style="font-variant-numeric:tabular-nums">{% if ui_lang == 'en' %}Over by{% else %}ছাড়েছে{% endif %} <b>৳{{ a.amount|floatformat:2 }}</b></span>
+            <a href="{{ a.link }}" style="margin-left:auto;color:var(--brand);font-weight:800;text-decoration:none">{% if ui_lang == 'en' %}Fix →{% else %}সমাধান →{% endif %}</a>
+          </span>
+          {% elif a.kind == 'INSTALLMENT_DUE' %}
+          <span class="notif-sub" style="margin-top:5px">
+            {% if a.overdue %}
+            <span class="notif-countdown"><i class="fa-solid fa-triangle-exclamation"></i> {% if ui_lang == 'en' %}{{ a.days_abs }}d overdue · কিস্তি {{ a.sequence }}{% else %}{{ a.days_abs }} দিন ওভারডিউ · কিস্তি {{ a.sequence }}{% endif %}</span>
+            {% else %}
+            <span class="notif-countdown ok"><i class="fa-solid fa-hourglass-half"></i> {% if ui_lang == 'en' %}{{ a.days_left }}d left · কিস্তি {{ a.sequence }}{% else %}{{ a.days_left }} দিন বাকি · কিস্তি {{ a.sequence }}{% endif %}</span>
+            {% endif %}
+            <a href="{{ a.link }}" style="margin-left:auto;color:var(--brand);font-weight:800;text-decoration:none">{% if ui_lang == 'en' %}Loans →{% else %}ঋণ →{% endif %}</a>
+          </span>
+          {% endif %}
+        </span>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="notif-empty">
+        <div class="ei"><i class="fa-solid fa-circle-check"></i></div>
+        <h4 style="margin:0 0 4px;color:var(--m-ink, var(--ink))">{% if ui_lang == 'en' %}All quiet here{% else %}সবই ঠিক আছে{% endif %}</h4>
+        <p style="margin:0">{% if ui_lang == 'en' %}No budgets over, no installments due this week.{% else %}বাজেট ছাড়ছে না, এই সপ্তাহে কোনো কিস্তি নেই।{% endif %}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RIGHT: event feed -->
+  <div class="exp-card">
+    <div class="exp-head">
+      <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-clock-rotate-left"></i> <h3>{% if ui_lang == 'en' %}Timeline{% else %}সময়রেখা{% endif %}</h3></div>
+      {% if unread %}<span class="badge b-danger">{{ unread }} {% if ui_lang == 'en' %}new{% else %}নতুন{% endif %}</span>{% endif %}
+    </div>
+    <div class="exp-body" style="max-height:640px;overflow-y:auto">
+      {% if timeline %}
+      {% for group in timeline %}
+      <div class="notif-group">{{ group.label }}</div>
+      {% for n in group.items %}
+      <a class="notif-item{% if not n.is_read %} unread{% endif %}" href="{{ n.link|default:'/notifications/' }}" data-notif-id="{{ n.id }}" style="border:1px solid var(--line);margin-bottom:8px">
+        <span class="notif-aur {{ n.tone }}"><i class="fa-solid {{ n.icon }}"></i></span>
+        <span class="notif-txt">
+          <span class="notif-ttl">{{ n.title }}</span>
+          <span class="notif-sub">
+            {% if n.amount %}<span class="notif-amt">{{ n.amount|money }}</span><span aria-hidden="true">·</span>{% endif %}
+            <time datetime="{{ n.created_at|date:'c' }}">{{ n.rel }}</time>
+          </span>
+          {% if n.body %}<span class="notif-sub" style="margin-top:3px"><span>{{ n.body }}</span></span>{% endif %}
+        </span>
+        {% if not n.is_read %}<span class="notif-unread-dot" aria-hidden="true"></span>{% endif %}
+      </a>
+      {% endfor %}
+      {% endfor %}
+      {% else %}
+      <div class="notif-empty">
+        <div class="ei"><i class="fa-solid fa-inbox"></i></div>
+        <h4 style="margin:0 0 4px;color:var(--m-ink, var(--ink))">{% if ui_lang == 'en' %}No events yet{% else %}এখনো কিছু ঘটেনি{% endif %}</h4>
+        <p style="margin:0">{% if ui_lang == 'en' %}Baki added, reminders sent and budget crossings will show up here.{% else %}বাকি দেওয়া, রিমাইন্ডার পাঠানো আর বাজেটের ঘটনা এখানে আসবে।{% endif %}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('notifMarkAllPage');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    var m = document.cookie.match(/(^| )csrftoken=([^;]+)/);
+    var token = m ? decodeURIComponent(m[2]) : '';
+    fetch('/notifications/read-all/', {method:'POST', credentials:'same-origin',
+      headers:{'X-CSRFToken':token,'X-Requested-With':'XMLHttpRequest'}})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d && d.ok){
+          document.querySelectorAll('.notif-item.unread').forEach(function(n){
+            n.classList.remove('unread');
+            var dot = n.querySelector('.notif-unread-dot');
+            if(dot) dot.remove();
+          });
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> {% if ui_lang == "en" %}All marked{% else %}সব পড়েছি{% endif %}';
+          btn.disabled = true;
+          var kpis = document.querySelectorAll('.ln-kpi .v');
+          if(kpis.length) kpis[0].textContent = '0';
+        }
+      });
+  });
+
+  var clearBtn = document.getElementById('notifClearPage');
+  if(clearBtn){
+    clearBtn.addEventListener('click', function(){
+      var m = document.cookie.match(/(^| )csrftoken=([^;]+)/);
+      var token = m ? decodeURIComponent(m[2]) : '';
+      var msg = (document.documentElement.lang === 'en')
+        ? 'Delete ALL notifications? This cannot be undone.'
+        : 'সব নোটিফিকেশন মুছে ফেলবেন? ফিরিয়ে আনা যাবে না।';
+      if(!window.confirm(msg)) return;
+      clearBtn.disabled = true;
+      // Android-style: fly the timeline events away one by one
+      var items = document.querySelectorAll('a.notif-item');
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var pending = fetch('/notifications/clear/', {method:'POST', credentials:'same-origin',
+        headers:{'X-CSRFToken':token,'X-Requested-With':'XMLHttpRequest'}});
+      if(reduced || !items.length){
+        pending.then(function(){ window.location.reload(); },
+                     function(){ clearBtn.disabled = false; });
+        return;
+      }
+      items.forEach(function(item, i){
+        item.style.setProperty('--clear-i', i);
+        item.style.maxHeight = item.offsetHeight + 'px';
+        item.offsetHeight; /* reflow */
+        item.classList.add('notif-clearing');
+        item.classList.add('notif-collapse');
+      });
+      setTimeout(function(){ window.location.reload(); }, items.length * 55 + 620);
+    });
+  }
+})();
+</script>
+{% endblock %}

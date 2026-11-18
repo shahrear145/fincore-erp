@@ -1,0 +1,273 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Expenses (খরচ){% else %}খরচ / ক্রয়{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-cart-shopping" style="color:var(--warn)"></i> {% if ui_lang == 'en' %}Expenses (খরচ){% else %}খরচ / ক্রয়{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Only what you buy and every other expense — nothing else. Write what was bought, the date and the amount. This book never mixes with নগদ (cash in) or বাকি (dues).{% else %}শুধু যা কিনেছেন আর অন্যান্য খরচ — এর বেশি কিছু নয়। কী কিনলেন, তারিখ আর টাকা লিখুন। এই হিসাব কখনো নগদ বা বাকির সাথে মিশবে না।{% endif %}</p>
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span><span class="chip info"><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Separate ledger{% else %}আলাদা হিসাব{% endif %}</span></div>{% endif %}
+</div>
+
+<div class="split">
+  <div class="exp-card">
+    <div class="exp-head">
+      <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-receipt"></i> <h3>{% if ui_lang == 'en' %}Expense history{% else %}খরচের হিস্ট্রি{% endif %}</h3></div>
+      <span class="badge b-muted">{% if ui_lang == 'en' %}Latest{% else %}সাম্প্রতিক{% endif %} {{ expense_count }}</span>
+    </div>
+    <div class="exp-body">
+      <form method="get" class="exp-filter">
+        <div class="f-field">
+          <label for="exp-from">{% if ui_lang == 'en' %}From date{% else %}কোন তারিখ থেকে{% endif %}</label>
+          <input id="exp-from" type="date" name="from" value="{{ date_from }}">
+        </div>
+        <div class="f-field">
+          <label for="exp-to">{% if ui_lang == 'en' %}To date{% else %}কোন তারিখ পর্যন্ত{% endif %}</label>
+          <input id="exp-to" type="date" name="to" value="{{ date_to }}">
+        </div>
+        <div class="f-field">
+          <label for="exp-category">{% if ui_lang == 'en' %}Category{% else %}ক্যাটাগরি{% endif %}</label>
+          <select id="exp-category" name="category">
+            <option value="">{% if ui_lang == 'en' %}All{% else %}সব{% endif %}</option>
+            {% for code, label in expense_kinds %}
+            <option value="{{ code }}" {% if code == category %}selected{% endif %}>
+              {% if ui_lang == 'en' %}{{ label }}{% else %}{{ label }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn sm primary" style="height:40px"><i class="fa-solid fa-magnifying-glass"></i> {% if ui_lang == 'en' %}Filter{% else %}খুঁজুন{% endif %}</button>
+        <div class="f-chips">
+          <a class="exp-chip {% if not filter_active %}on{% endif %}" href="{% url 'web:expenses' %}">{% if ui_lang == 'en' %}All{% else %}সব{% endif %}</a>
+          <a class="exp-chip" href="?from={{ today }}&to={{ today }}">{% if ui_lang == 'en' %}Today{% else %}আজ{% endif %}</a>
+          <a class="exp-chip" href="?from={{ default_month_start }}&to={{ today }}">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</a>
+        </div>
+      </form>
+
+      {% if filter_active %}
+      <div class="exp-filter-note">
+        <i class="fa-solid fa-filter" style="color:var(--brand)"></i>
+        {% if ui_lang == 'en' %}<span>Showing <b>{{ expense_count }}</b> entries between <b>{{ date_from|default:"…" }}</b> and <b>{{ date_to|default:"…" }}</b> — total <b>{{ expense_total|money }}</b></span>{% else %}<span><b>{{ date_from|default:"…" }}</b> থেকে <b>{{ date_to|default:"…" }}</b> পর্যন্ত <b>{{ expense_count }}</b>টি এন্ট্রি দেখানো হচ্ছে — মোট <b>{{ expense_total|money }}</b></span>{% endif %}
+        <a class="exp-chip" href="{% url 'web:expenses' %}">{% if ui_lang == 'en' %}Clear{% else %}ফিল্টার মুছুন{% endif %}</a>
+      </div>
+      {% endif %}
+
+      {% if rows %}
+      <div class="table-wrap">
+        <table class="exp-table">
+          <thead><tr><th style="width:16%">{% t "Date" %}</th><th style="width:30%">{% if ui_lang == 'en' %}What was bought{% else %}কী কিনলেন{% endif %}</th><th class="hide-sm" style="width:32%">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</th><th class="num" style="width:18%">{% t "Amount" %}</th><th style="width:10%"></th></tr></thead>
+          <tbody>
+            {% for r in rows %}
+            <tr>
+              <td class="mono muted" style="white-space:nowrap">{{ r.transaction_date }}</td>
+              <td><strong style="font-size:14.5px;font-weight:800">{{ r.description|default:"—" }}</strong></td>
+              <td class="muted hide-sm exp-note">{{ r.notes|default:"—" }}</td>
+              <td class="num exp-amount" style="color:var(--text-warn)">{{ r.amount|money }}</td>
+              <td style="white-space:nowrap">
+                {% if can_manage %}
+                <button type="button" class="btn sm" onclick="openExpense('{{ r.id }}','{{ r.amount }}','{{ r.transaction_date }}','{{ r.description|default:''|escapejs }}','{{ r.notes|default:''|escapejs }}','{{ r.expense_kind|default:'GOODS' }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
+                <form method="post" style="display:inline" onsubmit="return confirm('{% if ui_lang == 'en' %}Reverse this expense entry?{% else %}এই খরচের এন্ট্রিটি বাতিল করবেন?{% endif %}')">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete_expense">
+                  <input type="hidden" name="tx_id" value="{{ r.id }}">
+                  <input type="hidden" name="reason" value="Deleted from expense history">
+                  <button type="submit" class="btn sm" style="background:var(--fill-danger);color:var(--text-danger);border-color:rgba(254,202,202,.65)"><i class="fa-solid fa-trash"></i></button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="exp-empty">
+        <div class="ei"><i class="fa-solid fa-cart-shopping"></i></div>
+        <h4>{% if ui_lang == 'en' %}No expenses yet{% else %}এখনো কোনো খরচ নেই{% endif %}</h4>
+        <p>{% if ui_lang == 'en' %}Add what you bought using the form on the right.{% else %}ডান পাশের ফর্ম দিয়ে যা কিনলেন তা যোগ করুন।{% endif %}</p>
+      </div>
+      {% endif %}
+
+      <div class="exp-totals">
+        {% if filter_active %}
+        <div class="stat-pill exp-sep"><span class="label">{% if ui_lang == 'en' %}All expenses{% else %}সব খরচ{% endif %}</span><span class="value">{{ expense_all_total|money }}</span></div>
+        {% endif %}
+        <div class="stat-pill exp-sep danger"><span class="label">{% if ui_lang == 'en' %}{% if filter_active %}Filtered total{% else %}Total expenses{% endif %}{% else %}{% if filter_active %}ফিল্টার মোট{% else %}মোট খরচ{% endif %}{% endif %}</span><span class="value">{{ expense_total|money }}</span></div>
+        <div class="stat-pill exp-sep warn"><span class="label">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</span><span class="value">{{ expense_month_total|money }}</span></div>
+      </div>
+
+      {% if pie_data %}
+      <div class="card" style="margin-top:24px;">
+        <div class="exp-head" style="padding:12px 20px;">
+          <h3 style="margin:0;"><i class="fa-solid fa-chart-pie"></i> {% if ui_lang == 'en' %}Expense by category{% else %}ক্যাটাগরি অনুযায়ী খরচ{% endif %}</h3>
+        </div>
+        <div style="padding:12px 20px;">
+          <canvas id="expensePie" width="400" height="200"></canvas>
+          <script>
+          var ctx = document.getElementById('expensePie').getContext('2d');
+          var pieData = {{ pie_for_js }};
+          var labels = pieData.map(function(d) { return d.label; });
+          var amounts = pieData.map(function(d) { return parseFloat(d.amount); });
+          var pcts = pieData.map(function(d) { return d.pct; });
+          var total = parseFloat({{ pie_total_str }});
+          var pieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: labels,
+              datasets: [{
+                data: amounts,
+                backgroundColor: ['#0f766e', '#14b8a6', '#312e81', '#6366f1', '#f0c04a', '#be185d', '#94a0b8']
+              }]
+            },
+            options: {
+              plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { enabled: true }
+              }
+            }
+          });
+          // highlight slice over 20%
+          pieChart.options.plugins.legend.labels.generateLabels = function(chart) {
+            var data = chart.data;
+            return data.labels.map(function(label, i) {
+              var meta = chart.getDatasetMeta(0).data[i];
+              return label + ': ৳' + amounts[i] + ' (' + Math.round(pcts[i]) + '%)';
+            });
+          };
+          </script>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if over_budget %}
+      <div class="card" style="margin-top:12px;border-left:4px solid var(--danger);background:var(--note-teal-bg);">
+        <div style="padding:12px 20px;">
+          <div style="font-weight:800;margin-bottom:4px;color:var(--danger);">{% if ui_lang == 'en' %}Over budget!{% else %}বাজেট ছাড়েছে!{% endif %}</div>
+          <div style="color:var(--muted);font-size:14px;">
+            {% for b in over_budget %}
+              - {{ b.get_category_display }}: {{ b.limit_amount|money }} limits, {{ b.spent|money }} spent, {{ b.remaining|money }} remaining
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div class="exp-card">
+      <div class="exp-head">
+        <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-plus"></i> <h3>{% if ui_lang == 'en' %}Add expense{% else %}খরচ যোগ করুন{% endif %}</h3></div>
+      </div>
+      <div class="exp-body">
+        <form method="post" class="form-grid">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_expense">
+          <div class="field full">
+            <label for="e-name">{% if ui_lang == 'en' %}What was bought{% else %}কী কিনলেন{% endif %} <span style="color:var(--danger)">*</span></label>
+            <input id="e-name" name="name" required placeholder="{% if ui_lang == 'en' %}e.g., Rice, Medicine, Rent{% else %}যেমন: চাল, ওষুধ, ভাড়া{% endif %}">
+          </div>
+          <div class="field">
+            <label for="e-amount">{% if ui_lang == 'en' %}Amount ৳{% else %}টাকার পরিমাণ (৳){% endif %} <span style="color:var(--danger)">*</span></label>
+            <input id="e-amount" name="amount" type="number" step="0.01" min="0.01" required placeholder="0.00" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label for="e-date">{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</label>
+            <input id="e-date" name="transaction_date" type="date" value="{{ today }}" required>
+          </div>
+          <div class="field">
+            <label for="e-kind">{% if ui_lang == 'en' %}What kind of cost{% else %}খরচের ধরন{% endif %}</label>
+            <select id="e-kind" name="expense_kind">
+              <option value="GOODS">{% if ui_lang == 'en' %}Goods to sell (meat, stock){% else %}বিক্রির মাল (মাংস, মজুদ){% endif %}</option>
+              <option value="RAW_MATERIAL">{% if ui_lang == 'en' %}Raw material{% else %}কাঁচামাল{% endif %}</option>
+              <option value="SALARY">{% if ui_lang == 'en' %}Salary / bonus{% else %}বেতন / বোনাস{% endif %}</option>
+              <option value="RENT">{% if ui_lang == 'en' %}Rent{% else %}ভাড়া{% endif %}</option>
+              <option value="TRANSPORT">{% if ui_lang == 'en' %}Transport{% else %}পরিবহন{% endif %}</option>
+              <option value="UTILITIES">{% if ui_lang == 'en' %}Utilities{% else %}বিজলি/গ্যাস/ইন্টারনেট{% endif %}</option>
+              <option value="OPERATING">{% if ui_lang == 'en' %}Running cost (rent, transport){% else %}দোকান খরচ (ভাড়া, যাতায়াত){% endif %}</option>
+              <option value="OTHER">{% if ui_lang == 'en' %}Other{% else %}অন্যান্য{% endif %}</option>
+            </select>
+            <div class="mini-hint muted" style="font-size:11.5px;margin-top:6px">{% if ui_lang == 'en' %}Unsold goods are not a loss — that is why the two kinds are separate.{% else %}অবিক্রীত মাল ক্ষতি না — তাই দুই ধরন আলাদা।{% endif %}</div>
+          </div>
+          <div class="field full">
+            <label for="e-desc">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</label>
+            <input id="e-desc" name="description" placeholder="{% if ui_lang == 'en' %}Optional note{% else %}ঐচ্ছিক বিবরণ{% endif %}">
+          </div>
+          <div class="field full">
+            <button class="btn primary" type="submit"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save expense{% else %}খরচ সংরক্ষণ করুন{% endif %}</button>
+            <div class="mini-hint muted" style="font-size:12px;margin-top:8px">{% if ui_lang == 'en' %}Only “what, when, how much” — no stock, no supplier ledger, no invoice workflow.{% else %}শুধু “কী, কখন, কত” — কোনো মজুদ, সরবরাহকারী খাতা বা ইনভয়েস ওয়ার্কফ্লো নেই।{% endif %}</div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--note-amber-bg);border-color:var(--note-amber-border)">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div class="icon i-amber" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto"><i class="fa-solid fa-circle-info"></i></div>
+        <div>
+          <div style="font-weight:800;margin-bottom:2px">{% if ui_lang == 'en' %}Three separate books{% else %}তিনটি আলাদা হিসাব{% endif %}</div>
+          <div class="muted" style="font-size:13px;line-height:1.6">
+            {% if ui_lang == 'en' %}
+            <strong>নগদ</strong> = money received in cash ·
+            <strong>পার্টনার ও বাকি</strong> = customer dues ·
+            <strong>খরচ</strong> = what you spent. They never mix.
+            {% else %}
+            <strong>নগদ</strong> = যে টাকা নগদে পেয়েছেন ·
+            <strong>পার্টনার ও বাকি</strong> = গ্রাহকের ধার ·
+            <strong>খরচ</strong> = যা খরচ করেছেন। তিনটি কখনো মিশবে না।
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if can_manage %}
+<div id="expense-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,13,28,.5);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(460px,100%);max-height:90vh;overflow:auto;background:var(--panel-solid);border:1px solid var(--panel-solid-border);border-radius:22px;box-shadow:var(--shadow-lg);padding:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+      <div style="font-weight:800;font-size:17px"><i class="fa-solid fa-pen" style="color:var(--warn)"></i> {% if ui_lang == 'en' %}Edit Expense{% else %}খরচ এডিট{% endif %}</div>
+      <button type="button" class="btn sm ghost" onclick="closeExpense()">{% if ui_lang == 'en' %}Close{% else %}বন্ধ{% endif %}</button>
+    </div>
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_expense">
+      <input type="hidden" name="tx_id" id="ex-tx-id" value="">
+      <div class="field full"><label for="ex-name">{% if ui_lang == 'en' %}What was bought{% else %}কী কিনলেন{% endif %}</label><input id="ex-name" name="name" required></div>
+      <div class="field"><label for="ex-amount">{% if ui_lang == 'en' %}Amount ৳{% else %}টাকা (৳){% endif %}</label><input id="ex-amount" name="amount" type="number" step="0.01" min="0.01" required inputmode="decimal"></div>
+      <div class="field"><label for="ex-date">{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</label><input id="ex-date" name="transaction_date" type="date" required></div>
+      <div class="field"><label for="ex-kind">{% if ui_lang == 'en' %}What kind of cost{% else %}খরচের ধরন{% endif %}</label><select id="ex-kind" name="expense_kind"><option value="GOODS">{% if ui_lang == 'en' %}Goods to sell{% else %}বিক্রির মাল{% endif %}</option><option value="OPERATING">{% if ui_lang == 'en' %}Running cost{% else %}দোকান খরচ{% endif %}</option></select></div>
+      <div class="field full"><label for="ex-note">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</label><input id="ex-note" name="description"></div>
+      <div class="field full"><label for="ex-reason">{% if ui_lang == 'en' %}Reason{% else %}কারণ{% endif %}</label><input id="ex-reason" name="reason" placeholder="{% if ui_lang == 'en' %}e.g. wrong amount{% else %}যেমন: ভুল টাকা{% endif %}"></div>
+      <div class="field full" style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn ghost" onclick="closeExpense()">{% if ui_lang == 'en' %}Cancel{% else %}বাতিল{% endif %}</button>
+        <button type="submit" class="btn primary"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Update{% else %}আপডেট করুন{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  function openExpense(id, amount, date, name, note, kind){
+    var m=document.getElementById('expense-modal'); if(!m) return;
+    document.getElementById('ex-tx-id').value=id||'';
+    document.getElementById('ex-amount').value=amount||'';
+    document.getElementById('ex-date').value=date||'';
+    document.getElementById('ex-name').value=name||'';
+    document.getElementById('ex-note').value=note||'';
+    var k=document.getElementById('ex-kind'); if(k) k.value=kind||'GOODS';
+    m.style.display='flex';
+    var a=document.getElementById('ex-amount'); if(a){ a.focus(); a.select(); }
+  }
+  function closeExpense(){ var m=document.getElementById('expense-modal'); if(m) m.style.display='none'; }
+  if (document.getElementById('expense-modal')) {
+    document.getElementById('expense-modal').addEventListener('click', function(e){ if(e.target===this) closeExpense(); });
+  }
+</script>
+{% endblock %}

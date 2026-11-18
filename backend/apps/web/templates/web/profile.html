@@ -1,0 +1,240 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}My profile{% else %}আমার প্রোফাইল{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .pf-hero{position:relative;overflow:hidden;border-radius:22px;color:#fff;margin-bottom:18px;
+    background:linear-gradient(135deg,#1c1205 0%,#2f2410 46%,#0b4a4a 100%);
+    box-shadow:0 18px 44px rgba(8,17,32,.22)}
+  .pf-hero::after{content:"";position:absolute;right:-70px;top:-90px;width:250px;height:250px;border-radius:50%;
+    background:radial-gradient(circle,rgba(250,204,21,.26),transparent 66%)}
+  .pf-hero::before{content:"";position:absolute;left:-40px;bottom:-120px;width:230px;height:230px;border-radius:50%;
+    background:radial-gradient(circle,rgba(56,189,248,.16),transparent 68%)}
+  .pf-hero-in{position:relative;z-index:2;display:flex;align-items:center;gap:20px;padding:22px 24px;flex-wrap:wrap}
+  .pf-avatar{position:relative;width:96px;height:96px;flex:0 0 auto}
+  .pf-avatar .ring{position:absolute;inset:-4px;border-radius:50%;
+    background:linear-gradient(135deg,#fde68a,#d99a1f 55%,#c9961b);
+    box-shadow:0 10px 26px rgba(201,150,27,.4)}
+  .pf-avatar .ph{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:grid;place-items:center;
+    background:#0d1a33;color:#d99a1f;font-size:34px;font-weight:800;
+    box-shadow:0 0 0 3px rgba(255,255,255,.9) inset}
+  .pf-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .pf-camera{position:absolute;right:-4px;bottom:-2px;width:34px;height:34px;border-radius:50%;border:0;cursor:pointer;
+    display:grid;place-items:center;background:linear-gradient(135deg,#fde68a,#d99a1f);color:#4a3408;font-size:13px;
+    box-shadow:0 4px 14px rgba(8,17,32,.35);transition:transform .14s var(--ease)}
+  .pf-camera:hover{transform:scale(1.08)}
+  .pf-name{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,#f4ecdd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .pf-user{color:#d8bd8a;font-size:12.5px;font-weight:700;margin-top:3px}
+  .pf-mail{color:#f4ecdd;font-size:13.5px;font-weight:600;margin-top:6px;display:inline-flex;align-items:center;gap:8px}
+  .pf-badge{display:inline-flex;align-items:center;gap:5px;padding:3.5px 10px;border-radius:999px;font-size:10.5px;
+    font-weight:800;letter-spacing:.02em}
+  .pf-badge.ok{background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(134,239,172,.35)}
+  .pf-badge.soft{background:rgba(255,255,255,.1);color:#e2d5b8;border:1px solid rgba(255,255,255,.16)}
+  .pf-hero-side{margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .pf-hero-chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;
+    padding:8px 14px;text-align:right}
+  .pf-hero-chip .k{color:#a38c64;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;font-weight:800}
+  .pf-hero-chip .v{color:#f4ecdd;font-weight:800;font-size:12.5px;margin-top:2px}
+  .pf-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+  @media(max-width:980px){.pf-grid{grid-template-columns:1fr}}
+  .pf-card{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(248,250,252,.8));border:1px solid rgba(255,255,255,.85);
+    border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+  .pf-card-head{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.6)}
+  .pf-card-head i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:14px;
+    background:linear-gradient(135deg,#fff8e1,#fde68a);color:#92580b;border:1px solid rgba(201,150,27,.3)}
+  .pf-card-head h3{margin:0;font-size:14.5px;font-weight:800;color:var(--ink-2)}
+  .pf-card-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px}
+  .pf-hint{color:var(--muted);font-size:12px;line-height:1.5;margin:0}
+  .pf-row{display:flex;gap:10px;flex-wrap:wrap}
+  .pf-mini{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;
+    background:rgba(255,255,255,.7);border:1px solid var(--line)}
+  .pf-mini .dn{font-weight:800;font-size:13.5px;color:var(--ink)}
+  .pf-mini .dm{color:var(--muted);font-size:11.5px;margin-top:2px}
+  .pf-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  .pf-table th{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800;
+    text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .pf-table td{padding:9px 10px;border-bottom:1px solid #eef2f7;vertical-align:middle}
+  .pf-table tr:last-child td{border-bottom:0}
+  .pf-pill{display:inline-flex;align-items:center;gap:5px;padding:2.5px 9px;border-radius:999px;font-size:10.5px;font-weight:800}
+  .pf-pill.ok{background:#dcfce7;color:#15803d}
+  .pf-pill.bad{background:#fee2e2;color:#b91c1c}
+  .pf-ver{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:11px;
+    background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:12.5px;font-weight:700}
+  .pf-pending{border:1.5px dashed #d99a1f;border-radius:14px;padding:12px 14px;background:linear-gradient(180deg,#fffdf5,#fff)}
+</style>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2>{% if ui_lang == 'en' %}My profile{% else %}আমার প্রোফাইল{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Your personal information, picture, email, password and sign-in security — all in one place.{% else %}আপনার ব্যক্তিগত তথ্য, ছবি, ইমেইল, পাসওয়ার্ড ও লগইন নিরাপত্তা — সব এক জায়গায়।{% endif %}</p>
+  </div>
+</div>
+
+<div class="pf-hero">
+  <div class="pf-hero-in">
+    <div class="pf-avatar">
+      <span class="ring"></span>
+      <span class="ph">
+        {% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="">{% else %}<i class="fa-solid fa-user"></i>{% endif %}
+      </span>
+      <form method="post" enctype="multipart/form-data" action="{% url 'web:profile' %}">
+        {% csrf_token %}<input type="hidden" name="action" value="upload_avatar">
+        <label class="pf-camera" title="{% if ui_lang == 'en' %}Change picture{% else %}ছবি বদলান{% endif %}">
+          <i class="fa-solid fa-camera"></i>
+          <input type="file" name="avatar" accept=".jpg,.jpeg,.png,.webp,image/*" hidden
+                 onchange="this.form.submit()">
+        </label>
+      </form>
+    </div>
+    <div>
+      <h1 class="pf-name">{{ full_name }}</h1>
+      <div class="pf-user">@{{ request.user.username }} · {% if ui_lang == 'en' %}member since{% else %}সদস্য হয়েছেন{% endif %} {{ request.user.date_joined|date:"M Y" }}</div>
+      <div class="pf-mail"><i class="fa-regular fa-envelope"></i> {{ request.user.email }}
+        <span class="pf-badge ok"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Verified{% else %}যাচাইকৃত{% endif %}</span>
+      </div>
+      <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
+        <span class="pf-badge soft"><i class="fa-solid fa-phone" style="font-size:9px"></i> {{ request.user.phone|default:"—" }}</span>
+        {% if has_pin %}<span class="pf-badge soft"><i class="fa-solid fa-key" style="font-size:9px"></i> PIN {% if ui_lang == 'en' %}set{% else %}সেট করা{% endif %}</span>{% endif %}
+        {% if request.user.avatar %}<a class="pf-badge soft" href="#" data-no-transition onclick="event.preventDefault();document.getElementById('pf-rm-avatar').submit();return false;"><i class="fa-solid fa-trash-can" style="font-size:9px"></i> {% if ui_lang == 'en' %}Remove picture{% else %}ছবি সরান{% endif %}</a>{% endif %}
+      </div>
+    </div>
+    <div class="pf-hero-side">
+      <div class="pf-hero-chip"><div class="k">{% if ui_lang == 'en' %}Last sign-in{% else %}শেষ লগইন{% endif %}</div><div class="v">{{ request.user.last_login|date:"d M Y, H:i" }}</div></div>
+      <div class="pf-hero-chip"><div class="k">{% if ui_lang == 'en' %}Active devices{% else %}সক্রিয় ডিভাইস{% endif %}</div><div class="v">{{ devices|length }}</div></div>
+    </div>
+  </div>
+</div>
+
+{% if request.user.avatar %}
+<form id="pf-rm-avatar" method="post" action="{% url 'web:profile' %}" hidden>{% csrf_token %}<input type="hidden" name="action" value="remove_avatar"></form>
+{% endif %}
+
+<div class="pf-grid">
+
+  <div class="pf-card">
+    <div class="pf-card-head"><i class="fa-regular fa-id-badge"></i><h3>{% if ui_lang == 'en' %}Personal information{% else %}ব্যক্তিগত তথ্য{% endif %}</h3></div>
+    <div class="pf-card-body">
+      <form method="post" action="{% url 'web:profile' %}" style="display:flex;flex-direction:column;gap:12px">
+        {% csrf_token %}<input type="hidden" name="action" value="update_info">
+        <div class="field"><label>{% if ui_lang == 'en' %}Full name{% else %}পুরো নাম{% endif %}</label>
+          <input name="full_name" maxlength="150" value="{{ full_name }}" placeholder="{% if ui_lang == 'en' %}e.g. Karim Uddin{% else %}যেমন করিম উদ্দিন{% endif %}"></div>
+        <div class="field"><label>{% if ui_lang == 'en' %}Phone{% else %}ফোন নম্বর{% endif %}</label>
+          <input name="phone" maxlength="32" value="{{ request.user.phone }}" placeholder="01XXXXXXXXX"></div>
+        <button class="btn primary sm" type="submit" style="align-self:flex-start"><i class="fa-solid fa-floppy-disk"></i> {% if ui_lang == 'en' %}Save information{% else %}তথ্য সংরক্ষণ{% endif %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pf-card" id="email">
+    <div class="pf-card-head"><i class="fa-regular fa-envelope"></i><h3>{% if ui_lang == 'en' %}Email address{% else %}ইমেইল ঠিকানা{% endif %}</h3></div>
+    <div class="pf-card-body">
+      <div class="pf-ver"><i class="fa-solid fa-circle-check"></i> {{ request.user.email }} — {% if ui_lang == 'en' %}verified &amp; active{% else %}যাচাইকৃত ও সক্রিয়{% endif %}</div>
+      {% if pending_email %}
+      <div class="pf-pending">
+        <div style="font-weight:800;font-size:13px;color:#92580b"><i class="fa-solid fa-hourglass-half"></i> {% if ui_lang == 'en' %}Confirm the new email{% else %}নতুন ইমেইল নিশ্চিত করুন{% endif %} — {{ pending_email }}</div>
+        <form method="post" action="{% url 'web:profile' %}" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:flex-end">
+          {% csrf_token %}<input type="hidden" name="action" value="email_verify">
+          <div class="field" style="flex:1;min-width:150px;margin:0"><label>{% if ui_lang == 'en' %}6-digit code{% else %}৬-সংখ্যার কোড{% endif %}</label>
+            <input name="code" inputmode="numeric" maxlength="6" required placeholder="••••••" style="letter-spacing:.3em;text-align:center;font-weight:800"></div>
+          <button class="btn primary sm" type="submit"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Confirm{% else %}নিশ্চিত{% endif %}</button>
+        </form>
+        <div class="pf-row" style="margin-top:8px">
+          <form method="post" action="{% url 'web:profile' %}">{% csrf_token %}<input type="hidden" name="action" value="email_resend"><button class="btn ghost sm" type="submit"><i class="fa-solid fa-rotate"></i> {% if ui_lang == 'en' %}Resend code{% else %}কোড আবার পাঠান{% endif %}</button></form>
+          <form method="post" action="{% url 'web:profile' %}">{% csrf_token %}<input type="hidden" name="action" value="email_cancel"><button class="btn ghost sm" type="submit"><i class="fa-solid fa-xmark"></i> {% if ui_lang == 'en' %}Cancel change{% else %}পরিবর্তন বাতিল{% endif %}</button></form>
+        </div>
+      </div>
+      {% else %}
+      <form method="post" action="{% url 'web:profile' %}" style="display:flex;flex-direction:column;gap:12px">
+        {% csrf_token %}<input type="hidden" name="action" value="email_request">
+        <div class="field"><label>{% if ui_lang == 'en' %}Current password{% else %}বর্তমান পাসওয়ার্ড{% endif %}</label>
+          <input type="password" name="current_password" autocomplete="current-password" required placeholder="••••••••"></div>
+        <div class="field"><label>{% if ui_lang == 'en' %}New email{% else %}নতুন ইমেইল{% endif %}</label>
+          <input type="email" name="new_email" required placeholder="name@example.com"></div>
+        <p class="pf-hint"><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}A 6-digit code will be emailed to the new address — it becomes active only after you enter it.{% else %}নতুন ইমেইলে ৬-সংখ্যার কোড যাবে — কোড দিলেই ইমেইল বদলে যাবে।{% endif %}</p>
+        <button class="btn primary sm" type="submit" style="align-self:flex-start"><i class="fa-solid fa-paper-plane"></i> {% if ui_lang == 'en' %}Send confirmation code{% else %}কোড পাঠান{% endif %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="pf-card" id="security">
+    <div class="pf-card-head"><i class="fa-solid fa-shield-halved"></i><h3>{% if ui_lang == 'en' %}Change password{% else %}পাসওয়ার্ড বদলান{% endif %}</h3></div>
+    <div class="pf-card-body">
+      <form method="post" action="{% url 'web:profile' %}" style="display:flex;flex-direction:column;gap:12px">
+        {% csrf_token %}<input type="hidden" name="action" value="change_password">
+        <div class="field"><label>{% if ui_lang == 'en' %}Current password{% else %}বর্তমান পাসওয়ার্ড{% endif %}</label>
+          <input type="password" name="current_password" autocomplete="current-password" required placeholder="••••••••"></div>
+        <div class="field"><label>{% if ui_lang == 'en' %}New password{% else %}নতুন পাসওয়ার্ড{% endif %}</label>
+          <input type="password" name="new_password1" autocomplete="new-password" minlength="8" required placeholder="••••••••"></div>
+        <div class="field"><label>{% if ui_lang == 'en' %}Confirm new password{% else %}নতুন পাসওয়ার্ড আবার দিন{% endif %}</label>
+          <input type="password" name="new_password2" autocomplete="new-password" minlength="8" required placeholder="••••••••"></div>
+        <p class="pf-hint"><i class="fa-solid fa-lock"></i> {% if ui_lang == 'en' %}After the change every other device and API session is signed out automatically.{% else %}পাসওয়ার্ড বদলালে অন্য সব ডিভাইস ও API সেশন অটো লগআউট হয়ে যাবে।{% endif %}</p>
+        <button class="btn primary sm" type="submit" style="align-self:flex-start"><i class="fa-solid fa-key"></i> {% if ui_lang == 'en' %}Update password{% else %}পাসওয়ার্ড আপডেট{% endif %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pf-card" id="pin">
+    <div class="pf-card-head"><i class="fa-solid fa-key"></i><h3>{% if ui_lang == 'en' %}Quick PIN{% else %}কুইক PIN{% endif %}</h3></div>
+    <div class="pf-card-body">
+      <form method="post" action="{% url 'web:profile' %}" style="display:flex;flex-direction:column;gap:12px">
+        {% csrf_token %}<input type="hidden" name="action" value="pin_set">
+        <div class="field"><label>{% if ui_lang == 'en' %}PIN (4-6 digits){% else %}PIN (৪-৬ সংখ্যা){% endif %}</label>
+          <input name="pin1" inputmode="numeric" pattern="[0-9]*" maxlength="6" required placeholder="••••"></div>
+        <div class="field"><label>{% if ui_lang == 'en' %}Repeat PIN{% else %}PIN আবার দিন{% endif %}</label>
+          <input name="pin2" inputmode="numeric" pattern="[0-9]*" maxlength="6" required placeholder="••••"></div>
+        <p class="pf-hint"><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}Used for quick unlocking on the mobile app. Never shown to anyone — stored hashed.{% else %}মোবাইল অ্যাপে দ্রুত আনলকের জন্য। কারও সাথে শেয়ার হয় না — এনক্রিপ্টেড (হ্যাশ) থাকে।{% endif %}</p>
+        <button class="btn primary sm" type="submit" style="align-self:flex-start"><i class="fa-solid fa-floppy-disk"></i> {% if ui_lang == 'en' %}Save PIN{% else %}PIN সংরক্ষণ{% endif %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pf-card" id="devices">
+    <div class="pf-card-head"><i class="fa-solid fa-mobile-screen-button"></i><h3>{% if ui_lang == 'en' %}Signed-in devices{% else %}লগইন থাকা ডিভাইস{% endif %}</h3></div>
+    <div class="pf-card-body">
+      {% for d in devices %}
+      <div class="pf-mini">
+        <div>
+          <div class="dn"><i class="fa-solid {% if d.platform == 'android' %}fa-mobile-screen{% elif d.platform == 'web' %}fa-desktop{% else %}fa-laptop{% endif %}" style="color:#d99a1f"></i> {{ d.device_name|default:"Device"|truncatechars:28 }}</div>
+          <div class="dm">{{ d.platform|default:"—" }} · {{ d.ip_address|default:"—" }} · {% if ui_lang == 'en' %}last seen{% else %}শেষ দেখা{% endif %} {{ d.last_seen_at|date:"d M, H:i" }}</div>
+        </div>
+        <form method="post" action="{% url 'web:profile' %}">{% csrf_token %}
+          <input type="hidden" name="action" value="device_logout"><input type="hidden" name="session_id" value="{{ d.id }}">
+          <button class="btn ghost sm" type="submit" title="{% if ui_lang == 'en' %}Sign out this device{% else %}এই ডিভাইস থেকে লগআউট{% endif %}"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </form>
+      </div>
+      {% empty %}
+      <p class="pf-hint" style="text-align:center;padding:8px 0"><i class="fa-regular fa-circle-check" style="color:#15803d"></i> {% if ui_lang == 'en' %}No other devices are signed in.{% else %}অন্য কোনো ডিভাইসে লগইন নেই।{% endif %}</p>
+      {% endfor %}
+      {% if devices %}
+      <form method="post" action="{% url 'web:profile' %}">{% csrf_token %}<input type="hidden" name="action" value="device_logout_all">
+        <button class="btn ghost sm" type="submit" style="align-self:flex-start;color:#b91c1c"><i class="fa-solid fa-power-off"></i> {% if ui_lang == 'en' %}Sign out all devices{% else %}সব ডিভাইস থেকে লগআউট{% endif %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="pf-card" id="history">
+    <div class="pf-card-head"><i class="fa-solid fa-clock-rotate-left"></i><h3>{% if ui_lang == 'en' %}Recent sign-in activity{% else %}সাম্প্রতিক লগইন অ্যাক্টিভিটি{% endif %}</h3></div>
+    <div class="pf-card-body" style="padding-top:8px">
+      <table class="pf-table">
+        <thead><tr><th>{% if ui_lang == 'en' %}When{% else %}কখন{% endif %}</th><th>{% if ui_lang == 'en' %}Result{% else %}ফলাফল{% endif %}</th><th>IP</th></tr></thead>
+        <tbody>
+          {% for e in events %}
+          <tr>
+            <td>{{ e.created_at|date:"d M Y, H:i" }}</td>
+            <td>{% if e.result == 'success' %}<span class="pf-pill ok"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Success{% else %}সফল{% endif %}</span>{% else %}<span class="pf-pill bad"><i class="fa-solid fa-xmark"></i> {% if ui_lang == 'en' %}Failed{% else %}ব্যর্থ{% endif %}</span>{% endif %}</td>
+            <td class="muted">{{ e.ip_address|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="muted" style="text-align:center;padding:14px">{% if ui_lang == 'en' %}No activity yet.{% else %}এখনো কোনো অ্যাক্টিভিটি নেই।{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

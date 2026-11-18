@@ -1,0 +1,530 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if is_loan %}{% if ui_lang == 'en' %}Loan (ঋণ){% else %}ঋণ{% endif %}{% else %}{% if ui_lang == 'en' %}Investment (বিনিয়োগ){% else %}বিনিয়োগ{% endif %}{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .ln-card{background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(248,250,252,.74));border:1px solid rgba(255,255,255,.82);border-radius:24px;box-shadow:var(--shadow-lg),0 1px 0 rgba(255,255,255,.65) inset;overflow:hidden;position:relative}
+  .ln-card::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(135deg,rgba(139,92,246,.10),rgba(255,255,255,0) 55%);opacity:.85}
+  .ln-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px 12px;border-bottom:1px solid rgba(255,255,255,.55)}
+  .ln-head h3{margin:0;font-size:15px;font-weight:800;color:var(--ink-2)}
+  .ln-body{padding:16px 22px 22px}
+  .ln-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+  .ln-kpi{border-radius:16px;padding:13px 15px;border:1px solid rgba(255,255,255,.8);
+    background:linear-gradient(180deg,#ffffff,#f7fafd);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .ln-kpi .k{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;display:block}
+  .ln-kpi .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);display:block;margin-top:3px;letter-spacing:-.02em}
+  .ln-kpi.loan{border-left:4px solid var(--info)}
+  .ln-kpi.loan .v{color:var(--info-ink)}
+  .ln-kpi.invest{border-left:4px solid var(--violet)}
+  .ln-kpi.invest .v{color:#6d28d9}
+  .ln-kpi.out{border-left:4px solid var(--danger)}
+  .ln-kpi.out .v{color:var(--danger-ink)}
+  .ln-kpi.net{border-left:4px solid var(--brand);background:linear-gradient(135deg,#f0fdfa,#ffffff)}
+  .ln-kpi.net .v{color:var(--brand)}
+  .ln-kpi.net.neg{border-left-color:var(--danger)}
+  .ln-kpi.net.neg .v{color:var(--danger-ink)}
+  .ln-hero{border-radius:22px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    background:linear-gradient(135deg,#04101f,#0b2545 55%,#0b4a4a);color:#fff;border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+  .ln-hero::after{content:"";position:absolute;right:-60px;top:-80px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(45,212,191,.28),transparent 66%)}
+  .ln-hero .hl{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7ea3cd}
+  .ln-hero .hv{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin-top:2px}
+  .ln-hero .hs{font-size:12px;color:#a9c6e8;margin-top:2px}
+  .ln-hero .right{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:2}
+  .ln-hero .chipbox{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:8px 13px}
+  .ln-hero .chipbox .k{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7ea3cd}
+  .ln-hero .chipbox .v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:#e2edf9}
+  .ln-filter{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:0 0 14px;
+    padding:12px 14px;border:1px solid rgba(139,92,246,.22);border-radius:16px;
+    background:linear-gradient(180deg,rgba(245,243,255,.9),rgba(255,255,255,.8));box-shadow:0 6px 20px rgba(8,17,32,.04)}
+  .ln-filter .f-field{display:flex;flex-direction:column;gap:5px}
+  .ln-filter .f-field label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .ln-filter input[type="date"]{padding:9px 12px;border-radius:12px;border:1px solid rgba(148,163,184,.42);background:#fff;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink);width:auto;min-width:158px}
+  .ln-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;text-decoration:none;border:1px solid var(--line);background:rgba(255,255,255,.9);color:var(--muted);transition:all .16s var(--ease)}
+  .ln-chip:hover{border-color:rgba(139,92,246,.4);color:var(--violet);transform:translateY(-1px)}
+  .ln-chip.on{background:linear-gradient(135deg,#6d28d9,#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(124,58,237,.24)}
+  .ln-note{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;font-size:12.5px;color:var(--muted);font-weight:700}
+  .ln-party{border:1px solid rgba(255,255,255,.8);border-radius:16px;padding:12px 14px;background:linear-gradient(180deg,#fff,#f8fafc);box-shadow:var(--shadow-sm)}
+  .ln-party .nm{font-weight:800;font-size:14px;color:var(--ink)}
+  .ln-party .kd{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;display:inline-block}
+  .ln-party .kd.loan{background:var(--info-soft);color:var(--info-ink)}
+  .ln-party .kd.invest{background:#ede9fe;color:#6d28d9}
+  .ln-money.pos{color:var(--ok)} .ln-money.neg{color:var(--danger)}
+  .ln-table td{vertical-align:middle}
+  .ln-amount{font-weight:800;font-variant-numeric:tabular-nums}
+  .ln-install{border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:12px;background:linear-gradient(180deg,#fff,#f8fafc);box-shadow:var(--shadow-sm)}
+  .ln-install-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .ln-install-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+  .ln-sched{width:100%}
+  .ln-sched td{padding:6px 8px;font-size:13px}
+  .ln-paid{background:rgba(240,253,250,.55)}
+  .ln-overdue{background:rgba(254,242,242,.55)}
+  .ln-sched-form-title{margin:14px 0 8px;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .ln-schedule-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:13px 14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(245,243,255,.5),rgba(248,250,252,.6))}
+  .ln-schedule-form .field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .ln-schedule-form .field.full{grid-column:1/-1}
+  .ln-schedule-form .field label{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase}
+  .ln-schedule-form input,.ln-schedule-form select{padding:9px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.42);background:#fff;font:inherit;font-size:13px;font-weight:600;color:var(--ink)}
+  .ln-schedule-form input:focus,.ln-schedule-form select:focus{outline:none;border-color:var(--info);box-shadow:0 0 0 3px rgba(59,130,246,.22)}
+  @media(max-width:560px){.ln-sched th:nth-child(4),.ln-sched td:nth-child(4){display:none}.ln-schedule-form{grid-template-columns:repeat(2,1fr);padding:12px}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    {% if is_loan %}
+    <h2><i class="fa-solid fa-hand-holding-dollar" style="color:var(--info)"></i> {% if ui_lang == 'en' %}Loan (ঋণ){% else %}ঋণ{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}This book holds <strong>borrowed money only</strong>. Taking a loan is <strong>added</strong> to the main account; repaying it is <strong>subtracted</strong>. Investments live in their own separate book.{% else %}এই বইতে শুধু <strong>ধার করা টাকা</strong>। ঋণ নিলে মূল হিসাবে <strong>যোগ</strong> হয়, পরিশোধ করলে <strong>মাইনাস</strong> হয়। বিনিয়োগের টাকা সম্পূর্ণ আলাদা বইতে আছে।{% endif %}</p>
+    {% else %}
+    <h2><i class="fa-solid fa-handshake" style="color:var(--violet)"></i> {% if ui_lang == 'en' %}Investment (বিনিয়োগ){% else %}বিনিয়োগ{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}This book holds <strong>investor capital only</strong>. An investment is <strong>added</strong> to the main account; the investor withdrawing their capital is <strong>subtracted</strong>. Loans live in their own separate book.{% else %}এই বইতে শুধু <strong>বিনিয়োগকারীর মূল</strong>। বিনিয়োগ করলে মূল হিসাবে <strong>যোগ</strong> হয়, বিনিয়োগকারী টাকা ফেরত নিলে <strong>মাইনাস</strong> হয়। ঋণের টাকা সম্পূর্ণ আলাদা বইতে আছে।{% endif %}</p>
+    {% endif %}
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span><span class="chip info"><i class="fa-solid fa-scale-balanced"></i> {% if ui_lang == 'en' %}Main-account impact{% else %}মূল হিসাবে প্রভাব{% endif %}</span></div>{% endif %}
+</div>
+
+<div class="ln-hero">
+  <div style="position:relative;z-index:2">
+    <div class="hl">{% if ui_lang == 'en' %}Main account impact{% else %}মূল হিসাবে প্রভাব{% endif %}</div>
+    <div class="hv {% if summary.net_main_account >= 0 %}""{% else %}neg{% endif %}">{% if summary.net_main_account >= 0 %}+{% else %}{% endif %}{{ summary.net_main_account|money }}</div>
+    <div class="hs">{% if ui_lang == 'en' %}{{ summary.total_in|money }} came in · {{ summary.total_out|money }} went out{% else %}এসেছে {{ summary.total_in|money }} · বেরিয়ে গেছে {{ summary.total_out|money }}{% endif %}</div>
+  </div>
+  <div class="right">
+    <div class="chipbox"><div class="k">{% if is_loan %}{% if ui_lang == 'en' %}Still owed to lenders{% else %}ঋণদাতার কাছে বাকি{% endif %}{% else %}{% if ui_lang == 'en' %}Investor capital still in{% else %}বিনিয়োগকারীর মূল বাকি{% endif %}{% endif %}</div><div class="v">{{ summary.outstanding|money }}</div></div>
+    <div class="chipbox"><div class="k">{% if ui_lang == 'en' %}Other book{% else %}অন্য বই{% endif %}</div><div class="v"><a href="{% if is_loan %}{% url 'web:investments' %}{% else %}{% url 'web:loans' %}{% endif %}" style="color:#5eead4">{% if is_loan %}{% if ui_lang == 'en' %}Investment{% else %}বিনিয়োগ{% endif %}{% else %}{% if ui_lang == 'en' %}Loan{% else %}ঋণ{% endif %}{% endif %} &rarr;</a></div></div>
+  </div>
+</div>
+
+<div class="ln-kpis">
+  {% if is_loan %}
+  <div class="ln-kpi loan"><span class="k">{% if ui_lang == 'en' %}Loan taken{% else %}মোট ঋণ নেওয়া{% endif %}</span><span class="v">{{ summary.received|money }}</span></div>
+  <div class="ln-kpi out"><span class="k">{% if ui_lang == 'en' %}Loan repaid{% else %}মোট ঋণ পরিশোধ{% endif %}</span><span class="v">{{ summary.returned|money }}</span></div>
+  <div class="ln-kpi loan"><span class="k">{% if ui_lang == 'en' %}Loan outstanding{% else %}চলতি ঋণ বকেয়া{% endif %}</span><span class="v">{{ summary.outstanding|money }}</span></div>
+  <div class="ln-kpi"><span class="k">{% if ui_lang == 'en' %}Lenders{% else %}ঋণদাতা{% endif %}</span><span class="v">{{ summary.party_count }}</span></div>
+  {% else %}
+  <div class="ln-kpi invest"><span class="k">{% if ui_lang == 'en' %}Investment received{% else %}মোট বিনিয়োগ{% endif %}</span><span class="v">{{ summary.received|money }}</span></div>
+  <div class="ln-kpi out"><span class="k">{% if ui_lang == 'en' %}Capital withdrawn{% else %}মোট ফেরত / উত্তোলন{% endif %}</span><span class="v">{{ summary.returned|money }}</span></div>
+  <div class="ln-kpi invest"><span class="k">{% if ui_lang == 'en' %}Investment outstanding{% else %}চলতি বিনিয়োগ বকেয়া{% endif %}</span><span class="v">{{ summary.outstanding|money }}</span></div>
+  <div class="ln-kpi"><span class="k">{% if ui_lang == 'en' %}Investors{% else %}বিনিয়োগকারী{% endif %}</span><span class="v">{{ summary.party_count }}</span></div>
+  {% endif %}
+</div>
+
+<div class="split">
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div class="ln-card">
+      <div class="ln-head">
+        <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-receipt"></i> <h3>{% if is_loan %}{% if ui_lang == 'en' %}Loan history{% else %}ঋণের হিস্ট্রি{% endif %}{% else %}{% if ui_lang == 'en' %}Investment history{% else %}বিনিয়োগের হিস্ট্রি{% endif %}{% endif %}</h3></div>
+        <span class="badge b-muted">{{ entries|length }}</span>
+      </div>
+      <div class="ln-body">
+        <form method="get" class="ln-filter">
+          <div class="f-field">
+            <label for="ln-from">{% if ui_lang == 'en' %}From date{% else %}কোন তারিখ থেকে{% endif %}</label>
+            <input id="ln-from" type="date" name="from" value="{{ date_from }}">
+          </div>
+          <div class="f-field">
+            <label for="ln-to">{% if ui_lang == 'en' %}To date{% else %}কোন তারিখ পর্যন্ত{% endif %}</label>
+            <input id="ln-to" type="date" name="to" value="{{ date_to }}">
+          </div>
+          <button type="submit" class="btn sm primary" style="height:40px"><i class="fa-solid fa-magnifying-glass"></i> {% if ui_lang == 'en' %}Filter{% else %}খুঁজুন{% endif %}</button>
+          <div class="f-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+            <a class="ln-chip {% if not filter_active %}on{% endif %}" href="{% url 'web:loans' %}">{% if ui_lang == 'en' %}All{% else %}সব{% endif %}</a>
+            <a class="ln-chip" href="?from={{ today }}&to={{ today }}">{% if ui_lang == 'en' %}Today{% else %}আজ{% endif %}</a>
+            <a class="ln-chip" href="?from={{ default_month_start }}&to={{ today }}">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</a>
+          </div>
+        </form>
+
+        {% if filter_active %}
+        <div class="ln-note">
+          <i class="fa-solid fa-filter" style="color:var(--violet)"></i>
+          {% if ui_lang == 'en' %}<span><b>{{ date_from|default:"…" }}</b> → <b>{{ date_to|default:"…" }}</b> · <b>{{ summary.entry_count }}</b> entries · main account <b>{{ summary.net_main_account|money }}</b></span>{% else %}<span><b>{{ date_from|default:"…" }}</b> থেকে <b>{{ date_to|default:"…" }}</b> · <b>{{ summary.entry_count }}</b>টি এন্ট্রি · মূল হিসাবে <b>{{ summary.net_main_account|money }}</b></span>{% endif %}
+          <a class="ln-chip" href="{% url 'web:loans' %}">{% if ui_lang == 'en' %}Clear{% else %}ফিল্টার মুছুন{% endif %}</a>
+        </div>
+        {% endif %}
+
+        {% if entries %}
+        <div class="table-wrap">
+          <table class="ln-table">
+            <thead><tr><th style="width:15%">{% t "Date" %}</th><th style="width:24%">{% if is_loan %}{% if ui_lang == 'en' %}Lender{% else %}ঋণদাতা{% endif %}{% else %}{% if ui_lang == 'en' %}Investor{% else %}বিনিয়োগকারী{% endif %}{% endif %}</th><th style="width:18%">{% if ui_lang == 'en' %}Type{% else %}ধরন{% endif %}</th><th class="num" style="width:16%">{% t "Amount" %}</th><th class="num" style="width:16%">{% if ui_lang == 'en' %}Main account{% else %}মূল হিসাব{% endif %}</th><th style="width:11%"></th></tr></thead>
+            <tbody>
+              {% for e in entries %}
+              <tr>
+                <td class="mono muted" style="white-space:nowrap">{{ e.transaction_date }}</td>
+                <td><strong style="font-size:14px;font-weight:800">{{ e.party.name }}</strong>{% if e.description %}<div class="muted" style="font-size:11.5px">{{ e.description }}</div>{% endif %}</td>
+                <td>
+                  {% if e.kind == 'RECEIVED' %}<span class="badge b-ok">{% if is_loan %}{% if ui_lang == 'en' %}Loan taken{% else %}ঋণ নেওয়া{% endif %}{% else %}{% if ui_lang == 'en' %}Invested{% else %}বিনিয়োগ{% endif %}{% endif %}</span>
+                  {% elif e.kind == 'REPAYMENT' %}<span class="badge b-info">{% if ui_lang == 'en' %}Repayment{% else %}পরিশোধ{% endif %}</span>
+                  {% else %}<span class="badge b-warn">{% if ui_lang == 'en' %}Withdrawal{% else %}ফেরত নেওয়া{% endif %}</span>{% endif %}
+                </td>
+                <td class="num ln-amount">{{ e.amount|money }}</td>
+                <td class="num ln-amount ln-money {% if e.signed_amount >= 0 %}pos{% else %}neg{% endif %}">{% if e.signed_amount >= 0 %}+{% else %}{% endif %}{{ e.amount|money }}</td>
+                <td style="white-space:nowrap">
+                  {% if e.can_edit %}
+                  <button type="button" class="btn sm" onclick="openLoan('{{ e.id }}','{{ e.amount }}','{{ e.transaction_date }}','{{ e.description|default:''|escapejs }}','{{ e.kind }}','{{ e.contract_total|default_if_none:'' }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
+                  {% endif %}
+                  {% if e.can_delete %}
+                  <form method="post" style="display:inline" onsubmit="return confirm('{% if ui_lang == 'en' %}Delete this entry FOR GOOD? The row, its money entry and its ledger postings are removed — this cannot be undone.{% else %}এই এন্ট্রিটি সম্পূর্ণ মুছে ফেলবেন? রো, তার টাকার এন্ট্রি আর হিসাবের পোস্টিং — সব মুছে যাবে, আর ফেরানো যাবে না।{% endif %}')">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_entry">
+                    <input type="hidden" name="entry_id" value="{{ e.id }}">
+                    <input type="hidden" name="reason" value="Deleted from {% if is_loan %}loan{% else %}investment{% endif %} history">
+                    <button type="submit" class="btn sm" title="{% if ui_lang == 'en' %}Delete for good{% else %}সম্পূর্ণ মুছুন{% endif %}" style="background:var(--fill-danger);color:var(--text-danger);border-color:rgba(254,202,202,.65)"><i class="fa-solid fa-trash"></i></button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty"><div class="ei"><i class="fa-solid {% if is_loan %}fa-hand-holding-dollar{% else %}fa-handshake{% endif %}"></i></div><h4>{% if is_loan %}{% if ui_lang == 'en' %}No loan entries yet{% else %}এখনো কোনো ঋণ এন্ট্রি নেই{% endif %}{% else %}{% if ui_lang == 'en' %}No investment entries yet{% else %}এখনো কোনো বিনিয়োগ এন্ট্রি নেই{% endif %}{% endif %}</h4><p>{% if is_loan %}{% if ui_lang == 'en' %}Add a lender on the right, then record the loan you received.{% else %}ডান পাশে ঋণদাতা যোগ করুন, তারপর ঋণ নেওয়ার এন্ট্রি দিন।{% endif %}{% else %}{% if ui_lang == 'en' %}Add an investor on the right, then record the capital you received.{% else %}ডান পাশে বিনিয়োগকারী যোগ করুন, তারপর মূল পাওয়ার এন্ট্রি দিন।{% endif %}{% endif %}</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ln-card">
+      <div class="ln-head">
+        <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-users"></i> <h3>{% if is_loan %}{% if ui_lang == 'en' %}Lenders{% else %}ঋণদাতার তালিকা{% endif %}{% else %}{% if ui_lang == 'en' %}Investors{% else %}বিনিয়োগকারীর তালিকা{% endif %}{% endif %}</h3></div>
+        <span class="badge b-muted">{{ party_rows|length }}</span>
+      </div>
+      <div class="ln-body">
+        {% if party_rows %}
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+          {% for r in party_rows %}
+          <div class="ln-party">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span class="nm">{{ r.party.name }}</span>
+              <span class="kd {% if is_loan %}loan{% else %}invest{% endif %}">{% if is_loan %}{% if ui_lang == 'en' %}Lender{% else %}ঋণদাতা{% endif %}{% else %}{% if ui_lang == 'en' %}Investor{% else %}বিনিয়োগকারী{% endif %}{% endif %}</span>
+            </div>
+            {% if r.party.phone or r.party.email %}<div class="muted" style="font-size:11.5px;margin-top:3px">{{ r.party.phone }}{% if r.party.phone and r.party.email %} · {% endif %}{{ r.party.email }}</div>{% endif %}
+            <div style="display:flex;gap:14px;margin-top:9px;flex-wrap:wrap">
+              <div><div class="muted" style="font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">{% if ui_lang == 'en' %}Given{% else %}দিয়েছেন{% endif %}</div><div style="font-weight:800;font-variant-numeric:tabular-nums">{{ r.received|money }}</div></div>
+              <div><div class="muted" style="font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">{% if ui_lang == 'en' %}Returned{% else %}ফেরত নিয়েছেন{% endif %}</div><div style="font-weight:800;font-variant-numeric:tabular-nums">{{ r.returned|money }}</div></div>
+              {% if r.pay_total != r.received %}
+              <div><div class="muted" style="font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">{% if ui_lang == 'en' %}To repay{% else %}দিতে হবে{% endif %}</div><div style="font-weight:800;font-variant-numeric:tabular-nums">{{ r.pay_total|money }}</div></div>
+              <div><div class="muted" style="font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">{% if ui_lang == 'en' %}Interest{% else %}সুদ{% endif %}</div><div style="font-weight:700;font-variant-numeric:tabular-nums;color:var(--warn)">{{ r.interest|money }}</div></div>
+              {% endif %}
+              <div><div class="muted" style="font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">{% if ui_lang == 'en' %}Outstanding{% else %}বাকি{% endif %}</div><div class="ln-money {% if r.outstanding > 0 %}neg{% else %}pos{% endif %}" style="font-weight:800;font-variant-numeric:tabular-nums">{{ r.outstanding|money }}</div></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty" style="padding:26px"><div class="ei"><i class="fa-solid fa-user-plus"></i></div><h4>{% if is_loan %}{% if ui_lang == 'en' %}No lenders yet{% else %}এখনো কোনো ঋণদাতা নেই{% endif %}{% else %}{% if ui_lang == 'en' %}No investors yet{% else %}এখনো কোনো বিনিয়োগকারী নেই{% endif %}{% endif %}</h4></div>
+        {% endif %}
+      </div>
+    </div>
+    {% if is_loan %}
+    <div class="ln-card">
+      <div class="ln-head">
+        <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-calendar-days"></i> <h3>{% if ui_lang == 'en' %}Installment schedule (কিস্তি প্ল্যান){% else %}ঋণের কিস্তি প্ল্যান{% endif %}</h3></div>
+        <span class="badge b-muted">{{ schedule_groups|length }}</span>
+      </div>
+      <div class="ln-body">
+        <p class="muted" style="margin:0 0 12px;font-size:12px">{% if ui_lang == 'en' %}Set the plan once — how much, on which dates. Check a row off when you pay; each check-off posts the matching repayment and moves the baki automatically.{% else %}একবার প্ল্যান বানালেই হবে — কত টাকা, কোন তারিখে। পরিশোধ হলে চেক-অফ করুন — প্রতিটি চেক-অফ ফেরত এন্ট্রি লেজারে পোস্ট করে বাকি স্বয়ংক্রিয়ভাবে বদলে যাবে।{% endif %}</p>
+        {% if schedule_groups %}
+        {% for g in schedule_groups %}
+        <div class="ln-install">
+          <div class="ln-install-head">
+            <div>
+              <strong style="font-size:14.5px">{{ g.party.name }}</strong>
+              <div class="muted" style="font-size:11.5px;margin-top:2px">{{ g.paid_count }}/{{ g.installment_count }} {% if ui_lang == 'en' %}paid{% else %}শোধিত{% endif %}{% if g.next_due %} · {% if ui_lang == 'en' %}next{% else %}পরবর্তী{% endif %} {{ g.next_due|date:"d M Y" }}{% endif %}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              {% if g.is_fully_paid %}<span class="badge b-ok"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}fully repaid{% else %}সম্পূর্ণ শোধিত{% endif %}</span>
+              {% elif g.overdue_count %}<span class="badge b-danger">{{ g.overdue_count }} {% if ui_lang == 'en' %}overdue{% else %}ওভারডিউ{% endif %}</span>
+              {% else %}<span class="badge b-info">{% if ui_lang == 'en' %}remaining{% else %}বাকি{% endif %} {{ g.remaining|money }}</span>{% endif %}
+              {% if can_manage %}
+              <form method="post" onsubmit="return confirm('{% if ui_lang == 'en' %}Delete this plan? It can only be deleted while nothing is paid.{% else %}এই প্ল্যান মুছবেন? কোনো কিস্তি শোধ না হলেই কেবল মুছবেন।{% endif %}');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_schedule">
+                <input type="hidden" name="party_id" value="{{ g.party.id }}">
+                <button type="submit" class="btn sm" style="padding:4px 8px;color:var(--danger);border-color:rgba(220,38,38,.25)" title="{% if ui_lang == 'en' %}Delete plan{% else %}প্ল্যান মুছুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Delete plan{% else %}প্ল্যান মুছুন{% endif %}"><i class="fa-solid fa-trash"></i></button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          <div class="table-wrap" style="border:0;margin-top:8px">
+            <table class="ln-table ln-sched">
+              <thead><tr><th style="width:12%">{% if ui_lang == 'en' %}#{% else %}ক্র{% endif %}</th><th style="width:22%">{% if ui_lang == 'en' %}Due{% else %}তারিখ{% endif %}</th><th class="num" style="width:20%">{% if ui_lang == 'en' %}Amount{% else %}কিস্তি{% endif %}</th><th style="width:20%">{% if ui_lang == 'en' %}Status{% else %}অবস্থা{% endif %}</th><th style="width:26%"></th></tr></thead>
+              <tbody>
+                {% for r in g.rows %}
+                <tr class="{% if r.is_paid %}ln-paid{% elif r.is_overdue %}ln-overdue{% endif %}">
+                  <td class="mono muted">{{ r.sequence }}</td>
+                  <td class="mono" style="white-space:nowrap">{{ r.due_date|date:"d M Y" }}</td>
+                  <td class="num ln-amount">{{ r.amount|money }}</td>
+                  <td>{% if r.is_paid %}<span class="badge b-ok"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Paid{% else %}শোধিত{% endif %}{% if r.paid_date %} <span class="muted" style="font-weight:400">{{ r.paid_date|date:"d M" }}</span>{% endif %}</span>{% else %}<span class="badge {% if r.is_overdue %}b-danger{% else %}b-muted{% endif %}">{% if r.is_overdue %}{% if ui_lang == 'en' %}Overdue{% else %}ওভারডিউ{% endif %}{% else %}{% if ui_lang == 'en' %}Pending{% else %}বাকি{% endif %}{% endif %}</span>{% endif %}</td>
+                  <td style="white-space:nowrap;text-align:right">
+                    {% if can_manage %}
+                    {% if r.is_paid %}
+                    <form method="post" onsubmit="return confirm('{% if ui_lang == 'en' %}Uncheck this installment? The repayment entry will be reversed.{% else %}এই চেক-অফ ফেরত নেবেন? ফেরত এন্ট্রি বাতিল হয়ে যাবে।{% endif %}');">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="unpay_installment">
+                      <input type="hidden" name="installment_id" value="{{ r.id }}">
+                      <button type="submit" class="btn sm" style="padding:3px 8px" title="{% if ui_lang == 'en' %}Undo check-off{% else %}ফেরত নিন{% endif %}"><i class="fa-solid fa-rotate-left"></i></button>
+                    </form>
+                    {% else %}
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="pay_installment">
+                      <input type="hidden" name="installment_id" value="{{ r.id }}">
+                      <button type="submit" class="btn sm" style="padding:3px 10px;background:var(--fill-ok);color:var(--text-ok);border-color:rgba(34,197,94,.35);font-weight:800" title="{% if ui_lang == 'en' %}Mark paid{% else %}পরিশোধ হয়েছে{% endif %}"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Paid{% else %}শোধিত{% endif %}</button>
+                    </form>
+                    {% endif %}
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="ln-install-foot">
+            <span class="muted" style="font-size:12px">{% if ui_lang == 'en' %}Total{% else %}মোট{% endif %} {{ g.total|money }} · {% if ui_lang == 'en' %}paid{% else %}শোধিত{% endif %} {{ g.paid_total|money }}</span>
+            <span style="font-weight:800;font-variant-numeric:tabular-nums">{% if ui_lang == 'en' %}Remaining{% else %}বাকি{% endif %} <span class="{% if g.remaining > 0 %}neg{% else %}pos{% endif %}">{{ g.remaining|money }}</span></span>
+          </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% if schedule_parties %}
+        <h4 class="ln-sched-form-title">{% if ui_lang == 'en' %}Create a new plan{% else %}নতুন কিস্তি প্ল্যান{% endif %}</h4>
+        <form method="post" class="ln-schedule-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_schedule">
+          <div class="field">
+            <label for="sc-party">{% if ui_lang == 'en' %}Lender{% else %}ঋণদাতা{% endif %}</label>
+            <select id="sc-party" name="party_id" required>
+              <option value="">— {% if ui_lang == 'en' %}choose…{% else %}বেছে নিন…{% endif %} —</option>
+              {% for p in schedule_parties %}<option value="{{ p.id }}">{{ p.name }}{% if p.outstanding %} — {% if ui_lang == 'en' %}outstanding{% else %}বাকি{% endif %} {{ p.outstanding|money }}{% endif %}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="sc-total">{% if ui_lang == 'en' %}Total to repay (৳){% else %}মোট পরিশোধ (৳){% endif %}</label>
+            <input id="sc-total" type="number" step="0.01" min="0.01" name="total" required placeholder="0.00" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label for="sc-count">{% if ui_lang == 'en' %}# installments{% else %}কিস্তির সংখ্যা{% endif %}</label>
+            <input id="sc-count" type="number" min="1" max="360" name="count" required placeholder="12">
+          </div>
+          <div class="field">
+            <label for="sc-due">{% if ui_lang == 'en' %}First due{% else %}প্রথম কিস্তির তারিখ{% endif %}</label>
+            <input id="sc-due" type="date" name="first_due" required value="{{ today }}">
+          </div>
+          <div class="field full">
+            <label for="sc-notes">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</label>
+            <input id="sc-notes" type="text" name="notes" placeholder="{% if ui_lang == 'en' %}Optional note{% else %}ঐচ্ছিক নোট{% endif %}">
+          </div>
+          <div class="field full">
+            <button class="btn primary" type="submit"><i class="fa-solid fa-calendar-days"></i> {% if ui_lang == 'en' %}Create schedule{% else %}প্ল্যান তৈরি করুন{% endif %}</button>
+          </div>
+        </form>
+        {% elif not schedule_groups %}
+        <div class="empty" style="padding:26px"><div class="ei"><i class="fa-solid fa-calendar-days"></i></div><h4>{% if ui_lang == 'en' %}No schedules yet{% else %}এখনো কোনো প্ল্যান নেই{% endif %}</h4><p>{% if ui_lang == 'en' %}First add a lender on the right, then create a plan here.{% else %}আগে ডান পাশে ঋণদাতা যোগ করুন, তারপর এখানে প্ল্যান তৈরি করুন।{% endif %}</p></div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:18px">
+    {% if can_manage %}
+    <div class="ln-card">
+      <div class="ln-head">
+        <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-plus"></i> <h3>{% if is_loan %}{% if ui_lang == 'en' %}Add loan entry{% else %}ঋণ এন্ট্রি যোগ করুন{% endif %}{% else %}{% if ui_lang == 'en' %}Add investment entry{% else %}বিনিয়োগ এন্ট্রি যোগ করুন{% endif %}{% endif %}</h3></div>
+      </div>
+      <div class="ln-body">
+        <form method="post" class="form-grid">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_entry">
+          <div class="field full">
+            <label for="l-party">{% if is_loan %}{% if ui_lang == 'en' %}Lender{% else %}ঋণদাতা{% endif %}{% else %}{% if ui_lang == 'en' %}Investor{% else %}বিনিয়োগকারী{% endif %}{% endif %} <span style="color:var(--danger)">*</span></label>
+            <select id="l-party" name="party_id" required>
+              <option value="">— {% if ui_lang == 'en' %}choose…{% else %}বেছে নিন…{% endif %} —</option>
+              {% for p in parties %}<option value="{{ p.id }}">{{ p.name }}{% if p.outstanding %} — {% if ui_lang == 'en' %}outstanding{% else %}বাকি{% endif %} {{ p.outstanding|money }}{% endif %}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="l-kind">{% if ui_lang == 'en' %}Type{% else %}ধরন{% endif %}</label>
+            <select id="l-kind" name="kind" {% if is_loan %}onchange="loanKindChanged()"{% endif %}>
+              {% if is_loan %}
+              <option value="RECEIVED">{% if ui_lang == 'en' %}Loan taken (received){% else %}ঋণ নিয়েছি{% endif %}</option>
+              <option value="REPAYMENT">{% if ui_lang == 'en' %}Loan repaid (returned){% else %}ঋণ পরিশোধ করেছি{% endif %}</option>
+              {% else %}
+              <option value="RECEIVED">{% if ui_lang == 'en' %}Invested (capital received){% else %}বিনিয়োগ করেছি (মূল পেয়েছি){% endif %}</option>
+              <option value="WITHDRAWAL">{% if ui_lang == 'en' %}Capital withdrawn (returned){% else %}মূল ফেরত নিয়েছি{% endif %}</option>
+              {% endif %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="l-amount">{% if ui_lang == 'en' %}Amount ৳{% else %}টাকার পরিমাণ (৳){% endif %} <span style="color:var(--danger)">*</span></label>
+            <input id="l-amount" name="amount" type="number" step="0.01" min="0.01" required placeholder="0.00" inputmode="decimal">
+          </div>
+          {% if is_loan %}
+          <div class="field" id="l-ct-wrap" style="display:none">
+            <label for="l-ct">{% if ui_lang == 'en' %}Total to repay (incl. interest) ৳{% else %}মোট ফেরত দিতে হবে — সুদসহ (৳){% endif %}</label>
+            <input id="l-ct" name="contract_total" type="number" step="0.01" min="0" inputmode="decimal">
+          </div>
+          {% endif %}
+          <div class="field">
+            <label for="l-date">{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</label>
+            <input id="l-date" name="transaction_date" type="date" value="{{ form_date }}" required>
+          </div>
+          <div class="field">
+            <label for="l-desc">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</label>
+            <input id="l-desc" name="description" placeholder="{% if ui_lang == 'en' %}Optional note{% else %}ঐচ্ছিক বিবরণ{% endif %}">
+          </div>
+          <div class="field full">
+            <button class="btn primary" type="submit"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save entry{% else %}এন্ট্রি সংরক্ষণ করুন{% endif %}</button>
+            <div class="mini-hint muted" style="font-size:12px;margin-top:8px">{% if is_loan %}{% if ui_lang == 'en' %}Loan taken → main account <b>+</b>. Loan repaid → main account <b>−</b>. If you set the <b>total to repay (incl. interest)</b> on a loan-taken entry, the card shows the real remaining to repay while cash stays exact.{% else %}ঋণ নিলে মূল হিসাবে <b>+</b> · পরিশোধ করলে মূল হিসাবে <b>−</b>। "ঋণ নিয়েছি" এন্ট্রিতে <b>মোট ফেরত (সুদসহ)</b> দিলে কার্ডে সুদসহ সত্যিকারের বাকি দেখাবে, আর ক্যাশ সবসময় আসল টাকা অনুযায়ী থাকবে।{% endif %}{% else %}{% if ui_lang == 'en' %}Invested → main account <b>+</b>. Capital withdrawn → main account <b>−</b>. You can never withdraw more than what the investor still has in the business.{% else %}বিনিয়োগ করলে মূল হিসাবে <b>+</b> · মূল ফেরত নিলে মূল হিসাবে <b>−</b>। বিনিয়োগকারীর কাছে যত মূল বাকি আছে তার বেশি ফেরত নেওয়া যাবে না।{% endif %}{% endif %}</div>
+          </div>
+        </form>
+
+        <details style="margin-top:14px">
+          <summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--violet);list-style:none;display:inline-flex;align-items:center;gap:6px;padding:6px 0"><i class="fa-solid fa-user-plus"></i> {% if is_loan %}{% if ui_lang == 'en' %}Add a lender{% else %}ঋণদাতা যোগ করুন{% endif %}{% else %}{% if ui_lang == 'en' %}Add an investor{% else %}বিনিয়োগকারী যোগ করুন{% endif %}{% endif %}</summary>
+          <form method="post" class="form-grid" style="margin-top:10px">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_party">
+            <div class="field full">
+              <label for="l-pname">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %} <span style="color:var(--danger)">*</span></label>
+              <input id="l-pname" name="name" required placeholder="{% if is_loan %}{% if ui_lang == 'en' %}e.g., Karim Bhai (lender){% else %}যেমন: করিম ভাই (ঋণদাতা){% endif %}{% else %}{% if ui_lang == 'en' %}e.g., Rahim Bhai (investor){% else %}যেমন: রহিম ভাই (বিনিয়োগকারী){% endif %}{% endif %}">
+            </div>
+            <input type="hidden" name="kind" value="{% if is_loan %}LOAN{% else %}INVESTMENT{% endif %}">
+            <div class="field">
+              <label for="l-pphone">{% if ui_lang == 'en' %}Phone{% else %}ফোন{% endif %}</label>
+              <input id="l-pphone" name="phone" placeholder="01XXXXXXXXX">
+            </div>
+            <div class="field full">
+              <label for="l-pemail">{% if ui_lang == 'en' %}Email{% else %}ইমেইল{% endif %}</label>
+              <input id="l-pemail" name="email" type="email" placeholder="{% if ui_lang == 'en' %}Optional{% else %}ঐচ্ছিক{% endif %}">
+            </div>
+            <div class="field full" style="display:flex;justify-content:flex-end">
+              <button type="submit" class="btn sm primary"><i class="fa-solid fa-plus"></i> {% if ui_lang == 'en' %}Add{% else %}যোগ করুন{% endif %}</button>
+            </div>
+          </form>
+        </details>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card" style="background:var(--note-violet-bg);border-color:var(--note-violet-border)">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div class="icon i-violet" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto"><i class="fa-solid fa-circle-info"></i></div>
+        <div>
+          <div style="font-weight:800;margin-bottom:2px">{% if is_loan %}{% if ui_lang == 'en' %}How the loan book moves the main account{% else %}ঋণের বই মূল হিসাব কীভাবে বদলায়{% endif %}{% else %}{% if ui_lang == 'en' %}How the investment book moves the main account{% else %}বিনিয়োগের বই মূল হিসাব কীভাবে বদলায়{% endif %}{% endif %}</div>
+          <div class="muted" style="font-size:13px;line-height:1.7">
+            {% if ui_lang == 'en' %}
+            {% if is_loan %}
+            <strong>Loan taken</strong> → cash <b>+</b>, liability (2400) up.<br/>
+            <strong>Loan repaid</strong> → cash <b>−</b>, liability down.<br/>
+            Loan money is never counted as income, so your profit stays honest.
+            {% else %}
+            <strong>Invested</strong> → cash <b>+</b>, investor capital (3200) up.<br/>
+            <strong>Capital withdrawn</strong> → cash <b>−</b>, investor capital down.<br/>
+            Investment money is never counted as income, so your profit stays honest.
+            {% endif %}
+            {% else %}
+            {% if is_loan %}
+            <strong>ঋণ নেওয়া</strong> → নগদ <b>+</b>, দেনা (2400) বাড়ে।<br/>
+            <strong>ঋণ পরিশোধ</strong> → নগদ <b>−</b>, দেনা কমে।<br/>
+            ঋণের টাকা কখনো আয় হিসেবে ধরা হয় না — তাই লাভ সঠিক থাকে।
+            {% else %}
+            <strong>বিনিয়োগ</strong> → নগদ <b>+</b>, বিনিয়োগকারীর মূল (3200) বাড়ে।<br/>
+            <strong>মূল ফেরত নেওয়া</strong> → নগদ <b>−</b>, মূল কমে।<br/>
+            বিনিয়োগের টাকা কখনো আয় হিসেবে ধরা হয় না — তাই লাভ সঠিক থাকে।
+            {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if can_manage %}
+<div id="loan-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,13,28,.5);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px">
+  <div style="width:min(480px,100%);max-height:90vh;overflow:auto;background:var(--panel-solid);border:1px solid var(--panel-solid-border);border-radius:22px;box-shadow:var(--shadow-lg);padding:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+      <div style="font-weight:800;font-size:17px"><i class="fa-solid fa-pen" style="color:var(--violet)"></i> {% if ui_lang == 'en' %}Edit Entry{% else %}এন্ট্রি এডিট{% endif %}</div>
+      <button type="button" class="btn sm ghost" onclick="closeLoan()">{% if ui_lang == 'en' %}Close{% else %}বন্ধ{% endif %}</button>
+    </div>
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_entry">
+      <input type="hidden" name="entry_id" id="lo-id" value="">
+      <div class="field">
+        <label for="lo-kind">{% if ui_lang == 'en' %}Type{% else %}ধরন{% endif %}</label>
+        <select id="lo-kind" name="kind"  {% if is_loan %}onchange="editKindChanged()"{% endif %}>
+          {% if is_loan %}
+          <option value="RECEIVED">{% if ui_lang == 'en' %}Loan taken (received){% else %}ঋণ নিয়েছি{% endif %}</option>
+          <option value="REPAYMENT">{% if ui_lang == 'en' %}Loan repaid (returned){% else %}ঋণ পরিশোধ করেছি{% endif %}</option>
+          {% else %}
+          <option value="RECEIVED">{% if ui_lang == 'en' %}Invested (capital received){% else %}বিনিয়োগ করেছি (মূল পেয়েছি){% endif %}</option>
+          <option value="WITHDRAWAL">{% if ui_lang == 'en' %}Capital withdrawn (returned){% else %}মূল ফেরত নিয়েছি{% endif %}</option>
+          {% endif %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="lo-amount">{% if ui_lang == 'en' %}Amount ৳{% else %}টাকা (৳){% endif %}</label>
+        <input id="lo-amount" name="amount" type="number" step="0.01" min="0.01" required inputmode="decimal">
+      </div>
+      {% if is_loan %}
+      <div class="field" id="lo-ct-wrap" style="display:none">
+        <label for="lo-ct">{% if ui_lang == 'en' %}Total to repay (incl. interest) ৳{% else %}মোট ফেরত দিতে হবে — সুদসহ (৳){% endif %}</label>
+        <input id="lo-ct" name="contract_total" type="number" step="0.01" min="0" inputmode="decimal">
+      </div>
+      {% endif %}
+      <div class="field full">
+        <label for="lo-date">{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</label>
+        <input id="lo-date" name="transaction_date" type="date" required>
+      </div>
+      <div class="field full">
+        <label for="lo-desc">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</label>
+        <input id="lo-desc" name="description">
+      </div>
+      <div class="field full">
+        <label for="lo-reason">{% if ui_lang == 'en' %}Reason{% else %}কারণ{% endif %}</label>
+        <input id="lo-reason" name="reason" placeholder="{% if ui_lang == 'en' %}e.g. wrong amount{% else %}যেমন: ভুল টাকা{% endif %}">
+      </div>
+      <div class="field full" style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn ghost" onclick="closeLoan()">{% if ui_lang == 'en' %}Cancel{% else %}বাতিল{% endif %}</button>
+        <button type="submit" class="btn primary"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Update{% else %}আপডেট করুন{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  {% if is_loan %}
+  function editKindChanged(){
+    var k=document.getElementById('lo-kind');
+    var w=document.getElementById('lo-ct-wrap');
+    if(k && w) w.style.display = (k.value==='RECEIVED') ? '' : 'none';
+  }
+  function loanKindChanged(){
+    var k=document.getElementById('l-kind');
+    var w=document.getElementById('l-ct-wrap');
+    if(k && w) w.style.display = (k.value==='RECEIVED') ? '' : 'none';
+  }
+  loanKindChanged();
+  {% endif %}
+  function openLoan(id, amount, date, desc, kind, contract){
+    var m=document.getElementById('loan-modal'); if(!m) return;
+    document.getElementById('lo-id').value=id||'';
+    document.getElementById('lo-amount').value=amount||'';
+    document.getElementById('lo-date').value=date||'';
+    document.getElementById('lo-desc').value=desc||'';
+    var k=document.getElementById('lo-kind'); if(k && kind) k.value=kind;
+    {% if is_loan %}
+    var ct=document.getElementById('lo-ct');
+    if(ct) ct.value=contract||'';
+    editKindChanged();
+    {% endif %}
+    m.style.display='flex';
+    var a=document.getElementById('lo-amount'); if(a){ a.focus(); a.select(); }
+  }
+  function closeLoan(){ var m=document.getElementById('loan-modal'); if(m) m.style.display='none'; }
+  if (document.getElementById('loan-modal')) {
+    document.getElementById('loan-modal').addEventListener('click', function(e){ if(e.target===this) closeLoan(); });
+  }
+</script>
+{% endblock %}

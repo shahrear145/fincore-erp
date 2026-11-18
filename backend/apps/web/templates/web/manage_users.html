@@ -1,0 +1,149 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}User management{% else %}ব্যবহারকারী ব্যবস্থাপনা{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .adm-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-3) 55%,#115e59 140%);color:#fff;border-radius:20px;padding:22px;border:1px solid rgba(255,255,255,.06);box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+  .adm-hero::after{content:"";position:absolute;right:-40px;top:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(45,212,191,.22),transparent 65%);pointer-events:none}
+  .adm-hero h2{margin:0;font-size:clamp(22px,2.4vw,29px);font-weight:800;letter-spacing:-.02em}
+  .adm-hero p{margin:6px 0 0;color:#b8cceb;max-width:74ch}
+  .adm-hero .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;position:relative;z-index:1}
+  .adm-hero .btn{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff}
+  .adm-hero .btn:hover{background:rgba(255,255,255,.16);text-decoration:none}
+  .adm-hero .btn.primary{background:linear-gradient(135deg,#2dd4bf,var(--brand-2));color:#042f2e;border-color:transparent}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-size:13px;font-weight:700;text-decoration:none;transition:all .15s var(--ease)}
+  .pill:hover{border-color:var(--line-2);background:var(--surface-2);text-decoration:none}
+  .pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .pill .n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:rgba(148,163,184,.18);font-size:11px}
+  .pill.active .n{background:rgba(255,255,255,.18)}
+  .searchbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .searchbox input{min-width:260px;padding:10px 12px 10px 38px;border-radius:12px;border:1px solid var(--line-2);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0'/%3E%3C/svg%3E") no-repeat 12px center}
+  .searchbox input:focus{outline:none;border-color:var(--brand-2);box-shadow:var(--ring)}
+  .urow{display:flex;align-items:center;gap:12px}
+  .avatar{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;flex:0 0 auto;background:linear-gradient(135deg,#0ea5e9,#14b8a6)}
+  .avatar.staff{background:linear-gradient(135deg,#7c3aed,#2563eb)}
+  .avatar.off{background:linear-gradient(135deg,#94a3b8,#64748b)}
+  .uname{font-weight:800;color:var(--ink);line-height:1.15}
+  .usub{font-size:12px;color:var(--muted);margin-top:2px}
+  .kpi-mini{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:700}
+  @media(max-width:860px){.searchbox input{min-width:0;width:100%}.searchbox{width:100%}.searchbox form{width:100%}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="adm-hero">
+  <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;position:relative;z-index:1">
+    <div>
+      <h2><i class="fa-solid fa-users-gear"></i> {% if ui_lang == 'en' %}User administration{% else %}ব্যবহারকারী প্রশাসন{% endif %}</h2>
+      <p>{% if ui_lang == 'en' %}A clear, secure view of everyone who registered. Only admins can access this page. Passwords and OTP codes are never displayed.{% else %}কে রেজিস্টার করেছে তার একটি পরিষ্কার ও নিরাপদ তালিকা। শুধু অ্যাডমিন এই পেজ দেখতে পারবেন। পাসওয়ার্ড ও OTP কোড কখনো দেখানো হয় না।{% endif %}</p>
+      <div class="actions">
+        <a class="btn primary" href="{% url 'web:register' %}"><i class="fa-solid fa-user-plus"></i> {% if ui_lang == 'en' %}Registration page{% else %}রেজিস্ট্রেশন পেজ{% endif %}</a>
+        <a class="btn" href="/admin/auth/user/" target="_blank" rel="noopener"><i class="fa-solid fa-gear"></i> {% if ui_lang == 'en' %}Open Django Admin{% else %}Django অ্যাডমিন{% endif %}</a>
+        {% if request.user.is_staff or request.user.is_superuser %}<a class="btn" href="{% url 'web:reset_data' %}" style="border-color:rgba(254,202,202,.4);color:#fecaca"><i class="fa-solid fa-triangle-exclamation"></i> {% if ui_lang == 'en' %}Reset / wipe data{% else %}সব ডাটা রিসেট{% endif %}</a>{% endif %}
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip brand"><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Admin only{% else %}শুধু অ্যাডমিন{% endif %}</span>
+      <span class="chip info"><i class="fa-solid fa-sparkles"></i> {% if ui_lang == 'en' %}{{ stats.new_7d }} new (7 days){% else %}গত ৭ দিনে {{ stats.new_7d }} জন{% endif %}</span>
+    </div>
+  </div>
+</div>
+
+<div class="grid g4 mt">
+  <div class="card kpi"><div class="icon i-blue"><i class="fa-solid fa-users"></i></div><h3>{% if ui_lang == 'en' %}Total accounts{% else %}মোট অ্যাকাউন্ট{% endif %}</h3><div class="value">{{ stats.total }}</div><div class="sub">{% if ui_lang == 'en' %}All registered users{% else %}সব রেজিস্টার্ড ব্যবহারকারী{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-green"><i class="fa-solid fa-user-check"></i></div><h3>{% if ui_lang == 'en' %}Active / verified{% else %}সক্রিয় / যাচাইকৃত{% endif %}</h3><div class="value pos">{{ stats.active }}</div><div class="sub">{% if ui_lang == 'en' %}Can sign in{% else %}লগইন করতে পারবে{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-amber"><i class="fa-solid fa-user-clock"></i></div><h3>{% if ui_lang == 'en' %}Pending / inactive{% else %}অপেক্ষমাণ / নিষ্ক্রিয়{% endif %}</h3><div class="value">{{ stats.inactive }}</div><div class="sub">{% if ui_lang == 'en' %}OTP not verified or disabled{% else %}OTP যাচাই হয়নি বা নিষ্ক্রিয়{% endif %}</div></div>
+  <div class="card kpi"><div class="icon i-violet"><i class="fa-solid fa-user-shield"></i></div><h3>{% if ui_lang == 'en' %}Admins / staff{% else %}অ্যাডমিন / স্টাফ{% endif %}</h3><div class="value">{{ stats.staff }}</div><div class="sub">{% if ui_lang == 'en' %}Elevated access{% else %}উন্নত প্রবেশাধিকার{% endif %}</div></div>
+</div>
+
+<div class="card mt">
+  <div class="toolbar">
+    <div class="filters" aria-label="Filters">
+      <a class="pill {% if status == 'all' or not status %}active{% endif %}" href="{% url 'web:manage_users' %}?status=all{% if q %}&q={{ q|urlencode }}{% endif %}"><i class="fa-solid fa-layer-group"></i> {% if ui_lang == 'en' %}All{% else %}সব{% endif %} <span class="n">{{ stats.total }}</span></a>
+      <a class="pill {% if status == 'active' %}active{% endif %}" href="{% url 'web:manage_users' %}?status=active{% if q %}&q={{ q|urlencode }}{% endif %}"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i> {% if ui_lang == 'en' %}Active{% else %}সক্রিয়{% endif %} <span class="n">{{ stats.active }}</span></a>
+      <a class="pill {% if status == 'inactive' %}active{% endif %}" href="{% url 'web:manage_users' %}?status=inactive{% if q %}&q={{ q|urlencode }}{% endif %}"><i class="fa-solid fa-clock" style="color:var(--warn)"></i> {% if ui_lang == 'en' %}Pending{% else %}অপেক্ষমাণ{% endif %} <span class="n">{{ stats.inactive }}</span></a>
+      <a class="pill {% if status == 'staff' %}active{% endif %}" href="{% url 'web:manage_users' %}?status=staff{% if q %}&q={{ q|urlencode }}{% endif %}"><i class="fa-solid fa-shield-halved" style="color:var(--violet)"></i> {% if ui_lang == 'en' %}Admins{% else %}অ্যাডমিন{% endif %} <span class="n">{{ stats.staff }}</span></a>
+    </div>
+    <div class="searchbox">
+      <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0">
+        <input type="hidden" name="status" value="{{ status|default:'all' }}">
+        <input type="text" name="q" value="{{ q }}" placeholder="{% if ui_lang == 'en' %}Search username, email, name, phone…{% else %}ইউজারনেম, ইমেইল, নাম, ফোন খুঁজুন…{% endif %}" aria-label="Search users">
+        <button class="btn primary sm" type="submit"><i class="fa-solid fa-magnifying-glass"></i> {% if ui_lang == 'en' %}Search{% else %}খুঁজুন{% endif %}</button>
+        {% if q %}<a class="btn sm" href="{% url 'web:manage_users' %}?status={{ status|default:'all' }}">{% t "Clear" %}</a>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 6px;flex-wrap:wrap">
+    <div class="kpi-mini"><i class="fa-solid fa-list"></i> {% if ui_lang == 'en' %}Showing {{ shown }} account{{ shown|pluralize }}{% else %}{{ shown }}টি অ্যাকাউন্ট দেখানো হচ্ছে{% endif %}{% if q %} · “{{ q }}”{% endif %}</div>
+    <div class="muted" style="font-size:12px">{% if ui_lang == 'en' %}Newest first{% else %}নতুন আগে{% endif %}</div>
+  </div>
+
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>{% if ui_lang == 'en' %}Account{% else %}অ্যাকাউন্ট{% endif %}</th>
+        <th>{% if ui_lang == 'en' %}Email{% else %}ইমেইল{% endif %}</th>
+        <th>{% if ui_lang == 'en' %}Phone{% else %}ফোন{% endif %}</th>
+        <th>{% t "Status" %}</th>
+        <th>{% if ui_lang == 'en' %}Role{% else %}ভূমিকা{% endif %}</th>
+        <th>{% if ui_lang == 'en' %}Joined{% else %}যোগদান{% endif %}</th>
+        <th>{% if ui_lang == 'en' %}Last login{% else %}শেষ লগইন{% endif %}</th>
+        <th>{% if ui_lang == 'en' %}Actions{% else %}অ্যাকশন{% endif %}</th>
+      </tr></thead>
+      <tbody>
+      {% for r in rows %}{% with u=r.u %}
+        <tr>
+          <td>
+            <div class="urow">
+              <div class="avatar {% if u.is_superuser or u.is_staff %}staff{% elif not u.is_active %}off{% endif %}">{{ r.initial }}</div>
+              <div>
+                <div class="uname">{{ r.name }}</div>
+                <div class="usub">@{{ u.username }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="mono muted" style="font-size:13px">{{ u.email|default:"—" }}</td>
+          <td class="muted">{{ u.phone|default:"—" }}</td>
+          <td>
+            {% if u.is_active %}<span class="badge b-ok"><i class="fa-solid fa-circle-check"></i> {% if ui_lang == 'en' %}Active{% else %}সক্রিয়{% endif %}</span>
+            {% else %}<span class="badge b-warn"><i class="fa-solid fa-clock"></i> {% if ui_lang == 'en' %}Pending verify{% else %}যাচাই বাকি{% endif %}</span>{% endif %}
+          </td>
+          <td>{% if u.is_superuser %}<span class="badge b-brand"><i class="fa-solid fa-crown"></i> Superuser</span>{% elif u.is_staff %}<span class="badge b-info"><i class="fa-solid fa-shield"></i> Staff</span>{% else %}<span class="badge b-muted">{% if ui_lang == 'en' %}User{% else %}ব্যবহারকারী{% endif %}</span>{% endif %}</td>
+          <td class="mono muted" style="white-space:nowrap;font-size:12px">{{ u.date_joined|date:"Y-m-d H:i" }}</td>
+          <td class="mono muted" style="white-space:nowrap;font-size:12px">{% if u.last_login %}{{ u.last_login|date:"Y-m-d H:i" }}{% else %}<span style="color:var(--text-faint)">—</span>{% endif %}</td>
+          <td>
+            {% if u.pk == request.user.pk %}
+              <span class="badge b-muted">{% if ui_lang == 'en' %}You{% else %}আপনি{% endif %}</span>
+            {% else %}
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                {% if u.is_active %}
+                  <form method="post" style="margin:0">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.pk }}"><input type="hidden" name="action" value="deactivate"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn sm" type="submit" title="{% if ui_lang == 'en' %}Deactivate{% else %}নিষ্ক্রিয় করুন{% endif %}"><i class="fa-solid fa-user-slash"></i></button></form>
+                {% else %}
+                  <form method="post" style="margin:0">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.pk }}"><input type="hidden" name="action" value="activate"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn sm" type="submit" title="{% if ui_lang == 'en' %}Activate{% else %}সক্রিয় করুন{% endif %}"><i class="fa-solid fa-user-check"></i></button></form>
+                {% endif %}
+                <form method="post" style="margin:0" onsubmit="return confirm('{% if ui_lang == 'en' %}Delete {{ u.username }} permanently? This cannot be undone.{% else %}{{ u.username }} স্থায়ীভাবে মুছে ফেলবেন? এটি ফেরত নেওয়া যাবে না।{% endif %}');">{% csrf_token %}<input type="hidden" name="user_id" value="{{ u.pk }}"><input type="hidden" name="action" value="delete"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn sm" type="submit" style="color:var(--danger);border-color:rgba(220,38,38,.25)" title="{% if ui_lang == 'en' %}Delete{% else %}মুছুন{% endif %}"><i class="fa-solid fa-trash"></i></button></form>
+              </div>
+            {% endif %}
+          </td>
+        </tr>
+      {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="muted" style="font-size:12px;margin-top:12px;display:flex;align-items:center;gap:8px"><i class="fa-solid fa-lock"></i> {% if ui_lang == 'en' %}Sensitive data (passwords, OTP codes, secrets) is never shown. Showing up to 300 recent accounts.{% else %}সংবেদনশীল তথ্য (পাসওয়ার্ড, OTP কোড, সিক্রেট) কখনো দেখানো হয় না। সর্বশেষ ৩০০টি অ্যাকাউন্ট দেখানো হচ্ছে।{% endif %}</div>
+  {% else %}
+    <div class="empty"><div class="ei"><i class="fa-solid fa-user-magnifying-glass"></i></div><h4>{% if ui_lang == 'en' %}No accounts match{% else %}কোনো অ্যাকাউন্ট মেলেনি{% endif %}</h4><p>{% if ui_lang == 'en' %}Try a different search or filter.{% else %}অন্য সার্চ বা ফিল্টার চেষ্টা করুন।{% endif %} <a href="{% url 'web:manage_users' %}">{% if ui_lang == 'en' %}Reset{% else %}রিসেট{% endif %}</a></p></div>
+  {% endif %}
+</div>
+
+{% if request.user.is_staff or request.user.is_superuser %}
+<div class="card mt" style="border-color:rgba(254,202,202,.7)">
+  <div class="section-head"><h3 style="color:#991b1b"><i class="fa-solid fa-triangle-exclamation"></i> {% if ui_lang == 'en' %}Danger zone{% else %}ডেঞ্জার জোন{% endif %}</h3></div>
+  <p class="muted" style="margin:0 0 12px">{% if ui_lang == 'en' %}Wipe all ERP data (transactions, dues, customers, partners, businesses, ledger, etc.) and keep only user accounts. Requires typing <strong>DELETE</strong>.{% else %}সব ERP ডাটা (লেনদেন, বাকি, গ্রাহক, পার্টনার, ব্যবসা, লেজার ইত্যাদি) মুছে ফেলুন, শুধু ইউজার অ্যাকাউন্ট থাকবে। নিশ্চিত করতে <strong>DELETE</strong> লিখতে হবে।{% endif %}</p>
+  <a class="btn" href="{% url 'web:reset_data' %}" style="background:rgba(254,226,226,.7);color:#991b1b;border-color:rgba(254,202,202,.8)"><i class="fa-solid fa-trash-can"></i> {% if ui_lang == 'en' %}Open reset page{% else %}রিসেট পেজ খুলুন{% endif %}</a>
+</div>
+{% endif %}
+{% endblock %}

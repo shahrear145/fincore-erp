@@ -1,0 +1,52 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Create business{% else %}ব্যবসা তৈরি করুন{% endif %} — FinCore ERP{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-building-circle-check" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Create your business{% else %}আপনার ব্যবসা তৈরি করুন{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Set up a business workspace for transactions, customers, partner-wise dues, sales, inventory, and accounting. You’ll become the admin.{% else %}লেনদেন, গ্রাহক, পার্টনার-ভিত্তিক বাকি, বিক্রয়, মজুদ ও হিসাবের জন্য একটি ব্যবসা ওয়ার্কস্পেস তৈরি করুন। আপনি অ্যাডমিন হবেন।{% endif %}</p>
+  </div>
+  <div class="chips"><span class="chip brand"><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Secure setup{% else %}নিরাপদ সেটআপ{% endif %}</span><span class="chip info">BDT · Asia/Dhaka</span></div>
+</div>
+
+<div class="split-eq">
+  <div class="card">
+    <div class="section-head"><h3>{% if ui_lang == 'en' %}Business details{% else %}ব্যবসার তথ্য{% endif %}</h3><span class="badge b-muted">{% if ui_lang == 'en' %}Takes a minute{% else %}এক মিনিট লাগবে{% endif %}</span></div>
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+      <div class="field full">
+        <label for="b-name">{% if ui_lang == 'en' %}Business name{% else %}ব্যবসার নাম{% endif %} <span style="color:var(--danger)">*</span></label>
+        <input id="b-name" name="name" required value="{{ form.name|default:'' }}" placeholder="{% if ui_lang == 'en' %}e.g., Rahim Traders{% else %}যেমন: রহিম ট্রেডার্স{% endif %}">
+      </div>
+      <div class="field">
+        <label for="b-phone">{% if ui_lang == 'en' %}Contact phone{% else %}যোগাযোগ ফোন{% endif %}</label>
+        <input id="b-phone" name="contact_phone" value="{{ form.contact_phone|default:'' }}" placeholder="01XXXXXXXXX">
+      </div>
+      <div class="field">
+        <label for="b-email">{% if ui_lang == 'en' %}Contact email{% else %}যোগাযোগ ইমেইল{% endif %}</label>
+        <input id="b-email" name="contact_email" type="email" value="{{ form.contact_email|default:'' }}" placeholder="business@example.com">
+      </div>
+      <div class="field full">
+        <label for="b-addr">{% if ui_lang == 'en' %}Address{% else %}ঠিকানা{% endif %}</label>
+        <textarea id="b-addr" name="address" rows="3" placeholder="{% if ui_lang == 'en' %}Business address (optional){% else %}ব্যবসার ঠিকানা (ঐচ্ছিক){% endif %}">{{ form.address|default:'' }}</textarea>
+      </div>
+      <div class="field full" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn primary" type="submit"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Create business{% else %}ব্যবসা তৈরি করুন{% endif %}</button>
+        <a class="btn" href="{% url 'web:dashboard' %}">{% if ui_lang == 'en' %}Cancel{% else %}বাতিল{% endif %}</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" style="background:linear-gradient(180deg,rgba(240,253,250,.7),rgba(255,255,255,.75))">
+    <div class="section-head"><h3>{% if ui_lang == 'en' %}What you’ll get{% else %}আপনি কী পাবেন{% endif %}</h3></div>
+    <div style="display:flex;flex-direction:column;gap:12px;color:var(--text-body);font-size:14px">
+      <div style="display:flex;gap:10px;align-items:flex-start"><i class="fa-solid fa-circle-check" style="color:var(--brand);margin-top:3px"></i><div><strong>{% if ui_lang == 'en' %}Admin access{% else %}অ্যাডমিন অ্যাক্সেস{% endif %}</strong><div class="muted">{% if ui_lang == 'en' %}You’ll be the business admin with full permissions.{% else %}আপনি পূর্ণ অনুমতিসহ ব্যবসার অ্যাডমিন হবেন।{% endif %}</div></div></div>
+      <div style="display:flex;gap:10px;align-items:flex-start"><i class="fa-solid fa-circle-check" style="color:var(--brand);margin-top:3px"></i><div><strong>{% if ui_lang == 'en' %}Partner-wise dues{% else %}পার্টনার-ভিত্তিক বাকি{% endif %}</strong><div class="muted">{% if ui_lang == 'en' %}Separate due books per partner — never mixed.{% else %}প্রতি পার্টনারের আলাদা বাকি হিসাব — কখনো মিশবে না।{% endif %}</div></div></div>
+      <div style="display:flex;gap:10px;align-items:flex-start"><i class="fa-solid fa-circle-check" style="color:var(--brand);margin-top:3px"></i><div><strong>{% if ui_lang == 'en' %}Accurate accounting{% else %}নির্ভুল হিসাব{% endif %}</strong><div class="muted">{% if ui_lang == 'en' %}৳ decimal money, double-entry ledger, audit trail.{% else %}৳ দশমিক হিসাব, ডাবল-এন্ট্রি লেজার, অডিট ট্রেইল।{% endif %}</div></div></div>
+      <div style="display:flex;gap:10px;align-items:flex-start"><i class="fa-solid fa-circle-check" style="color:var(--brand);margin-top:3px"></i><div><strong>{% if ui_lang == 'en' %}Personal stays separate{% else %}ব্যক্তিগত হিসাব আলাদা{% endif %}</strong><div class="muted">{% if ui_lang == 'en' %}Your personal finance is never mixed with business data.{% else %}আপনার ব্যক্তিগত হিসাব ব্যবসার ডাটার সাথে মিশবে না।{% endif %}</div></div></div>
+    </div>
+    <div class="msg info" style="margin-top:16px"><i class="fa-solid fa-circle-info"></i><div>{% if ui_lang == 'en' %}You can add partners, customers, and products after creating the business (via API/Admin for now, and more web forms over time).{% else %}ব্যবসা তৈরি করার পর পার্টনার, গ্রাহক ও পণ্য যোগ করতে পারবেন (এখন API/Admin দিয়ে, ধীরে ধীরে আরো ওয়েব ফর্ম যোগ হবে)।{% endif %}</div></div>
+  </div>
+</div>
+{% endblock %}

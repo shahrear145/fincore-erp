@@ -1,0 +1,51 @@
+{% load fmt %}
+<details class="ps-card ps-sec" id="{{ anchor }}" data-tone="{{ tone }}">
+  <summary>
+    <span class="ps-sec-ic"><i class="fa-solid {{ icon }}"></i></span>
+    <span class="ps-sec-title">
+      <b>{% if kind == 'cash' %}{% if ui_lang == 'en' %}Drawer cash{% else %}ড্রয়ারের নগদ{% endif %}{% elif kind == 'wallet' %}{% if ui_lang == 'en' %}bKash / Nagad / bank{% else %}বিকাশ / নগদ / ব্যাংক{% endif %}{% elif kind == 'advances' %}{% if ui_lang == 'en' %}Customer advances{% else %}কাস্টমারের অগ্রিম{% endif %}{% else %}{% if ui_lang == 'en' %}Bills to pay{% else %}খরচ বাকি{% endif %}{% endif %}</b>
+      <small>{% if ui_lang == 'en' %}{{ section.count }} journal line(s) — click to trace every taka{% else %}{{ section.count }}টি জার্নাল লাইন — প্রতিটি টাকার উৎস দেখুন{% endif %}</small>
+    </span>
+    <span class="ps-sec-total {% if section.total < 0 %}neg{% endif %}">{{ section.total|signed }}</span>
+    <i class="fa-solid fa-chevron-down ps-chev"></i>
+  </summary>
+  <div class="ps-sec-body">
+    {% if section.rows %}
+      <div class="ps-table-wrap">
+        <table class="ps-table">
+          <thead>
+            <tr>
+              <th>{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</th>
+              <th>{% if ui_lang == 'en' %}Description / source{% else %}বিবরণ / উৎস{% endif %}</th>
+              <th class="num">{% if ui_lang == 'en' %}Debit{% else %}ডেবিট{% endif %}</th>
+              <th class="num">{% if ui_lang == 'en' %}Credit{% else %}ক্রেডিট{% endif %}</th>
+              <th class="num">{% if ui_lang == 'en' %}Running{% else %}চলমান{% endif %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in section.rows %}
+            <tr>
+              <td style="white-space:nowrap">{{ r.date|date:'d M Y' }}</td>
+              <td>
+                {{ r.memo }}
+                <div class="muted">
+                  {{ r.source_label }}{% if r.journal_no %} · {{ r.journal_no }}{% endif %}
+                  {% if r.source_url %}<a class="ps-src" href="{{ r.source_url }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>{% endif %}
+                </div>
+              </td>
+              <td class="num">{% if r.debit %}{{ r.debit|signed }}{% else %}—{% endif %}</td>
+              <td class="num">{% if r.credit %}{{ r.credit|signed }}{% else %}—{% endif %}</td>
+              <td class="num {% if r.running < 0 %}neg{% endif %}">{{ r.running|signed }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if section.truncated %}
+        <div class="ps-more">{% if ui_lang == 'en' %}Showing the latest {{ section.rows|length }} of {{ section.count }} lines.{% else %}সর্বশেষ {{ section.rows|length }}টি লাইন দেখানো হচ্ছে (মোট {{ section.count }}টি)।{% endif %}</div>
+      {% endif %}
+    {% else %}
+      <div class="ps-empty">{% if ui_lang == 'en' %}No journal lines yet.{% else %}এখনো কোনো জার্নাল লাইন নেই।{% endif %}</div>
+    {% endif %}
+  </div>
+</details>

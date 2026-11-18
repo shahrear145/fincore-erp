@@ -1,0 +1,385 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Summary (হিসাব সারাংশ){% else %}হিসাব সারাংশ{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .sum-hero{border-radius:26px;padding:22px 26px;margin-bottom:16px;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#04101f,#0b2545 52%,#0b4a4a);color:#fff;border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow-lg)}
+  .sum-hero::after{content:"";position:absolute;right:-70px;top:-90px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(45,212,191,.28),transparent 66%)}
+  .sum-hero .hl{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7ea3cd}
+  .sum-hero .hv{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin-top:2px}
+  .sum-hero .hv a{color:inherit;text-decoration:none;display:inline-block;transition:transform .16s var(--ease),text-shadow .16s var(--ease)}
+  .sum-hero .hv a:hover{transform:translateY(-1px);text-shadow:0 0 22px rgba(45,212,191,.45)}
+  .sum-hero .hv-hint{display:inline-flex;align-items:center;gap:5px;margin-left:9px;padding:3px 9px;border-radius:999px;
+    font-size:10.5px;font-weight:800;letter-spacing:.02em;color:#a7f3d0;background:rgba(45,212,191,.14);
+    border:1px solid rgba(45,212,191,.32);text-decoration:none;vertical-align:middle;transition:background .16s,transform .16s}
+  .sum-hero .hv-hint:hover{background:rgba(45,212,191,.26);transform:translateY(-1px)}
+  .sum-hero .hs{font-size:12.5px;color:#a9c6e8;margin-top:3px}
+  .sum-hero .eq{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;position:relative;z-index:2}
+  .eq-box{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:14px;min-width:170px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+  .eq-box .k{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8fb0d6}
+  .eq-box .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:#e6f0fb}
+  .eq-box.have .v{color:#5eead4} .eq-box.owe .v{color:#fca5a5}
+  .eq-box.net{background:linear-gradient(135deg,rgba(45,212,191,.24),rgba(255,255,255,.06));border-color:rgba(45,212,191,.36)}
+  .eq-box.net .v{color:#5eead4}
+  .eq-op{color:rgba(255,255,255,.45);font-size:17px;font-weight:800}
+
+  .blk-head{display:flex;align-items:center;gap:10px;margin:20px 2px 12px}
+  .blk-head .ic{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;font-size:13px;
+    background:linear-gradient(135deg,#fff8e1,#fde68a);color:#92580b;border:1px solid rgba(201,150,27,.3)}
+  .blk-head h3{margin:0;font-size:16px;font-weight:800;color:var(--ink-2)}
+  .blk-head .sub{font-size:12.5px;color:var(--muted);font-weight:600}
+  .blk-head .tag{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 11px;border-radius:999px}
+  .blk-head .tag.have{background:var(--ok-soft);color:var(--ok-ink)}
+  .blk-head .tag.owe{background:var(--danger-soft);color:var(--danger-ink)}
+
+  .pos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
+
+  .pos-box{position:relative;overflow:hidden;border-radius:18px;padding:16px 17px;
+    border:1px solid rgba(255,255,255,.9);
+    background-image:linear-gradient(150deg,rgba(255,255,255,.97),rgba(255,253,247,.94));
+    box-shadow:0 18px 40px -20px rgba(120,90,20,.24),0 4px 12px -5px rgba(11,37,69,.10);
+    transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+  .pos-box:hover{transform:translateY(-4px);box-shadow:0 28px 60px -22px rgba(120,90,20,.3)}
+  .pos-box::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background-image:linear-gradient(90deg,#8a6a12 0%,#b8860b 20%,#e8c46a 44%,#f3e3b6 66%,#b8860b 100%);
+    background-size:100% 3px;background-repeat:no-repeat;background-position:top left;
+    opacity:.85}
+  .pos-box .k{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+    text-transform:uppercase;color:#8a6a12}
+  .pos-box .k i{font-size:12px}
+  .pos-box .v{font-size:27px;font-weight:800;font-variant-numeric:tabular-nums;color:#0b2545;margin-top:7px;letter-spacing:-.02em}
+  .pos-box .v.neg{color:#be123c}
+  .pos-box .s{font-size:12px;color:#5c6b80;font-weight:600;margin-top:4px;line-height:1.5}
+  .pos-box.owe-card::before{background-image:linear-gradient(90deg,#9f1239 0%,#e11d48 30%,#fda4af 60%,#9f1239 100%)}
+  .pos-box.owe-card .k{color:#be185d}
+  .pos-box.owe-card .v{color:#9f1239}
+  .pos-box.due-box::before{background-image:linear-gradient(90deg,#91570b 0%,#d2921b 34%,#fde68a 66%,#d2921b 100%)}
+  .pos-box.due-box .k{color:#a16207}
+  .pos-box.due-box .v{color:#92400e}
+  .sub-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a6a12;
+    margin:16px 2px 9px;display:flex;align-items:center;gap:8px}
+  .sub-label::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(184,134,11,.28),transparent)}
+  .eq-box.due .v{color:#fcd34d}
+
+  .result-strip{margin-top:14px;border-radius:18px;padding:16px 20px;display:flex;align-items:center;
+    justify-content:space-between;gap:16px;flex-wrap:wrap;
+    background:linear-gradient(135deg,#0b2545,#123a63 55%,#0d9488);color:#fff;box-shadow:0 22px 48px -20px rgba(11,37,69,.45)}
+  .result-strip .k{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9fc4e8}
+  .result-strip .v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .result-strip .note{font-size:12px;color:#bcd6ee;max-width:520px;line-height:1.5}
+
+  .info-strip{display:flex;gap:11px;align-items:flex-start;margin-top:14px;padding:13px 16px;border-radius:16px;
+    background:linear-gradient(135deg,rgba(237,233,254,.9),rgba(253,247,230,.85));
+    border:1px solid rgba(167,139,250,.35);box-shadow:0 12px 28px -18px rgba(76,29,149,.28)}
+  .info-strip i{color:#6d28d9;font-size:15px;margin-top:1px}
+  .info-strip b{display:block;font-size:13.5px;font-weight:800;color:#2e1065}
+  .info-strip span{display:block;font-size:12px;color:#615b7a;margin-top:2px;line-height:1.5}
+
+  .sum-presets{display:flex;gap:7px;flex-wrap:wrap}
+  .sum-chip{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:999px;font-size:12.5px;
+    font-weight:700;text-decoration:none;border:1px solid var(--line);background:rgba(255,255,255,.9);color:var(--muted);transition:all .16s var(--ease)}
+  .sum-chip:hover{border-color:rgba(20,184,166,.4);color:var(--brand);transform:translateY(-1px)}
+  .sum-chip.on{background:linear-gradient(135deg,#0b2545 0%,#145f6b 60%,#b8860b 120%);color:#fff;border-color:transparent;box-shadow:0 8px 20px -10px rgba(11,37,69,.5)}
+
+  .sum-table td{vertical-align:middle}
+  .sum-table th{font-size:10px;letter-spacing:.09em}
+  .sum-table tr.day-row{cursor:pointer}
+  .sum-table tr.day-row:hover td{background:rgba(253,247,230,.8)}
+  .sum-table tfoot th{
+    position:sticky;bottom:0;z-index:2;
+    background:linear-gradient(180deg,rgba(255,253,247,.97),rgba(250,248,242,.99));
+    font-size:15px;font-weight:800;letter-spacing:-.01em;text-transform:none;
+    color:var(--ink);padding:14px 11px;border-top:2px solid rgba(184,134,11,.3);border-bottom:0;
+  }
+  .sum-table tfoot th:first-child{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#8a6a12;text-align:left}
+  .sum-table tfoot th.num{white-space:nowrap}
+  .sum-table tfoot th.net-cell{font-size:18px}
+  .sum-table thead tr.grp th{
+    font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;
+    text-align:center;color:#fff;padding:12px 12px;
+    text-shadow:0 1px 3px rgba(8,17,32,.30);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.30),inset 0 -1px 0 rgba(8,17,32,.14)}
+  .sum-table thead tr.grp .hl{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+  .sum-table thead tr.grp th.g-cash{background:linear-gradient(135deg,#0a615a,#19b5a0)}
+  .sum-table thead tr.grp th.g-net{background:linear-gradient(135deg,#7a5b06,#c9961b)}
+  .sum-table thead tr.grp th.g-side{background:linear-gradient(135deg,#4c1d95,#7c3aed)}
+  .sum-table thead tr.grp th.g-due{background:linear-gradient(135deg,#91570b,#d2921b)}
+  .sum-table thead tr.grp th.g-date{background:linear-gradient(135deg,#0b2545,#1e4d7c)}
+  .sum-table thead tr.grp th:not(:first-child){border-left:1px solid rgba(255,255,255,.42)}
+  .sum-table td{padding:11px 11px;white-space:nowrap}
+  .sum-table th{padding:10px 11px}
+  .sum-table td.net-cell{font-size:15px;font-weight:800}
+  .sum-table td.hand-cell{font-size:14.5px;font-weight:800;color:#0b2545}
+  .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .in-txt{color:var(--ok-ink)} .out-txt{color:var(--danger-ink)}
+
+  .month-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:9px}
+  .month-cell{border-radius:13px;padding:10px 11px;border:1px solid rgba(255,255,255,.85);
+    background:linear-gradient(180deg,#fff,#f7fafd);box-shadow:var(--shadow-sm);text-decoration:none;color:inherit;
+    transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
+  .month-cell:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .month-cell .m{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .month-cell .n{font-size:14.5px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
+  .month-cell .c{font-size:9.5px;color:var(--muted-2);font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .month-cell.on{background:linear-gradient(135deg,#0b2545,#145f6b);border-color:transparent}
+  .month-cell.on .m,.month-cell.on .c{color:rgba(255,255,255,.85)} .month-cell.on .n{color:#fff}
+</style>
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-chart-pie" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Summary (হিসাব সারাংশ){% else %}হিসাব সারাংশ{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}What the business has, what it owes, and the real difference — every box read straight from the ledger.{% else %}ব্যবসার কাছে কত আছে, কত ফেরত দিতে হবে, আর আসল পার্থক্য কত — প্রতিটি ঘর সরাসরি হিসাব থেকে।{% endif %}</p>
+  </div>
+  {% if active_business %}<div class="chips"><span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span><span class="chip info"><i class="fa-solid fa-calendar-range"></i> {{ dfrom }} → {{ dto }}</span></div>{% endif %}
+</div>
+
+<!-- ============ filters ============ -->
+<div class="exp-card" style="margin-bottom:16px">
+  <div class="exp-body" style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
+    <form method="get" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:0">
+      <div class="f-field">
+        <label for="s-from">{% if ui_lang == 'en' %}From date{% else %}কোন তারিখ থেকে{% endif %}</label>
+        <input id="s-from" type="date" name="from" value="{{ dfrom|date:'Y-m-d' }}">
+      </div>
+      <div class="f-field">
+        <label for="s-to">{% if ui_lang == 'en' %}To date{% else %}কোন তারিখ পর্যন্ত{% endif %}</label>
+        <input id="s-to" type="date" name="to" value="{{ dto|date:'Y-m-d' }}">
+      </div>
+      <button type="submit" class="btn sm primary" style="height:40px"><i class="fa-solid fa-magnifying-glass"></i> {% if ui_lang == 'en' %}Show{% else %}দেখুন{% endif %}</button>
+    </form>
+    <div class="sum-presets" style="margin-left:auto">
+      <a class="sum-chip {% if preset == 'today' %}on{% endif %}" href="?preset=today">{% if ui_lang == 'en' %}Today{% else %}আজ{% endif %}</a>
+      <a class="sum-chip {% if preset == 'week' %}on{% endif %}" href="?preset=week">{% if ui_lang == 'en' %}This week{% else %}এই সপ্তাহ{% endif %}</a>
+      <a class="sum-chip {% if preset == 'month' %}on{% endif %}" href="?preset=month">{% if ui_lang == 'en' %}This month{% else %}এই মাস{% endif %}</a>
+      <a class="sum-chip {% if preset == 'last_month' %}on{% endif %}" href="?preset=last_month">{% if ui_lang == 'en' %}Last month{% else %}গত মাস{% endif %}</a>
+      <a class="sum-chip {% if preset == 'year' %}on{% endif %}" href="?preset=year">{% if ui_lang == 'en' %}This year{% else %}এই বছর{% endif %}</a>
+    </div>
+    <div class="export-group">
+      <span class="eg-label">{% if ui_lang == 'en' %}Export{% else %}এক্সপোর্ট{% endif %}</span>
+      <a class="btn sm export-btn pdf" href="{% url 'web:export_summary' 'pdf' %}?from={{ dfrom|date:'Y-m-d' }}&to={{ dto|date:'Y-m-d' }}" download data-no-transition title="PDF ডাউনলোড"><i class="fa-solid fa-file-pdf"></i> <span style="font-weight:800">PDF</span></a>
+      <a class="btn sm export-btn xlsx" href="{% url 'web:export_summary' 'xlsx' %}?from={{ dfrom|date:'Y-m-d' }}&to={{ dto|date:'Y-m-d' }}" download data-no-transition title="Excel ডাউনলোড"><i class="fa-solid fa-file-excel"></i> <span style="font-weight:800">Excel</span></a>
+      <a class="btn sm export-btn docx" href="{% url 'web:export_summary' 'docx' %}?from={{ dfrom|date:'Y-m-d' }}&to={{ dto|date:'Y-m-d' }}" download data-no-transition title="Word ডাউনলোড"><i class="fa-solid fa-file-word"></i> <span style="font-weight:800">Word</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ the net position ============ -->
+<div class="sum-hero">
+  <div class="hl">{% if ui_lang == 'en' %}Your net position right now{% else %}আপনার নিট অবস্থান এখন{% endif %}</div>
+  <div class="hv"><a href="{% url 'web:position' %}" title="{% if ui_lang == 'en' %}Open the full statement{% else %}পূর্ণ বিবরণ খুলুন{% endif %}">{{ position.net|signed }}</a><a class="hv-hint" href="{% url 'web:position' %}">{% if ui_lang == 'en' %}See inside →{% else %}ভেতরটা দেখুন →{% endif %}</a></div>
+  <div class="hs">{% if ui_lang == 'en' %}what the business has − what it still owes · click the amount for the full audited statement{% else %}ব্যবসার কাছে যা আছে − যা ফেরত দিতে হবে · টাকার উপর ক্লিক করলে পূর্ণ অডিটেড বিবরণ{% endif %}</div>
+  <div class="eq">
+    <div class="eq-box have">
+      <span class="k">{% if ui_lang == 'en' %}In hand now{% else %}হাতে আছে এখন{% endif %}</span>
+      <span class="v">{{ position.cash_in_hand|signed }}</span>
+    </div>
+    <span class="eq-op">+</span>
+    <div class="eq-box due">
+      <span class="k">{% if ui_lang == 'en' %}Coming in (baki){% else %}আসবে (বাকি){% endif %}</span>
+      <span class="v">{{ position.due|signed }}</span>
+    </div>
+    <span class="eq-op">−</span>
+    <div class="eq-box owe">
+      <span class="k">{% if ui_lang == 'en' %}To be returned{% else %}ফেরত দিতে হবে{% endif %}</span>
+      <span class="v">{{ position.owe|signed }}</span>
+    </div>
+    <span class="eq-op">=</span>
+    <div class="eq-box net">
+      <span class="k">{% if ui_lang == 'en' %}Net position{% else %}নিট অবস্থান{% endif %}</span>
+      <span class="v">{{ position.net|signed }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ block 2 — what I owe ============ -->
+<div class="blk-head">
+  <span class="ic"><i class="fa-solid fa-scale-unbalanced"></i></span>
+  <div>
+    <h3>{% if ui_lang == 'en' %}What the business still owes{% else %}ব্যবসার যা ফেরত দিতে হবে{% endif %}</h3>
+    <div class="sub">{% if ui_lang == 'en' %}loans to repay, customer advances and bills still to pay{% else %}ঋণ পরিশোধ, কাস্টমারের অগ্রিম আর বাকি বিল{% endif %}</div>
+  </div>
+  <span class="tag owe">{% if ui_lang == 'en' %}Total{% else %}মোট{% endif %} {{ position.owe|signed }}</span>
+</div>
+<div class="pos-grid">
+  <div class="pos-box owe-card">
+    <div class="k"><i class="fa-solid fa-hand-holding-dollar"></i> {% if ui_lang == 'en' %}Loan to repay{% else %}ঋণদাতাকে ফেরত{% endif %}</div>
+    <div class="v">{{ position.loan_outstanding|signed }}</div>
+    <div class="s">{% if ui_lang == 'en' %}took {{ position.loan_received|money }} · repaid {{ position.loan_returned|money }}{% else %}নিয়েছি {{ position.loan_received|money }} · পরিশোধ {{ position.loan_returned|money }}{% endif %}</div>
+  </div>
+  <div class="pos-box owe-card">
+    <div class="k"><i class="fa-solid fa-users"></i> {% if ui_lang == 'en' %}Customer advances{% else %}কাস্টমারের অগ্রিম{% endif %}</div>
+    <div class="v">{{ position.advances|signed }}</div>
+    <div class="s">{% if ui_lang == 'en' %}money taken in advance — to be returned{% else %}আগেই টাকা নেওয়া — ফেরত দিতে হবে{% endif %}</div>
+  </div>
+  <div class="pos-box owe-card">
+    <div class="k"><i class="fa-solid fa-receipt"></i> {% if ui_lang == 'en' %}Bills to pay{% else %}খরচ বাকি{% endif %}</div>
+    <div class="v">{{ position.payable|signed }}</div>
+    <div class="s">{% if ui_lang == 'en' %}supplier bills still open{% else %}সাপ্লায়ারের বিল এখনো বাকি{% endif %}</div>
+  </div>
+</div>
+
+<!-- ============ investors' money (own money, not a debt) ============ -->
+<div class="info-strip">
+  <i class="fa-solid fa-handshake"></i>
+  <div>
+    <b>{% if ui_lang == 'en' %}Investors' capital{% else %}বিনিয়োগকারীর মূল{% endif %} {{ position.invest_outstanding|signed }}</b>
+    <span>{% if ui_lang == 'en' %}invested {{ position.invest_received|money }} · withdrawn {{ position.invest_returned|money }} — this is your own money, so it is not counted as a debt and does not change the net position.{% else %}বিনিয়োগ {{ position.invest_received|money }} · ফেরত {{ position.invest_returned|money }} — এটি আপনার নিজের টাকা, তাই ফেরত দিতে হবে না এবং নিট অবস্থানেও যোগ হয়নি।{% endif %}</span>
+  </div>
+</div>
+
+<!-- ============ result ============ -->
+<div class="result-strip">
+  <div>
+    <div class="k">{% if ui_lang == 'en' %}Net position = have − owe{% else %}নিট অবস্থান = আমার টাকা − আমার দেনা{% endif %}</div>
+    <div class="v">{{ position.net|signed }}</div>
+  </div>
+  <div class="note">{% if ui_lang == 'en' %}Cash in hand (drawer + mobile money) + what the customers still owe (not in the drawer yet) − loan to repay − customer advances − bills to pay. The money the customers already paid sits inside the drawer cash, so it is never counted twice.{% if not position.invest_outstanding %} The investors' capital is your own money, so it is not a debt.{% endif %} Your personal money {{ personal_money|money }} is separate from the business.{% else %}হাতে থাকা নগদ (ড্রয়ার + মোবাইল) + কাস্টমাররা এখনো যা দেবে (ড্রয়ারে এখন নেই) − ঋণ পরিশোধ − কাস্টমারের অগ্রিম − বাকি বিল। যে টাকা কাস্টমাররা ফেরত দিয়ে দিয়েছে সেটা ড্রয়ারের নগদের ভেতরেই আছে, তাই কখনো দুইবার গোনা হয় না।{% if not position.invest_outstanding %} বিনিয়োগকারীর মূল আপনার নিজের টাকা, তাই দেনা নয়।{% endif %} আপনার ব্যক্তিগত টাকা {{ personal_money|money }} ব্যবসা থেকে আলাদা।{% endif %}</div>
+</div>
+
+<!-- ============ this period's result ============ -->
+<div class="blk-head">
+  <span class="ic"><i class="fa-solid fa-scale-balanced"></i></span>
+  <div>
+    <h3>{% if ui_lang == 'en' %}This period{% else %}এই সময়ের হিসাব{% endif %}</h3>
+    <div class="sub">{{ dfrom }} → {{ dto }}</div>
+  </div>
+  <span class="tag {% if profit.profit >= 0 %}have{% else %}owe{% endif %}">{{ profit.profit|signed }}</span>
+</div>
+<div class="pos-grid">
+  <div class="pos-box">
+    <div class="k"><i class="fa-solid fa-money-bill-trend-up"></i> {% if ui_lang == 'en' %}Total sell{% else %}মোট সেল{% endif %}</div>
+    <div class="v">{{ profit.sales|signed }}</div>
+    <div class="s">{% if ui_lang == 'en' %}cash {{ profit.sales_cash|money }} + baki {{ profit.sales_due|money }}{% else %}নগদে {{ profit.sales_cash|money }} + বাকিতে {{ profit.sales_due|money }}{% endif %}</div>
+  </div>
+  <div class="pos-box">
+    <div class="k"><i class="fa-solid fa-cart-shopping"></i> {% if ui_lang == 'en' %}Goods / expenses{% else %}মাংস / খরচ{% endif %}</div>
+    <div class="v">−{{ profit.goods_bought|signed|cut:'-' }}</div>
+    <div class="s">{% if ui_lang == 'en' %}what you bought in this period{% else %}এই সময়ে যা কিনেছেন{% endif %}</div>
+  </div>
+  <div class="pos-box">
+    <div class="k"><i class="fa-solid fa-hand-holding-dollar"></i> {% if ui_lang == 'en' %}Baki collected{% else %}বাকি আদায়{% endif %}</div>
+    <div class="v">{{ totals.due_collected|signed }}</div>
+    <div class="s">{% if ui_lang == 'en' %}old sales coming back — not a new sell{% else %}পুরনো সেলের টাকা ফেরত — নতুন সেল না{% endif %}</div>
+  </div>
+  <div class="pos-box">
+    <div class="k"><i class="fa-solid fa-coins"></i> {% if ui_lang == 'en' %}Cash at the end of the period{% else %}সময় শেষে হাতে থাকা{% endif %}</div>
+    <div class="v">{{ period_end_cash|signed }}</div>
+    <div class="s">{% if ui_lang == 'en' %}what the drawer should hold{% else %}ড্রয়ারে যা থাকার কথা{% endif %}</div>
+  </div>
+</div>
+
+<!-- ============ day-wise table ============ -->
+<div class="exp-card" style="margin-top:18px">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-table-list"></i> <h3>{% if ui_lang == 'en' %}Day-wise cash movement{% else %}দিনভিত্তিক নগদের চলাচল{% endif %}</h3></div>
+    <span class="badge b-muted">{{ rows|length }} {% if ui_lang == 'en' %}days{% else %}দিন{% endif %}</span>
+  </div>
+  <div class="exp-body">
+    {% if rows %}
+    <div class="table-wrap">
+    <table class="sum-table">
+      <thead>
+        <tr class="grp">
+          <th class="g-date"><span class="hl"><i class="fa-solid fa-calendar-day"></i>{% t "Date" %}</span></th>
+          <th class="g-cash"><span class="hl"><i class="fa-solid fa-money-bill-trend-up"></i>{% if ui_lang == 'en' %}Cash in{% else %}নগদ আসল{% endif %}</span></th>
+          <th class="g-cash"><span class="hl"><i class="fa-solid fa-money-bill-trend-down"></i>{% if ui_lang == 'en' %}Cash out{% else %}নগদ গেছে{% endif %}</span></th>
+          <th class="g-side"><span class="hl"><i class="fa-solid fa-handshake"></i>{% if ui_lang == 'en' %}Loan / capital{% else %}ঋণ / মূল{% endif %}</span></th>
+          <th class="g-due"><span class="hl"><i class="fa-solid fa-address-book"></i>{% if ui_lang == 'en' %}Baki book{% else %}বাকির বই{% endif %}</span></th>
+          <th class="g-net"><span class="hl"><i class="fa-solid fa-gauge-high"></i>{% if ui_lang == 'en' %}In the drawer (end){% else %}দিনশেষে হাতে{% endif %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="day-row" onclick="location.href='?preset=custom&from={{ r.date|date:'Y-m-d' }}&to={{ r.date|date:'Y-m-d' }}'">
+          <td class="mono muted">{{ r.date|date:'d M Y' }}</td>
+          <td class="num {% if r.cash_in %}in-txt{% endif %}">{{ r.cash_in|money }}</td>
+          <td class="num {% if r.cash_out %}out-txt{% endif %}">{{ r.cash_out|money }}</td>
+          <td class="num muted">{% if r.loan_in or r.invest_in or r.loan_out or r.invest_out %}+{{ r.loan_in|add:r.invest_in|money }} / −{{ r.loan_out|add:r.invest_out|money }}{% else %}—{% endif %}</td>
+          <td class="num muted">{% if r.due_added or r.due_collected %}+{{ r.due_added|money }} / −{{ r.due_collected|money }}{% else %}—{% endif %}</td>
+          <td class="num hand-cell">{{ r.closing_cash|signed }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr>
+        <th>{% if ui_lang == 'en' %}Total{% else %}মোট{% endif %}</th>
+        <th class="num in-txt">{{ totals.cash_in|money }}</th>
+        <th class="num out-txt">{{ totals.cash_out|money }}</th>
+        <th class="num" style="color:var(--text-body)">+{{ totals.loan_in|add:totals.invest_in|money }} / −{{ totals.loan_out|add:totals.invest_out|money }}</th>
+        <th class="num" style="color:var(--text-warn)">+{{ totals.due_added|money }} / −{{ totals.due_collected|money }}</th>
+        <th class="num hand-cell">{{ period_end_cash|signed }}</th>
+      </tr></tfoot>
+    </table>
+    </div>
+    <div class="muted" style="font-size:11.5px;margin-top:10px"><i class="fa-solid fa-circle-info"></i> {% if ui_lang == 'en' %}Click any day to see only that day. "In the drawer" is the real ledger balance of that day.{% else %}যেকোনো দিনের রোয়ে ক্লিক করলে শুধু ওই দিনের হিসাব। "দিনশেষে হাতে" হলো ওই দিনের আসল লেজার ব্যালেন্স।{% endif %}</div>
+    {% else %}
+    <div class="exp-empty"><div class="ei"><i class="fa-solid fa-calendar-xmark"></i></div><h4>{% if ui_lang == 'en' %}Nothing in this period{% else %}এই সময়ে কিছু নেই{% endif %}</h4></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ============ month-wise (whole year) ============ -->
+<div class="exp-card" style="margin-top:18px">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-calendar-days"></i> <h3>{% if ui_lang == 'en' %}Month-wise summary ({{ year }}){% else %}মাসভিত্তিক হিসাব ({{ year }}){% endif %}</h3></div>
+    <span class="badge b-muted">{% if ui_lang == 'en' %}cash at every month end{% else %}মাস শেষে হাতে থাকা{% endif %}</span>
+  </div>
+  <div class="exp-body">
+    <div class="month-row">
+      {% for m in months %}
+      <a class="month-cell {% if m.month == dto.month and dto.year == year %}on{% endif %}" href="?preset=custom&from={{ m.first_day|date:'Y-m-d' }}&to={{ m.last_day|date:'Y-m-d' }}">
+        <div class="m">{% if ui_lang == 'en' %}{{ m.first_day|date:'M' }}{% else %}{% if m.month == 1 %}জানু{% elif m.month == 2 %}ফেব{% elif m.month == 3 %}মার্চ{% elif m.month == 4 %}এপ্রিল{% elif m.month == 5 %}মে{% elif m.month == 6 %}জুন{% elif m.month == 7 %}জুলাই{% elif m.month == 8 %}আগ{% elif m.month == 9 %}সেপ্ট{% elif m.month == 10 %}অক্টো{% elif m.month == 11 %}নভে{% else %}ডিসে{% endif %}{% endif %}</div>
+        <div class="n" style="color:{% if m.closing_cash >= 0 %}var(--text-ok){% else %}var(--text-danger){% endif %}">{{ m.closing_cash|signed }}</div>
+        <div class="c">{% if ui_lang == 'en' %}in {{ m.money_in|money }}{% else %}এসেছে {{ m.money_in|money }}{% endif %}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ============ ledger check ============ -->
+<div class="exp-card" style="margin-top:18px">
+  <div class="exp-head">
+    <div style="display:flex;align-items:center;gap:9px"><i class="fa-solid fa-clipboard-check"></i> <h3>{% if ui_lang == 'en' %}Ledger check{% else %}হিসাব যাচাই{% endif %}</h3></div>
+    {% if integrity.clean %}<span class="badge b-ok">{% if ui_lang == 'en' %}Everything matches{% else %}সব মিলছে{% endif %}</span>{% else %}<span class="badge b-danger">{% if ui_lang == 'en' %}Needs attention{% else %}খেয়াল দরকার{% endif %}</span>{% endif %}
+  </div>
+  <div class="exp-body">
+    {% if unposted %}
+      <div style="border:1px solid var(--warn-panel-border);background:var(--warn-panel-bg);border-radius:14px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:800;font-size:13px;color:var(--warn-panel-ink)">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          {% if ui_lang == 'en' %}{{ unposted|length }} transaction(s) were never posted to the ledger.{% else %}{{ unposted|length }}টি লেনদেনের জার্নাল লেজারে পোস্ট হয়নি।{% endif %}
+        </div>
+        <div class="muted" style="font-size:12px;margin-top:4px">
+          {% if ui_lang == 'en' %}They appear in the books (loan, dues) but "cash in hand" cannot see them — that is why the position can read ৳0. Posting their journals makes the ledger match.{% else %}এগুলো বইয়ে (ঋণ, বাকি) দেখা যায়, কিন্তু "হাতে নগদ" ওগুলো দেখে না — এজন্যই অবস্থা ৳0 দেখাতে পারে। জার্নাল পোস্ট করলে লেজার মিলে যাবে।{% endif %}
+        </div>
+        <form method="post" style="margin-top:10px">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="rebuild_ledger">
+          <button class="btn sm primary" type="submit"><i class="fa-solid fa-list-check"></i> {% if ui_lang == 'en' %}Post the missing journals{% else %}অনুপস্থিত জার্নাল পোস্ট করুন{% endif %}</button>
+          <span class="muted" style="font-size:11.5px;margin-left:8px">{% if ui_lang == 'en' %}already-posted entries are never touched — safe to run anytime{% else %}যেগুলোর পোস্টিং আছে সেগুলো ধরা হয় না — যতবার খুশি চালানো নিরাপদ{% endif %}</span>
+        </form>
+      </div>
+    {% endif %}
+    {% if integrity.clean and not unposted %}
+      <div class="integrity-ok" style="display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:var(--text-ok);background:var(--fill-ok);border:1px solid rgba(22,163,74,.22);border-radius:14px;padding:11px 13px"><i class="fa-solid fa-circle-check"></i> {% if ui_lang == 'en' %}Every account matches the live transactions — the books are clean.{% else %}প্রতিটি অ্যাকাউন্ট লাইভ লেনদেনের সাথে মিলছে — হিসাব পরিষ্কার।{% endif %}</div>
+    {% else %}
+      <div class="integrity-bad" style="border:1px solid rgba(220,38,38,.25);background:var(--fill-danger);border-radius:14px;padding:12px">
+        <div style="font-weight:800;font-size:13px;margin-bottom:6px">{% if ui_lang == 'en' %}These accounts do not match the transactions:{% else %}এই অ্যাকাউন্টগুলো লেনদেনের সাথে মিলছে না:{% endif %}</div>
+        {% for r in integrity.broken %}
+        <div style="display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:5px 0;border-bottom:1px dashed rgba(220,38,38,.2)"><span>{{ r.code }} — {{ r.name }}</span><span style="font-weight:800;color:var(--text-danger)">{{ r.difference|signed }}</span></div>
+        {% endfor %}
+        <form method="post" style="margin-top:10px">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="repair_ledger">
+          <button class="btn sm primary" type="submit"><i class="fa-solid fa-wrench"></i> {% if ui_lang == 'en' %}Balance the ledger{% else %}হিসাব মিলিয়ে ঠিক করুন{% endif %}</button>
+          <span class="muted" style="font-size:11.5px;margin-left:8px">{% if ui_lang == 'en' %}adds a mirrored journal entry — nothing is deleted{% else %}একটি মিরাল জার্নাল যোগ হবে — কিছু মুছে ফেলা হয় না{% endif %}</span>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

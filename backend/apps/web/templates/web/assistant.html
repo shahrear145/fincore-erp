@@ -1,0 +1,134 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Ask FinCore{% else %}ফিনকোরকে জিজ্ঞাসা করুন{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .as-propose{position:relative;overflow:hidden;border-radius:18px;margin:0 0 14px;
+    background:linear-gradient(165deg,#fffbeb,#fef3c7);border:1px solid rgba(217,119,6,.55);
+    box-shadow:0 18px 40px -20px rgba(217,119,6,.4)}
+  .as-propose-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid rgba(217,119,6,.3)}
+  .as-propose-head .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;
+    background:linear-gradient(150deg,#fbbf24,#f59e0b);color:#4a2a04;font-size:18px;
+    box-shadow:0 8px 20px rgba(217,119,6,.4)}
+  .as-propose-head h4{margin:0;font-size:14.5px;font-weight:800;color:#78350f;letter-spacing:-.01em}
+  .as-propose-head p{margin:1px 0 0;font-size:11px;color:#92400e;font-weight:600}
+  .as-propose-body{padding:14px 16px}
+  .as-propose-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+  .as-row{background:rgba(255,255,255,.75);border:1px solid rgba(217,119,6,.35);border-radius:12px;padding:9px 12px}
+  .as-row .k{display:block;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#92400e}
+  .as-row .v{display:block;font-size:15px;font-weight:800;color:#422006;margin-top:2px;font-variant-numeric:tabular-nums}
+  .as-row .v.b{color:#b45309;font-size:19px}
+  .as-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .as-actions .btn{flex:1;justify-content:center;min-width:140px}
+  .as-btn-ok{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border-color:transparent}
+  .as-btn-ok:hover{filter:brightness(1.06)}
+  .as-btn-x{background:transparent;color:#92400e;border-color:rgba(217,119,6,.5)}
+  .as-btn-x:hover{background:rgba(217,119,6,.12)}
+  .as-command-hints{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .as-command-hint{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;
+    background:rgba(255,255,255,.72);border:1px solid rgba(148,163,184,.35);font-size:11px;font-weight:700;
+    color:var(--ink-2);text-decoration:none}
+  .as-command-hint b{color:var(--brand)}
+</style>
+{% if auto_q %}
+<script>
+  window.addEventListener('load', function () {
+    var q = document.getElementById('q');
+    var form = document.getElementById('assistantForm');
+    if (q && form) { form.submit(); }
+  });
+</script>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Ask FinCore{% else %}ফিনকোরকে জিজ্ঞাসা করুন{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Answers come <strong>only</strong> from your authorized, live ledger data — no invented figures. {% if active_business %}Business questions use <strong>{{ active_business.name }}</strong> with your role scope.{% else %}No business selected, answers use personal data.{% endif %}{% else %}শুধু আপনার অনুমোদিত লাইভ লেজার ডেটা থেকে উত্তর আসে — কোনো কাল্পনিক সংখ্যা নেই। {% if active_business %}ব্যবসায়িক প্রশ্নের উত্তর <strong>{{ active_business.name }}</strong> দিয়ে আপনার রোলের সীমার মধ্যে হবে।{% else %}কোনো ব্যবসা বাছাই করা নেই — এখন আপনার ব্যক্তিগত হিসাব থেকে উত্তর আসবে।{% endif %}{% endif %}</p>
+  </div>
+  <div class="chips"><span class="chip brand"><i class="fa-solid fa-shield-halved"></i> {{ scope }}</span><span class="chip"><i class="fa-solid fa-database"></i> {% if ui_lang == 'en' %}Live facts only{% else %}শুধু লাইভ ডেটা{% endif %}</span></div>
+</div>
+
+<div class="split-eq">
+  <div class="card">
+    <div class="section-head"><h3>{% if ui_lang == 'en' %}Ask a question{% else %}প্রশ্ন জিজ্ঞাসা করুন{% endif %}</h3><span class="badge b-muted">{% if ui_lang == 'en' %}Grounded answers{% else %}অনুমোদিত উত্তর{% endif %}</span></div>
+
+    {% if pending_action %}
+    <div class="as-propose" role="region" aria-label="{% if ui_lang == 'en' %}Proposed action{% else %}প্রস্তাবিত কাজ{% endif %}">
+      <div class="as-propose-head">
+        <div class="ic"><i class="fa-solid fa-robot"></i></div>
+        <div>
+          <h4>{% if ui_lang == 'en' %}Proposed action — pending your confirmation{% else %}প্রস্তাবিত কাজ — আপনার কনফার্মের অপেক্ষায়{% endif %}</h4>
+          <p>{% if ui_lang == 'en' %}Nothing is posted until you confirm.{% else %}কনফার্ম না করলে কিছুই লেনদেন হবে না।{% endif %}</p>
+        </div>
+      </div>
+      <div class="as-propose-body">
+        <div class="as-propose-rows">
+          <div class="as-row"><span class="k">{% if ui_lang == 'en' %}Type{% else %}ধরন{% endif %}</span><span class="v">{{ pending_action.get_kind_display }}</span></div>
+          {% if pending_action.customer %}
+          <div class="as-row"><span class="k">{% if ui_lang == 'en' %}Customer{% else %}কাস্টমার{% endif %}</span><span class="v">{{ pending_action.customer.name }}</span></div>
+          {% endif %}
+          {% if pending_action.partner %}
+          <div class="as-row"><span class="k">{% if ui_lang == 'en' %}Partner book{% else %}পার্টনার খাতা{% endif %}</span><span class="v">{{ pending_action.partner.name }}</span></div>
+          {% endif %}
+          <div class="as-row"><span class="k">{% if ui_lang == 'en' %}Amount{% else %}টাকা{% endif %}</span><span class="v b">৳{{ pending_action.amount|floatformat:2 }}</span></div>
+          {% if pending_action.description %}
+          <div class="as-row"><span class="k">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</span><span class="v" style="font-size:13px">{{ pending_action.description }}</span></div>
+          {% endif %}
+        </div>
+        <form method="post" class="as-actions">
+          {% csrf_token %}
+          <input type="hidden" name="action_id" value="{{ pending_action.id }}">
+          <button class="btn as-btn-ok" type="submit" name="action" value="confirm_action"><i class="fa-solid fa-check-double"></i> {% if ui_lang == 'en' %}Confirm &amp; post{% else %}হ্যাঁ, এন্ট্রি দিন{% endif %}</button>
+          <button class="btn as-btn-x" type="submit" name="action" value="discard_action"><i class="fa-solid fa-xmark"></i> {% if ui_lang == 'en' %}Discard{% else %}বাতিল করুন{% endif %}</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <form method="post" id="assistantForm">
+      {% csrf_token %}
+      <div class="field">
+        <label for="q">{% if ui_lang == 'en' %}Your question / command{% else %}আপনার প্রশ্ন / কমান্ড{% endif %}</label>
+        <textarea id="q" name="question" rows="4" autocomplete="off" placeholder="{% if ui_lang == 'en' %}e.g. How much do customers owe me?  — or —  বাকি হোসেনের দোকান 500 — or — খরচ 800 চাল{% else %}যেমন: কত বাকি? — অথবা — বাকি হোসেনের দোকান ৫০০ — অথবা — খরচ ৮০০ চাল{% endif %}">{{ question }}</textarea>
+        <div class="hint">{% if ui_lang == 'en' %}Ask — cash balance, dues, profit, budgets · Or command — বাকি &lt;customer&gt; &lt;amount&gt; · পরিশোধ &lt;customer&gt; &lt;amount&gt; · খরচ &lt;amount&gt; &lt;note&gt;{% else %}জিজ্ঞেস করুন — নগদ, বাকি, লাভ, বাজেট · অথবা কমান্ড — বাকি &lt;কাস্টমার&gt; &lt;টাকা&gt; · পরিশোধ &lt;কাস্টমার&gt; &lt;টাকা&gt; · খরচ &lt;টাকা&gt; &lt;বিবরণ&gt;{% endif %}</div>
+        <div class="as-command-hints">
+          <button class="as-command-hint" type="button" onclick="document.getElementById('q').value='বাকি হোসেনের দোকান 500'"><i class="fa-solid fa-book"></i> <b>বাকি</b> বাকি হোসেন 500</button>
+          <button class="as-command-hint" type="button" onclick="document.getElementById('q').value='পরিশোধ হোসেনের দোকান 200'"><i class="fa-solid fa-hand-holding-dollar"></i> <b>পরিশোধ</b> পরিশোধ 200</button>
+          <button class="as-command-hint" type="button" onclick="document.getElementById('q').value='খরচ 800 চাল'"><i class="fa-solid fa-cart-shopping"></i> <b>খরচ</b> খরচ 800</button>
+          <button class="as-command-hint" type="button" onclick="document.getElementById('q').value='কাস্টমারদের মোট বাকি কত'"><i class="fa-solid fa-circle-question"></i> <b>প্রশ্ন</b> মোট বাকি?</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn primary" type="submit"><i class="fa-solid fa-paper-plane"></i> {% if ui_lang == 'en' %}Ask{% else %}জিজ্ঞাসা করুন{% endif %}</button>
+        <a class="btn" href="{% url 'web:assistant' %}">{% if ui_lang == 'en' %}Clear{% else %}মুছে দিন{% endif %}</a>
+      </div>
+    </form>
+
+    {% if answer %}
+    <div class="mt" style="border-top:1px solid var(--line);padding-top:14px">
+      <div class="section-head"><h3>{% if ui_lang == 'en' %}Answer{% else %}উত্তর{% endif %}</h3><span class="badge {% if answer.intent == 'FALLBACK' or answer.intent == 'ACTION_CLARIFY' %}b-warn{% else %}b-ok{% endif %}">{{ answer.intent|default:"" }}</span></div>
+      <div class="bubble bot" style="max-width:none;white-space:pre-wrap">{{ answer.answer }}</div>
+      {% if answer.data_basis %}<div class="muted" style="font-size:12px;margin-top:10px"><i class="fa-solid fa-circle-info"></i> {{ answer.data_basis.0 }}</div>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="section-head"><h3>{% if ui_lang == 'en' %}Recent questions{% else %}সাম্প্রতিক প্রশ্নসমূহ{% endif %}</h3><span class="badge b-muted">{% if ui_lang == 'en' %}Your history{% else %}আপনার ইতিহাস{% endif %}</span></div>
+    {% if history %}
+      <div style="display:flex;flex-direction:column;gap:10px">
+      {% for h in history %}
+        <div style="padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px"><i class="fa-regular fa-message" style="color:var(--brand)"></i> {{ h.question|truncatechars:120 }}</div>
+          <div class="muted" style="font-size:13px;white-space:pre-wrap">{{ h.answer|truncatechars:220 }}</div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><span class="badge b-muted">{{ h.scope }}</span>{% if h.intent %}<span class="badge b-info">{{ h.intent }}</span>{% endif %}<span class="muted" style="font-size:11px">{{ h.created_at }}</span></div>
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty"><div class="ei"><i class="fa-regular fa-comments"></i></div><h4>{% if ui_lang == 'en' %}No questions yet{% else %}এখনো কোনো প্রশ্ন নেই{% endif %}</h4><p>{% if ui_lang == 'en' %}Ask about dues, profit, cash, stock, net worth, or budgets — answers are computed from real records.{% else %}বাকি, লাভ, নগদ, মজুদ, ব্যক্তিগত নিট সম্পদ বা বাজেট — প্রকৃত হিসাব থেকে উত্তর আসবে।{% endif %}</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

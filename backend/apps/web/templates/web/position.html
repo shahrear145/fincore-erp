@@ -1,0 +1,474 @@
+{% extends "web/base.html" %}
+{% load fmt static %}
+{% block title %}{% if ui_lang == 'en' %}Accounts Command Center{% else %}হিসাব কমান্ড সেন্টার{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'web/position.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h2><i class="fa-solid fa-shield-halved" style="color:var(--brand)"></i> {% if ui_lang == 'en' %}Accounts Command Center{% else %}হিসাব কমান্ড সেন্টার{% endif %}</h2>
+    <p>{% if ui_lang == 'en' %}Every taka behind the net position — traced to the ledger, audited, compared over time, and simulated before you decide.{% else %}নিট অবস্থানের প্রতিটি টাকা — লেজার পর্যন্ত পৌঁছে, অডিট হয়ে, সময়ের সাথে তুলনা হয়ে, আর সিদ্ধান্তের আগে সিমুলেশনে।{% endif %}</p>
+  </div>
+  <div class="chips">
+    {% if active_business %}<span class="chip brand"><i class="fa-solid fa-building"></i> {{ active_business.name }}</span>{% endif %}
+    <span class="chip info"><i class="fa-solid fa-calendar-day"></i> {{ st.as_of|date:'d M Y' }}</span>
+    <a class="chip" href="{% url 'web:summary' %}"><i class="fa-solid fa-arrow-left"></i> {% if ui_lang == 'en' %}Summary{% else %}সারাংশ{% endif %}</a>
+  </div>
+</div>
+
+<!-- ============ toolbar ============ -->
+<div class="ps-bar">
+  <form method="get">
+    <div>
+      <label for="psAsOf">{% if ui_lang == 'en' %}Position as of{% else %}এই হিসাব যত তারিখ পর্যন্ত{% endif %}</label>
+      <input class="ps-input" id="psAsOf" type="date" name="as_of" value="{{ st.as_of|date:'Y-m-d' }}" max="{{ st.today|date:'Y-m-d' }}">
+    </div>
+    <button class="ps-mini" type="submit"><i class="fa-solid fa-clock-rotate-left"></i> {% if ui_lang == 'en' %}Show{% else %}দেখুন{% endif %}</button>
+    {% if st.as_of != st.today %}
+      <a class="ps-mini" href="?"><i class="fa-solid fa-calendar-day"></i> {% if ui_lang == 'en' %}Today{% else %}আজ{% endif %}</a>
+    {% endif %}
+  </form>
+  <div class="ps-actions">
+    <button class="ps-mini" type="button" id="psExpand"><i class="fa-solid fa-angles-down"></i> {% if ui_lang == 'en' %}Expand all{% else %}সব খুলুন{% endif %}</button>
+    <button class="ps-mini" type="button" id="psCollapse"><i class="fa-solid fa-angles-up"></i> {% if ui_lang == 'en' %}Collapse all{% else %}সব বন্ধ{% endif %}</button>
+    <a class="ps-mini pdf" href="{% url 'web:export_position' 'pdf' %}?as_of={{ st.as_of|date:'Y-m-d' }}" download><i class="fa-solid fa-file-pdf"></i> PDF</a>
+    <a class="ps-mini xlsx" href="{% url 'web:export_position' 'xlsx' %}?as_of={{ st.as_of|date:'Y-m-d' }}" download><i class="fa-solid fa-file-excel"></i> Excel</a>
+    <a class="ps-mini docx" href="{% url 'web:export_position' 'docx' %}?as_of={{ st.as_of|date:'Y-m-d' }}" download><i class="fa-solid fa-file-word"></i> Word</a>
+  </div>
+</div>
+
+<!-- ============ hero ============ -->
+<div class="ps-hero">
+  <div class="ps-hero-main">
+    <div class="ps-kicker"><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Net position{% else %}নিট অবস্থান{% endif %}</div>
+    <div class="ps-net {% if st.position.net < 0 %}neg{% endif %}">{{ st.position.net|signed }}</div>
+    <div class="ps-sub">{% if ui_lang == 'en' %}What the business has (cash + wallet + baki) minus what it must return (loans + advances + bills).{% else %}ব্যবসার কাছে যা আছে (নগদ + ওয়ালেট + বাকি) − যা ফেরত দিতে হবে (ঋণ + অগ্রিম + বাকি বিল)।{% endif %}</div>
+    <div class="ps-proof {% if not st.proof.ok %}bad{% endif %}">
+      {% if st.proof.ok %}
+        <i class="fa-solid fa-circle-check"></i>
+        {% if ui_lang == 'en' %}Proof: every part adds up to the net position.{% else %}প্রমাণ: সব অংশ যোগ করলে হুবহু নিট অবস্থান আসছে।{% endif %}
+      {% else %}
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        {% if ui_lang == 'en' %}The parts differ by {{ st.proof.difference|signed }} —{% else %}অংশগুলোর যোগফলে {{ st.proof.difference|signed }} পার্থক্য —{% endif %}
+        <a href="#ps-audit">{% if ui_lang == 'en' %}see the audit{% else %}অডিট দেখুন{% endif %}</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="ps-hero-side">
+    <div class="ps-ring" style="--score:{{ st.health.score }}">
+      <div class="ps-ring-in"><b>{{ st.health.score }}</b><span>/ 100</span></div>
+    </div>
+    <div>
+      <span class="ps-grade {{ st.health.tone }}">
+        {% if ui_lang == 'en' %}{% if st.health.score >= 80 %}Excellent{% elif st.health.score >= 60 %}Good{% elif st.health.score >= 40 %}Caution{% else %}At risk{% endif %}{% else %}{{ st.health.grade }}{% endif %}
+      </span>
+      <div style="font-size:10.5px;color:#93b4dd;margin-top:5px">{% if ui_lang == 'en' %}Health score{% else %}হিসাবের স্বাস্থ্য{% endif %}</div>
+      <a href="#ps-health" style="font-size:11px;color:#a7f3d0;font-weight:700">{% if ui_lang == 'en' %}Why this score →{% else %}কেন এই স্কোর →{% endif %}</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ waterfall ============ -->
+<div class="ps-card">
+  <div class="ps-card-head">
+    <div>
+      <h3><i class="fa-solid fa-water"></i> {% if ui_lang == 'en' %}How the net position is built{% else %}নিট অবস্থান কীভাবে হলো{% endif %}</h3>
+      <p class="ps-hint">{% if ui_lang == 'en' %}Green adds, red subtracts. Click any row to jump to its ledger detail.{% else %}সবুজ যোগ করে, লাল বিয়োগ করে। যেকোনো লাইনে ক্লিক করলে নিচের লেজার-বিবরণে যাবে।{% endif %}</p>
+    </div>
+  </div>
+  <div class="ps-wf">
+    {% for item in st.composition %}
+    <a class="ps-wf-row {{ item.kind }}" href="#{{ item.anchor }}">
+      <span class="ps-wf-label">
+        <i class="fa-solid {{ item.icon }}"></i>
+        {% if item.key == 'cash' %}{% if ui_lang == 'en' %}Drawer cash{% else %}ড্রয়ারের নগদ{% endif %}
+        {% elif item.key == 'wallet' %}{% if ui_lang == 'en' %}bKash / Nagad / bank{% else %}বিকাশ / নগদ / ব্যাংক{% endif %}
+        {% elif item.key == 'due' %}{% if ui_lang == 'en' %}Customers owe{% else %}কাস্টমারের বাকি{% endif %}
+        {% elif item.key == 'loans' %}{% if ui_lang == 'en' %}Loans to repay{% else %}ঋণদাতাকে ফেরত{% endif %}
+        {% elif item.key == 'advances' %}{% if ui_lang == 'en' %}Customer advances{% else %}কাস্টমারের অগ্রিম{% endif %}
+        {% else %}{% if ui_lang == 'en' %}Bills to pay{% else %}খরচ বাকি{% endif %}{% endif %}
+      </span>
+      <span class="ps-wf-track"><span class="ps-wf-bar" style="width:{{ item.pct }}%"></span></span>
+      <span class="ps-wf-val">{% if item.kind == 'owe' %}−{% else %}+{% endif %} {{ item.amount|signed }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  <div class="ps-wf-net">
+    <b>{% if ui_lang == 'en' %}Net position{% else %}নিট অবস্থান{% endif %}</b>
+    <span class="v {% if st.position.net < 0 %}neg{% endif %}">{{ st.position.net|signed }}</span>
+  </div>
+</div>
+
+<!-- ============ audit ============ -->
+<div class="ps-card" id="ps-audit">
+  <div class="ps-card-head">
+    <div>
+      <h3><i class="fa-solid fa-shield-halved"></i> {% if ui_lang == 'en' %}Audit — {{ st.audit.checks_run }} checks{% else %}অডিট — {{ st.audit.checks_run }}টি চেক{% endif %}</h3>
+      <p class="ps-hint">{% if ui_lang == 'en' %}Deterministic rules, no AI. Each finding says what happened, why it matters, and where to fix it.{% else %}নিয়ম-ভিত্তিক, কোনো AI নয়। প্রতিটি ফাইন্ডিং বলে কী হয়েছে, কেন গুরুত্বপূর্ণ, আর কোথায় ঠিক করবেন।{% endif %}</p>
+    </div>
+    {% if st.audit.clean %}
+      <span class="ps-badge ok"><i class="fa-solid fa-circle-check"></i> {% if ui_lang == 'en' %}All clear{% else %}সব পরিষ্কার{% endif %}</span>
+    {% else %}
+      <span class="ps-badge {% if st.audit.counts.high %}danger{% elif st.audit.counts.medium %}warn{% endif %}">
+        {% if ui_lang == 'en' %}{{ st.audit.total }} finding(s){% else %}{{ st.audit.total }}টি বিষয়{% endif %}
+      </span>
+    {% endif %}
+  </div>
+  {% if st.audit.clean %}
+    <div class="ps-audit-clean">
+      <i class="fa-solid fa-circle-check"></i>
+      <div>
+        <b>{% if ui_lang == 'en' %}The books pass every check.{% else %}হিসাব প্রতিটি চেক পাস করেছে।{% endif %}</b>
+        <div style="font-weight:600;margin-top:2px">{% if ui_lang == 'en' %}Ledger integrity, dates, duplicates, negative balances, drawer difference, loan-ledger match — all clean.{% else %}লেজার অখণ্ডতা, তারিখ, ডুপ্লিকেট, ঋণাত্মক ব্যালেন্স, ড্রয়ার-গরমিল, ঋণ-লেজার মিল — সব পরিষ্কার।{% endif %}</div>
+      </div>
+    </div>
+  {% else %}
+    <div class="ps-findings">
+      {% for f in st.audit.findings %}
+      <article class="ps-finding sev-{{ f.severity }}">
+        <div class="ps-f-head">
+          <span class="ps-sev">{% if f.severity == 'high' %}{% if ui_lang == 'en' %}High{% else %}উচ্চ{% endif %}{% elif f.severity == 'medium' %}{% if ui_lang == 'en' %}Medium{% else %}মাঝারি{% endif %}{% else %}{% if ui_lang == 'en' %}Low{% else %}নিম্ন{% endif %}{% endif %}</span>
+          <h4>{% if ui_lang == 'en' %}{{ f.title_en }}{% else %}{{ f.title_bn }}{% endif %}</h4>
+          {% if f.count %}<span class="ps-f-count">{{ f.count }}</span>{% endif %}
+        </div>
+        <p>{% if ui_lang == 'en' %}{{ f.detail_en }}{% else %}{{ f.detail_bn }}{% endif %}</p>
+        {% if f.items %}
+          <ul class="ps-f-items">
+            {% for item in f.items %}
+              <li><a href="{{ item.url }}"><i class="fa-solid fa-arrow-right"></i><span>{{ item.label }}</span></a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if f.fix_url %}
+          <a class="ps-fix" href="{{ f.fix_url }}"><i class="fa-solid fa-screwdriver-wrench"></i> {% if ui_lang == 'en' %}{{ f.fix_en }}{% else %}{{ f.fix_bn }}{% endif %}</a>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if st.as_of != st.today %}
+    <div class="ps-note"><i class="fa-solid fa-clock-rotate-left"></i><div>{% if ui_lang == 'en' %}The audit always checks today's data; the numbers above follow the chosen as-of date.{% else %}অডিট সর্বদা আজকের ডেটা যাচাই করে; উপরের সংখ্যাগুলো বেছে নেওয়া তারিখ অনুযায়ী।{% endif %}</div></div>
+  {% endif %}
+</div>
+
+<!-- ============ drill-down ============ -->
+{% include "web/_position_ledger.html" with section=st.cash kind="cash" anchor="sec-cash" tone="blue" icon="fa-money-bill-wave" %}
+{% include "web/_position_ledger.html" with section=st.wallet kind="wallet" anchor="sec-wallet" tone="violet" icon="fa-mobile-screen-button" %}
+
+<details class="ps-card ps-sec" id="sec-due" data-tone="amber">
+  <summary>
+    <span class="ps-sec-ic"><i class="fa-solid fa-address-book"></i></span>
+    <span class="ps-sec-title">
+      <b>{% if ui_lang == 'en' %}Customer due — by partner{% else %}কাস্টমারের বাকি — পার্টনার অনুযায়ী{% endif %}</b>
+      <small>{% if ui_lang == 'en' %}{{ st.due.customer_count }} customer(s) across {{ st.due.partner_count }} partner book(s){% else %}{{ st.due.partner_count }}টি পার্টনার খাতায় {{ st.due.customer_count }} জন গ্রাহক{% endif %}</small>
+    </span>
+    <span class="ps-sec-total">{{ st.due.total|signed }}</span>
+    <i class="fa-solid fa-chevron-down ps-chev"></i>
+  </summary>
+  <div class="ps-sec-body">
+    {% for g in st.due.groups %}
+    <div class="ps-partner">
+      <div class="ps-partner-head">
+        <i class="fa-solid fa-user-tie"></i>
+        {{ g.partner_name }}
+        <span class="ps-badge">{{ g.customers|length }}</span>
+        <span class="n">{{ g.total|signed }}</span>
+      </div>
+      {% for c in g.customers %}
+      <details class="ps-cust">
+        <summary>
+          <span class="ps-cust-name">{{ c.name }}</span>
+          {% if c.phone %}<span class="ps-cust-phone">{{ c.phone }}</span>{% endif %}
+          <span class="ps-cust-due">{{ c.due|signed }}</span>
+        </summary>
+        <div class="ps-cust-body">
+          <div class="ps-cust-meta">
+            <span>{% if ui_lang == 'en' %}Opening{% else %}প্রারম্ভিক{% endif %} <b>{{ c.opening|signed }}</b></span>
+            <span>{% if ui_lang == 'en' %}Advance{% else %}অগ্রিম{% endif %} <b>{{ c.advance|signed }}</b></span>
+            <span>{% if ui_lang == 'en' %}Live due{% else %}বর্তমান বাকি{% endif %} <b>{{ c.due|signed }}</b></span>
+            <a href="{{ c.url }}">{% if ui_lang == 'en' %}Open due history →{% else %}বাকি হিস্ট্রি →{% endif %}</a>
+          </div>
+          {% if c.entries %}
+          <div class="ps-table-wrap">
+            <table class="ps-table">
+              <thead><tr>
+                <th>{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</th>
+                <th>{% if ui_lang == 'en' %}Kind{% else %}ধরন{% endif %}</th>
+                <th class="num">{% if ui_lang == 'en' %}Amount{% else %}টাকা{% endif %}</th>
+                <th class="num">{% if ui_lang == 'en' %}Effect{% else %}প্রভাব{% endif %}</th>
+                <th>{% if ui_lang == 'en' %}Note{% else %}নোট{% endif %}</th>
+              </tr></thead>
+              <tbody>
+                {% for e in c.entries %}
+                <tr>
+                  <td style="white-space:nowrap">{{ e.date|date:'d M Y' }}</td>
+                  <td>{{ e.kind_label }}</td>
+                  <td class="num">{{ e.amount|signed }}</td>
+                  <td class="num {% if e.signed < 0 %}neg{% else %}pos{% endif %}">{{ e.signed|signed }}</td>
+                  <td class="muted">{{ e.note|default:'—' }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% if c.truncated %}<div class="ps-more">{% if ui_lang == 'en' %}Showing the latest 60 entries.{% else %}সর্বশেষ ৬০টি এন্ট্রি দেখানো হচ্ছে।{% endif %}</div>{% endif %}
+          {% else %}
+            <div class="ps-empty">{% if ui_lang == 'en' %}No due entries — only the opening balance.{% else %}কোনো বাকি এন্ট্রি নেই — শুধু প্রারম্ভিক বাকি।{% endif %}</div>
+          {% endif %}
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+    {% empty %}
+      <div class="ps-empty">{% if ui_lang == 'en' %}No customer dues yet.{% else %}এখনো কোনো কাস্টমারের বাকি নেই।{% endif %}</div>
+    {% endfor %}
+  </div>
+</details>
+
+<details class="ps-card ps-sec" id="sec-loans" data-tone="rose">
+  <summary>
+    <span class="ps-sec-ic"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+    <span class="ps-sec-title">
+      <b>{% if ui_lang == 'en' %}Loans — by lender{% else %}ঋণ — ঋণদাতা অনুযায়ী{% endif %}</b>
+      <small>{% if ui_lang == 'en' %}Contracted payable, returned money and the outstanding balance{% else %}চুক্তির মোট ফেরত, পরিশোধ আর বাকি{% endif %}</small>
+    </span>
+    <span class="ps-sec-total">{{ st.loans.loan_total|signed }}</span>
+    <i class="fa-solid fa-chevron-down ps-chev"></i>
+  </summary>
+  <div class="ps-sec-body">
+    {% for l in st.loans.loans %}
+    <details class="ps-cust">
+      <summary>
+        <span class="ps-cust-name">{{ l.name }}</span>
+        {% if l.phone %}<span class="ps-cust-phone">{{ l.phone }}</span>{% endif %}
+        <span class="ps-cust-due">{{ l.outstanding|signed }}</span>
+      </summary>
+      <div class="ps-cust-body">
+        <div class="ps-cust-meta">
+          <span>{% if ui_lang == 'en' %}Received{% else %}নেওয়া{% endif %} <b>{{ l.received|signed }}</b></span>
+          <span>{% if ui_lang == 'en' %}Returned{% else %}ফেরত{% endif %} <b>{{ l.returned|signed }}</b></span>
+          <span>{% if ui_lang == 'en' %}Interest / contract{% else %}সুদ / চুক্তি{% endif %} <b>{{ l.interest|signed }}</b></span>
+        </div>
+        {% if l.lines %}
+        <div class="ps-table-wrap">
+          <table class="ps-table">
+            <thead><tr>
+              <th>{% if ui_lang == 'en' %}Date{% else %}তারিখ{% endif %}</th>
+              <th>{% if ui_lang == 'en' %}Kind{% else %}ধরন{% endif %}</th>
+              <th class="num">{% if ui_lang == 'en' %}Amount{% else %}টাকা{% endif %}</th>
+              <th>{% if ui_lang == 'en' %}Note{% else %}নোট{% endif %}</th>
+            </tr></thead>
+            <tbody>
+              {% for row in l.lines %}
+              <tr>
+                <td style="white-space:nowrap">{{ row.date|date:'d M Y' }}</td>
+                <td>{{ row.kind_label }}</td>
+                <td class="num">{{ row.amount|signed }}</td>
+                <td class="muted">{{ row.description|default:'—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if l.truncated %}<div class="ps-more">{% if ui_lang == 'en' %}Showing the latest 60 entries.{% else %}সর্বশেষ ৬০টি এন্ট্রি দেখানো হচ্ছে।{% endif %}</div>{% endif %}
+        {% else %}
+          <div class="ps-empty">{% if ui_lang == 'en' %}No loan entries yet.{% else %}এখনো কোনো ঋণ এন্ট্রি নেই।{% endif %}</div>
+        {% endif %}
+      </div>
+    </details>
+    {% empty %}
+      <div class="ps-empty">{% if ui_lang == 'en' %}No loans yet.{% else %}এখনো কোনো ঋণ নেই।{% endif %}</div>
+    {% endfor %}
+    {% if st.next_installments.items %}
+      <div class="ps-note"><i class="fa-solid fa-calendar-days"></i><div>
+        {% if ui_lang == 'en' %}Next 30 days: {{ st.next_installments.total|signed }} across {{ st.next_installments.count }} installment(s).{% else %}পরের ৩০ দিনে {{ st.next_installments.count }}টি কিস্তিতে {{ st.next_installments.total|signed }} দিতে হবে।{% endif %}
+      </div></div>
+    {% endif %}
+  </div>
+</details>
+
+{% include "web/_position_ledger.html" with section=st.advances kind="advances" anchor="sec-advances" tone="rose" icon="fa-arrow-down-up-across-line" %}
+{% include "web/_position_ledger.html" with section=st.payable kind="payable" anchor="sec-payable" tone="rose" icon="fa-file-invoice-dollar" %}
+
+{% if st.loans.investments %}
+<details class="ps-card ps-sec" id="sec-invest" data-tone="violet">
+  <summary>
+    <span class="ps-sec-ic"><i class="fa-solid fa-chart-line"></i></span>
+    <span class="ps-sec-title">
+      <b>{% if ui_lang == 'en' %}Investor capital — information only{% else %}বিনিয়োগকারীর মূল — শুধু তথ্য{% endif %}</b>
+      <small>{% if ui_lang == 'en' %}Your own money — never a debt, so it is not added or subtracted in the net{% else %}নিজের টাকা — দেনা নয়, তাই নিটে যোগ বা বিয়োগ হয় না{% endif %}</small>
+    </span>
+    <span class="ps-sec-total">{{ st.loans.invest_total|signed }}</span>
+    <i class="fa-solid fa-chevron-down ps-chev"></i>
+  </summary>
+  <div class="ps-sec-body">
+    <div class="ps-note"><i class="fa-solid fa-circle-info"></i><div>{% if ui_lang == 'en' %}The cash this capital became is already counted in the drawer/wallet, so adding it again would double-count.{% else %}এই মূলধন যে নগদে পরিণত হয়েছে তা ড্রয়ার/ওয়ালেটে আগেই গণনা করা আছে — আবার যোগ করলে দ্বিগুণ হয়ে যেত।{% endif %}</div></div>
+    {% for l in st.loans.investments %}
+    <div class="ps-partner">
+      <div class="ps-partner-head"><i class="fa-solid fa-user-tie"></i> {{ l.name }}<span class="n">{{ l.outstanding|signed }}</span></div>
+      <div class="ps-cust-body">
+        <div class="ps-cust-meta">
+          <span>{% if ui_lang == 'en' %}Invested{% else %}বিনিয়োগ{% endif %} <b>{{ l.received|signed }}</b></span>
+          <span>{% if ui_lang == 'en' %}Withdrawn{% else %}ফেরত নেওয়া{% endif %} <b>{{ l.returned|signed }}</b></span>
+          <span>{% if ui_lang == 'en' %}Still inside{% else %}ব্যবসায় আছে{% endif %} <b>{{ l.outstanding|signed }}</b></span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}
+
+<!-- ============ trend ============ -->
+<div class="ps-card">
+  <div class="ps-card-head">
+    <div>
+      <h3><i class="fa-solid fa-chart-area"></i> {% if ui_lang == 'en' %}90-day net position{% else %}৯০ দিনের নিট অবস্থান{% endif %}</h3>
+      <p class="ps-hint">{% if ui_lang == 'en' %}Each point is the position at the end of that day — cash, wallet and due minus loans, advances and bills.{% else %}প্রতিটি বিন্দু ওই দিনশেষের অবস্থান — নগদ, ওয়ালেট ও বাকি থেকে ঋণ, অগ্রিম ও বিল বাদ দিয়ে।{% endif %}</p>
+    </div>
+    <span class="ps-badge {% if st.trend.change > 0 %}ok{% elif st.trend.change < 0 %}danger{% endif %}">
+      {% if ui_lang == 'en' %}Change{% else %}পরিবর্তন{% endif %}: {{ st.trend.change|signed }}
+    </span>
+  </div>
+  {% if st.trend.points %}
+  <svg class="ps-chart" viewBox="0 0 {{ st.trend.width }} {{ st.trend.height }}" role="img" aria-label="{% if ui_lang == 'en' %}Net position trend{% else %}নিট অবস্থানের ট্রেন্ড{% endif %}">
+    <defs>
+      <linearGradient id="psAreaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#14b8a6" stop-opacity=".55"/>
+        <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    {% for g in st.trend.grid %}
+      <line class="ps-grid-line" x1="{{ st.trend.plot_left }}" x2="{{ st.trend.plot_right }}" y1="{{ g.y }}" y2="{{ g.y }}"/>
+      <text class="ps-axis" x="4" y="{{ g.y }}">{{ g.label }}</text>
+    {% endfor %}
+    {% if st.trend.zero_y %}<line class="ps-zero-line" x1="{{ st.trend.plot_left }}" x2="{{ st.trend.plot_right }}" y1="{{ st.trend.zero_y }}" y2="{{ st.trend.zero_y }}"/>{% endif %}
+    <path class="ps-area" fill="url(#psAreaGrad)" d="{{ st.trend.area }}"/>
+    <path class="ps-line" d="{{ st.trend.path }}"/>
+    {% for p in st.trend.points %}{% if p.marker %}
+      <circle class="ps-marker" cx="{{ p.x }}" cy="{{ p.y }}" r="4">
+        <title>{{ p.date|date:'d M Y' }} · {{ p.net|signed }} ({{ p.delta|signed }})</title>
+      </circle>
+    {% endif %}{% endfor %}
+  </svg>
+  <div class="ps-trend-stats">
+    <div class="ps-stat"><div class="k">{% if ui_lang == 'en' %}Start{% else %}শুরু{% endif %} · {{ st.trend.start_date|date:'d M' }}</div><div class="v">{{ st.trend.start_net|signed }}</div></div>
+    <div class="ps-stat"><div class="k">{% if ui_lang == 'en' %}Now{% else %}এখন{% endif %} · {{ st.trend.end_date|date:'d M' }}</div><div class="v">{{ st.trend.end_net|signed }}</div></div>
+    <div class="ps-stat"><div class="k">{% if ui_lang == 'en' %}Change{% else %}পরিবর্তন{% endif %}</div><div class="v {% if st.trend.change > 0 %}pos{% elif st.trend.change < 0 %}neg{% endif %}">{{ st.trend.change|signed }}</div></div>
+    <div class="ps-stat"><div class="k">{% if ui_lang == 'en' %}Low / high{% else %}সর্বনিম্ন / সর্বোচ্চ{% endif %}</div><div class="v" style="font-size:13px">{{ st.trend.min|signed }} · {{ st.trend.max|signed }}</div></div>
+  </div>
+  {% else %}
+    <div class="ps-empty">{% if ui_lang == 'en' %}Not enough data for a trend yet.{% else %}ট্রেন্ড দেখানোর মতো যথেষ্ট ডেটা নেই।{% endif %}</div>
+  {% endif %}
+</div>
+
+<!-- ============ compare ============ -->
+<div class="ps-card">
+  <div class="ps-card-head">
+    <div>
+      <h3><i class="fa-solid fa-code-compare"></i> {% if ui_lang == 'en' %}Compare two dates{% else %}দুই তারিখের তুলনা{% endif %}</h3>
+      <p class="ps-hint">{% if ui_lang == 'en' %}See exactly which part moved the net position between two days.{% else %}দুই দিনের মধ্যে কোন অংশ নিট অবস্থান বদলেছে, ঠিক করে দেখুন।{% endif %}</p>
+    </div>
+    <form method="get" style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;margin:0">
+      <input type="hidden" name="as_of" value="{{ st.as_of|date:'Y-m-d' }}">
+      <div>
+        <label style="display:block;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text-soft);margin-bottom:4px" for="psCompare">{% if ui_lang == 'en' %}Compare with{% else %}তুলনা করুন{% endif %}</label>
+        <input class="ps-input" id="psCompare" type="date" name="compare" value="{% if st.comparison %}{{ st.comparison.compare_date|date:'Y-m-d' }}{% endif %}" max="{{ st.as_of|date:'Y-m-d' }}">
+      </div>
+      <button class="ps-mini" type="submit"><i class="fa-solid fa-code-compare"></i> {% if ui_lang == 'en' %}Compare{% else %}তুলনা{% endif %}</button>
+    </form>
+  </div>
+  {% if st.comparison %}
+    <div class="ps-diff">
+      {% for row in st.comparison.rows %}
+      <div class="ps-diff-row">
+        <span class="lbl">{% if ui_lang == 'en' %}{{ row.label_en }}{% else %}{{ row.label_bn }}{% endif %}</span>
+        <span class="amt">{{ row.before|signed }}</span>
+        <span class="arrow">→</span>
+        <span class="amt">{{ row.after|signed }}</span>
+        <span class="delta {% if row.delta > 0 %}pos{% elif row.delta < 0 %}neg{% endif %}">{{ row.delta|signed }}</span>
+        <span class="ps-diff-bar"><span class="{% if row.delta > 0 %}pos{% else %}neg{% endif %}" style="width:{{ row.pct }}%"></span></span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="ps-diff-net">
+      <span>{% if ui_lang == 'en' %}Net position change{% else %}নিট অবস্থানের পরিবর্তন{% endif %} · {{ st.comparison.compare_date|date:'d M Y' }} → {{ st.as_of|date:'d M Y' }}</span>
+      <span class="v {% if st.comparison.net_delta > 0 %}pos{% elif st.comparison.net_delta < 0 %}neg{% endif %}">{{ st.comparison.net_delta|signed }}</span>
+    </div>
+  {% else %}
+    <div class="ps-empty">{% if ui_lang == 'en' %}Pick a date above to see the change.{% else %}উপরের তারিখ বেছে নিলে পরিবর্তন দেখাবে।{% endif %}</div>
+  {% endif %}
+</div>
+
+<!-- ============ health ============ -->
+<div class="ps-card" id="ps-health">
+  <div class="ps-card-head">
+    <div>
+      <h3><i class="fa-solid fa-heart-pulse"></i> {% if ui_lang == 'en' %}Why this health score?{% else %}এই স্বাস্থ্য স্কোর কেন?{% endif %}</h3>
+      <p class="ps-hint">{% if ui_lang == 'en' %}Four transparent parts, each with its real numbers — no hidden formula.{% else %}চারটি প্রকাশ্য ভাগ, প্রতিটির আসল সংখ্যা সহ — লুকানো কোনো সূত্র নেই।{% endif %}</p>
+    </div>
+    <span class="ps-total">{{ st.health.score }} <span style="font-size:11px;color:var(--text-faint)">/ 100</span></span>
+  </div>
+  <div class="ps-health-grid">
+    {% for p in st.health.parts %}
+    <div class="ps-hpart">
+      <div class="top"><span class="lbl">{{ p.label }}</span><span class="sc">{{ p.score }} / {{ p.max }}</span></div>
+      <div class="track"><span style="width:{% widthratio p.score p.max 100 %}%"></span></div>
+      <div class="note">{{ p.note }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if st.next_installments.total %}
+    <div class="ps-note"><i class="fa-solid fa-calendar-days"></i><div>{% if ui_lang == 'en' %}Next 30 days: {{ st.next_installments.total|signed }} of loan installments are due.{% else %}পরের ৩০ দিনে {{ st.next_installments.total|signed }} ঋণের কিস্তি দিতে হবে।{% endif %}</div></div>
+  {% endif %}
+</div>
+
+<!-- ============ what-if ============ -->
+<div class="ps-card">
+  <div class="ps-card-head">
+    <div>
+      <h3><i class="fa-solid fa-flask"></i> {% if ui_lang == 'en' %}What-if simulator{% else %}কী-হবে সিমুলেটর{% endif %}</h3>
+      <p class="ps-hint">{% if ui_lang == 'en' %}Move a slider to see the effect. Nothing is posted — this is a projection only.{% else %}স্লাইডার সরিয়ে প্রভাব দেখুন। কিছুই পোস্ট হয় না — শুধু প্রক্ষেপণ।{% endif %}</p>
+    </div>
+  </div>
+  <div class="ps-wi-grid">
+    <div class="ps-wi-controls">
+      <div class="ps-wi-row">
+        <div class="lbl"><span>{% if ui_lang == 'en' %}Collect this % of baki{% else %}বাকির কত % আদায় হবে{% endif %}</span><output id="wiCollectOut">0%</output></div>
+        <input id="wiCollect" type="range" min="0" max="100" step="5" value="0">
+      </div>
+      <div class="ps-wi-row">
+        <div class="lbl"><span>{% if ui_lang == 'en' %}Write off this % of the rest{% else %}বাকি থেকে কত % মাফ হবে{% endif %}</span><output id="wiWriteoffOut">0%</output></div>
+        <input id="wiWriteoff" type="range" min="0" max="100" step="5" value="0">
+      </div>
+      <div class="ps-wi-row">
+        <div class="lbl"><span>{% if ui_lang == 'en' %}Repay a loan (৳){% else %}ঋণ পরিশোধ (৳){% endif %}</span></div>
+        <input class="ps-input" id="wiRepay" type="number" min="0" step="0.01" value="0">
+      </div>
+      <div class="ps-wi-row">
+        <div class="lbl"><span>{% if ui_lang == 'en' %}Take a new loan (৳){% else %}নতুন ঋণ নিন (৳){% endif %}</span></div>
+        <input class="ps-input" id="wiNewLoan" type="number" min="0" step="0.01" value="0">
+      </div>
+    </div>
+    <div class="ps-wi-out">
+      <div class="row"><span>{% if ui_lang == 'en' %}Cash{% else %}নগদ{% endif %}</span><b id="wiCash">{{ st.position.cash_in_hand|signed }}</b></div>
+      <div class="row"><span>{% if ui_lang == 'en' %}Customer due{% else %}কাস্টমারের বাকি{% endif %}</span><b id="wiDue">{{ st.position.due|signed }}</b></div>
+      <div class="row"><span>{% if ui_lang == 'en' %}Owe{% else %}দিতে হবে{% endif %}</span><b id="wiOwe">{{ st.position.owe|signed }}</b></div>
+      <div class="row net"><span>{% if ui_lang == 'en' %}Net position{% else %}নিট অবস্থান{% endif %}</span><b id="wiNet">{{ st.position.net|signed }}</b></div>
+      <div class="row"><span>{% if ui_lang == 'en' %}Cash ÷ short-term bills{% else %}নগদ ÷ স্বল্পমেয়াদি দায়{% endif %}</span><b id="wiRatio">—</b></div>
+      <div class="ps-wi-msg" id="wiMsg">{% if ui_lang == 'en' %}Collecting baki moves money from "due" to "cash" — the net stays the same. Only a write-off, expense or interest changes it.{% else %}বাকি আদায়ে টাকা "বাকি" থেকে "নগদে" যায় — নিট বদলায় না। শুধু মাফ, খরচ বা সুদ নিট বদলায়।{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="ps-foot">
+  <i class="fa-solid fa-lock"></i>
+  <div>{% if ui_lang == 'en' %}Read-only page. Nothing here posts, edits or deletes a transaction. Corrections go through the normal transaction, due-book and loan screens.{% else %}এটি শুধু পড়ার পেজ। এখান থেকে কোনো লেনদেন পোস্ট, সম্পাদনা বা মুছে ফেলা হয় না। সংশোধন স্বাভাবিক লেনদেন, বাকি খাতা ও ঋণ স্ক্রিন থেকেই করতে হবে।{% endif %}</div>
+</div>
+
+{{ st.whatif|json_script:"psData" }}
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'web/position.js' %}?v=1" defer></script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Business settings{% else %}ব্যবসার সেটিংস{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .bs-hero{position:relative;overflow:hidden;border-radius:22px;color:#fff;margin-bottom:18px;
+    background:linear-gradient(135deg,#1c1205 0%,#2f2410 46%,#0b4a4a 100%);
+    box-shadow:0 18px 44px rgba(8,17,32,.22)}
+  .bs-hero::after{content:"";position:absolute;right:-70px;top:-90px;width:250px;height:250px;border-radius:50%;
+    background:radial-gradient(circle,rgba(250,204,21,.26),transparent 66%)}
+  .bs-hero-in{position:relative;z-index:2;display:flex;gap:18px;align-items:center;padding:20px 24px;flex-wrap:wrap}
+  .bs-icon{width:62px;height:62px;border-radius:18px;display:grid;place-items:center;font-size:24px;flex:0 0 auto;
+    background:linear-gradient(135deg,#fde68a,#d99a1f);color:#4a3408;box-shadow:0 10px 26px rgba(201,150,27,.35)}
+  .bs-name{margin:0;font-size:23px;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,#f4ecdd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .bs-sub{color:#d8bd8a;font-size:12px;font-weight:700;margin-top:4px;letter-spacing:.04em;text-transform:uppercase}
+  .bs-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start}
+  @media(max-width:980px){.bs-grid{grid-template-columns:1fr}}
+  .bs-card{background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,250,252,.82));border:1px solid rgba(255,255,255,.85);
+    border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+  .bs-card-head{display:flex;align-items:center;gap:10px;padding:14px 18px 12px;border-bottom:1px solid rgba(255,255,255,.6)}
+  .bs-card-head i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:14px;
+    background:linear-gradient(135deg,#fff8e1,#fde68a);color:#92580b;border:1px solid rgba(201,150,27,.3)}
+  .bs-card-head h3{margin:0;font-size:14.5px;font-weight:800;color:var(--ink-2)}
+  .bs-card-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px}
+  .bs-prev{background:rgba(255,255,255,.78);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
+  .bs-prev .t{font-size:10px;text-transform:uppercase;letter-spacing:.11em;font-weight:800;color:var(--muted);margin-bottom:6px}
+  .bs-prev .v{font-size:13px;font-weight:700;color:var(--ink);word-break:break-word}
+  .bs-note{font-size:12px;line-height:1.6;color:var(--muted);margin:0}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bs-hero">
+  <div class="bs-hero-in">
+    <div class="bs-icon"><i class="fa-solid fa-building"></i></div>
+    <div style="min-width:0">
+      <h1 class="bs-name" id="bs-hero-name">{{ business.name }}</h1>
+      <div class="bs-sub">{% if ui_lang == 'en' %}Business settings{% else %}ব্যবসার সেটিংস{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="bs-grid">
+  <div class="bs-card">
+    <div class="bs-card-head">
+      <i class="fa-solid fa-pen-to-square"></i>
+      <h3>{% if ui_lang == 'en' %}Business details{% else %}ব্যবসার তথ্য{% endif %}</h3>
+    </div>
+    <div class="bs-card-body">
+      <form method="post" class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        {% csrf_token %}
+        <div class="field" style="grid-column:1/-1;margin:0">
+          <label for="bs-name">{% if ui_lang == 'en' %}Business name{% else %}ব্যবসার নাম{% endif %} <span style="color:var(--danger)">*</span></label>
+          <input id="bs-name" name="name" required maxlength="160" value="{{ form.name|default:'' }}" placeholder="{% if ui_lang == 'en' %}e.g. Rahman Traders{% else %}যেমন: রহমান ট্রেডার্স{% endif %}">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="bs-phone">{% if ui_lang == 'en' %}Contact phone{% else %}যোগাযোগের নম্বর{% endif %}</label>
+          <input id="bs-phone" name="contact_phone" maxlength="32" value="{{ form.contact_phone|default:'' }}" placeholder="01XXXXXXXXX">
+        </div>
+        <div class="field" style="margin:0">
+          <label for="bs-email">{% if ui_lang == 'en' %}Contact email{% else %}যোগাযোগের ইমেইল{% endif %}</label>
+          <input id="bs-email" name="contact_email" type="email" maxlength="254" value="{{ form.contact_email|default:'' }}" placeholder="shop@example.com">
+        </div>
+        <div class="field" style="grid-column:1/-1;margin:0">
+          <label for="bs-address">{% if ui_lang == 'en' %}Address{% else %}ঠিকানা{% endif %}</label>
+          <textarea id="bs-address" name="address" rows="3" placeholder="{% if ui_lang == 'en' %}Shop address (optional){% else %}দোকানের ঠিকানা (ঐচ্ছিক){% endif %}">{{ form.address|default:'' }}</textarea>
+        </div>
+        <div style="grid-column:1/-1;display:flex;justify-content:flex-end">
+          <button class="btn primary" type="submit"><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Save changes{% else %}সেভ করুন{% endif %}</button>
+        </div>
+      </form>
+      <p class="bs-note">
+        <i class="fa-solid fa-shield-halved" style="color:var(--brand)"></i>
+        {% if ui_lang == 'en' %}Renaming is display-only — every book, balance and record stays exactly as they are; no link and no ledger entry can break. Only the name shown in the sidebar, page chips, export headers and reminder messages changes.{% else %}নাম বদলানো শুধু দেখানোর জন্য — সব হিসাব, ব্যালেন্স ও রেকর্ড হুবহু একই থাকে, কোনো লিংক বা হিসাব ভাঙে না। শুধু সাইডবার, পেজের চিপ, এক্সপোর্টের হেডার ও রিমাইন্ডার মেসেজে নামটা বদলায়।{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="bs-card">
+    <div class="bs-card-head">
+      <i class="fa-solid fa-eye"></i>
+      <h3>{% if ui_lang == 'en' %}Where the name shows up{% else %}নাম কোথায় কোথায় দেখাবে{% endif %}</h3>
+    </div>
+    <div class="bs-card-body">
+      <div class="bs-prev">
+        <div class="t">{% if ui_lang == 'en' %}Sidebar{% else %}সাইডবার{% endif %}</div>
+        <div class="v"><span class="chip brand"><i class="fa-solid fa-building"></i> <span id="pv-chip">{{ business.name }}</span></span></div>
+      </div>
+      <div class="bs-prev">
+        <div class="t">{% if ui_lang == 'en' %}Export header (PDF / Excel / Word){% else %}এক্সপোর্ট হেডার (PDF / Excel / Word){% endif %}</div>
+        <div class="v" id="pv-export">{{ business.name }}</div>
+      </div>
+      <div class="bs-prev">
+        <div class="t">{% if ui_lang == 'en' %}Reminder message to customers{% else %}কাস্টমারদের রিমাইন্ডার মেসেজ{% endif %}</div>
+        <div class="v" id="pv-reminder" style="font-weight:600;white-space:pre-line">প্রিয় কাস্টমারের নাম,
+{{ business.name }}-এর খাতায় আপনার বাকি ৳500.00।
+অনুগ্রহ করে পরিশোধ করুন। ধন্যবাদ!</div>
+      </div>
+      <p class="bs-note">{% if ui_lang == 'en' %}Type a name above — the previews update live.{% else %}উপরে নাম লিখলে প্রিভিউ সাথে সাথে বদলাবে।{% endif %}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function(){
+    var input = document.getElementById('bs-name');
+    if(!input) return;
+    var hero = document.getElementById('bs-hero-name');
+    var chip = document.getElementById('pv-chip');
+    var exp = document.getElementById('pv-export');
+    var rem = document.getElementById('pv-reminder');
+    var isEn = {% if ui_lang == 'en' %}true{% else %}false{% endif %};
+    function paint(){
+      var v = (input.value || '').trim();
+      var shown = v || (isEn ? 'Your business name' : 'আপনার ব্যবসার নাম');
+      hero.textContent = shown;
+      chip.textContent = shown;
+      exp.textContent = shown;
+      rem.textContent = isEn
+        ? 'Dear customer,\nYou have an outstanding balance of ৳500.00 at ' + shown + '.\nPlease arrange the payment. Thank you!'
+        : 'প্রিয় কাস্টমারের নাম,\n' + shown + '-এর খাতায় আপনার বাকি ৳500.00।\nঅনুগ্রহ করে পরিশোধ করুন। ধন্যবাদ!';
+    }
+    input.addEventListener('input', paint);
+    paint();
+  })();
+</script>
+{% endblock %}

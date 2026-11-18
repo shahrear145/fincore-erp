@@ -1,0 +1,188 @@
+/* ==========================================================================
+   FinCore — PREMIUM THEME ENGINE
+   The colour of every surface comes from the CSS variables below, so one
+   file drives the whole look. `themes.css` (loaded right after this one)
+   swaps the variables per theme — the layout, spacing and behaviour
+   never change.
+   ========================================================================== */
+
+/* --------------------------------------------------------------- defaults */
+:root{
+  /* the default theme — Ivory · Navy · Gold */
+  --t-body-1:#faf6ed; --t-body-2:#f8f7f3; --t-body-3:#f1f5f5;
+  --t-blob-1:rgba(240,192,74,.80); --t-blob-2:rgba(45,212,191,.55);
+  --t-blob-3:rgba(212,160,23,.60);  --t-blob-4:rgba(11,37,69,.42);
+  --t-blob-opacity:.20;
+  --t-card-1:rgba(255,255,255,.97); --t-card-2:rgba(255,253,247,.94);
+  --t-card-3:rgba(248,251,251,.94); --t-card-border:rgba(214,176,90,.28);
+  --t-card-shadow:0 22px 48px -20px rgba(120,90,20,.24),0 5px 14px -5px rgba(11,37,69,.10);
+  --t-card-shadow-hover:0 32px 66px -22px rgba(120,90,20,.30),0 8px 18px -6px rgba(11,37,69,.12);
+  --t-seam:linear-gradient(90deg,#8a6a12 0%,#b8860b 20%,#e8c46a 44%,#f3e3b6 66%,#b8860b 100%);
+  --t-seam-opacity:.85;
+  --t-heading:#0b2545; --t-label:#8a6a12; --t-value:#0b2545; --t-soft:#5c6b80;
+  --t-btn-1:#0b2545; --t-btn-2:#123a63; --t-btn-3:#145f6b; --t-btn-shadow:rgba(11,37,69,.5);
+  --t-chip-1:rgba(253,247,230,.96); --t-chip-2:rgba(240,232,203,.86);
+  --t-chip-ink:#7a5c0d; --t-chip-border:rgba(214,176,90,.6);
+  --t-table-head:#8a6a12; --t-table-border:rgba(214,176,90,.28);
+  --t-row-1:rgba(255,255,255,.58); --t-row-2:rgba(255,253,247,.46); --t-row-hover:rgba(253,247,230,.9);
+  --t-focus:rgba(212,160,23,.35);
+  /* the sidebar wears the theme too */
+  --t-side-1:#040d1c; --t-side-2:#0a1f40; --t-side-3:#102e4a;
+  --t-side-ink:#dce9fa; --t-side-muted:#8aa6cf; --t-side-hover:rgba(255,255,255,.09);
+  --t-side-border:rgba(255,255,255,.11);
+  --t-side-active:linear-gradient(90deg,rgba(45,212,191,.26),rgba(45,212,191,.05));
+  --t-side-active-ink:#fff;
+  --t-side-logo:linear-gradient(135deg,#34d399,#14b8a6 45%,#38bdf8);
+  /* the gold boxes of the super calculator */
+  --t-card-gold-1:rgba(253,247,230,.98); --t-card-gold-2:rgba(246,237,215,.95);
+  --t-card-gold-3:rgba(240,232,203,.93);
+}
+
+/* --------------------------------------------------------------- background */
+body{
+  background:
+    radial-gradient(1050px 680px at 8% -8%, var(--t-blob-1), transparent 60%),
+    radial-gradient(900px 620px at 96% 2%, var(--t-blob-2), transparent 60%),
+    radial-gradient(820px 560px at 62% 104%, var(--t-blob-3), transparent 62%),
+    linear-gradient(180deg,var(--t-body-1) 0%,var(--t-body-2) 46%,var(--t-body-3) 100%);
+  background-attachment:fixed;
+}
+.bg-blobs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-blobs i{position:absolute;display:block;border-radius:50%;filter:blur(100px);
+  opacity:var(--t-blob-opacity);animation:blobFloat 36s ease-in-out infinite alternate;
+  will-change:transform}
+.bg-blobs i:nth-child(1){width:640px;height:640px;left:-170px;top:-200px;background:radial-gradient(circle,var(--t-blob-1),transparent 66%)}
+.bg-blobs i:nth-child(2){width:560px;height:560px;right:-150px;top:4%;background:radial-gradient(circle,var(--t-blob-2),transparent 66%);animation-duration:42s;animation-delay:-6s}
+.bg-blobs i:nth-child(3){width:600px;height:600px;left:40%;bottom:-240px;background:radial-gradient(circle,var(--t-blob-3),transparent 66%);animation-duration:38s;animation-delay:-12s}
+.bg-blobs i:nth-child(4){width:460px;height:460px;left:6%;top:40%;background:radial-gradient(circle,var(--t-blob-4),transparent 68%);animation-duration:48s;animation-delay:-3s}
+@keyframes blobFloat{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(40px,28px,0) scale(1.10)}
+  100%{transform:translate3d(-28px,20px,0) scale(.94)}
+}
+@media (max-width:860px){
+  .bg-blobs i{filter:blur(60px);opacity:calc(var(--t-blob-opacity) * .8)}
+  .bg-blobs i:nth-child(4){display:none}
+}
+.app{position:relative;z-index:1}
+
+/* --------------------------------------------------------- premium surfaces */
+.card,.exp-card,.ln-card,.tool-card,.pf-card,.ln-kpi,.ln-party{
+  background-image:linear-gradient(150deg,var(--t-card-1) 0%,var(--t-card-2) 55%,var(--t-card-3) 100%);
+  border:1px solid var(--t-card-border);
+  box-shadow:var(--t-card-shadow),inset 0 1px 0 rgba(255,255,255,.95);
+  transition:transform .32s var(--ease),box-shadow .32s var(--ease),border-color .32s var(--ease);
+}
+.sum-card{
+  background-image:linear-gradient(150deg,var(--t-card-1) 0%,var(--t-card-2) 55%,var(--t-card-3) 100%);
+  border:1px solid var(--t-card-border);
+  box-shadow:var(--t-card-shadow),inset 0 1px 0 rgba(255,255,255,.95);
+  transition:transform .32s var(--ease),box-shadow .32s var(--ease),border-color .32s var(--ease);
+}
+/* the super calculator keeps its own gold identity */
+.page-supercalc .sum-card{
+  background-image:linear-gradient(150deg,var(--t-card-gold-1) 0%,var(--t-card-gold-2) 55%,var(--t-card-gold-3) 100%);
+  border-color:var(--t-table-border);
+}
+.page-supercalc .sc-table th{color:var(--t-table-head)}
+.page-supercalc .exp-card{background-image:linear-gradient(150deg,var(--t-card-gold-1) 0%,var(--t-card-gold-2) 55%,var(--t-card-gold-3) 100%)}
+.kpi,.stat-pill{
+  border:1px solid var(--t-card-border);
+  box-shadow:var(--t-card-shadow),inset 0 1px 0 rgba(255,255,255,.92);
+  transition:transform .32s var(--ease),box-shadow .32s var(--ease),border-color .32s var(--ease);
+}
+.card::before,.exp-card::before,.ln-card::before,.tool-card::before{
+  background:var(--t-seam);
+  background-size:100% 3px;background-repeat:no-repeat;background-position:top left;
+  opacity:var(--t-seam-opacity);transition:opacity .32s var(--ease);
+}
+.card:hover,.exp-card:hover,.sum-card:hover,.ln-card:hover,.tool-card:hover,.kpi:hover{
+  transform:translateY(-4px);
+  border-color:var(--t-card-border);
+  box-shadow:var(--t-card-shadow-hover),0 0 0 1px rgba(255,255,255,.8) inset;
+}
+
+/* --------------------------------------------------------- the sidebar */
+.sidebar{
+  background:linear-gradient(180deg,var(--t-side-1) 0%,var(--t-side-2) 52%,var(--t-side-3) 100%);
+  color:var(--t-side-ink);
+  border-right-color:var(--t-side-border);
+}
+.nav a{color:var(--t-side-muted)}
+.nav a:hover{background:var(--t-side-hover);color:var(--t-side-ink);border-color:var(--t-side-border)}
+.nav a.active{background:var(--t-side-active);color:var(--t-side-active-ink);border-color:var(--t-side-border)}
+.nav .section{color:var(--t-side-muted)}
+.brand h1{color:var(--t-side-ink)}
+.brand small{color:var(--t-side-muted)}
+.brand .logo{background:var(--t-side-logo)}
+.biz-switch{background:var(--t-side-hover);border-color:var(--t-side-border)}
+.biz-switch label{color:var(--t-side-muted)}
+.biz-switch select,.biz-switch button{background:var(--t-side-hover);color:var(--t-side-ink);border-color:var(--t-side-border)}
+.biz-switch button{background:var(--t-side-active);color:var(--t-side-active-ink)}
+.biz-switch option{color:#0f172a}
+.sidebar .btn{background:var(--t-side-hover);color:var(--t-side-ink);border-color:var(--t-side-border)}
+.sidebar .btn:hover{background:var(--t-side-active);color:var(--t-side-active-ink)}
+.sidebar .btn.primary{background:var(--t-side-active);color:var(--t-side-active-ink)}
+.theme-picker-label{color:var(--t-side-muted)}
+
+/* --------------------------------------------------------- typography */
+.card h3,.exp-card .h3,.tool-card .h3,.ln-card .h3,.section-head h3{color:var(--t-heading)}
+.sum-card .k,.kpi .k,.stat-pill .k,.tool-row .k,.exp-card .f-field label{color:var(--t-label)}
+.sum-card .v,.kpi .v,.tool-row .v,.khata-totals .stat-pill .v{color:var(--t-value)}
+.sum-card .s,.kpi .s,.card .muted,.tool-card .note,.exp-card .muted,.mini-hint{color:var(--t-soft)}
+.topbar h2{color:var(--t-heading)}
+.topbar p{color:var(--t-soft)}
+.khata-table td{color:var(--t-value)}
+.khata-table th{color:var(--t-table-head)}
+.chip.brand{background:linear-gradient(135deg,var(--t-chip-1),var(--t-chip-2));
+  color:var(--t-chip-ink);border-color:var(--t-chip-border)}
+.chip.info{background:linear-gradient(135deg,var(--t-chip-2),var(--t-chip-1));
+  color:var(--t-chip-ink);border-color:var(--t-chip-border)}
+
+/* ------------------------------------------------- colourful micro bits */
+.badge.b-ok{background:linear-gradient(135deg,rgba(209,250,229,.95),rgba(110,231,183,.72));color:#065f46;border-color:rgba(52,211,153,.6)}
+.badge.b-warn{background:linear-gradient(135deg,rgba(254,243,199,.95),rgba(252,211,77,.72));color:#92400e;border-color:rgba(250,204,21,.6)}
+.badge.b-danger{background:linear-gradient(135deg,rgba(255,228,230,.95),rgba(251,113,133,.7));color:#9f1239;border-color:rgba(251,113,133,.6)}
+.badge.b-info{background:linear-gradient(135deg,rgba(219,234,254,.95),rgba(147,197,253,.72));color:#1d4ed8;border-color:rgba(96,165,250,.6)}
+.badge.b-brand{background:linear-gradient(135deg,var(--t-chip-1),var(--t-chip-2));color:var(--t-chip-ink);border-color:var(--t-chip-border)}
+.badge.b-muted{background:linear-gradient(135deg,rgba(248,250,252,.95),rgba(226,232,240,.8));color:#475569;border-color:rgba(226,232,240,.8)}
+.btn.primary{background:linear-gradient(135deg,var(--t-btn-1) 0%,var(--t-btn-2) 42%,var(--t-btn-3) 76%,var(--t-btn-2) 118%);
+  box-shadow:0 14px 30px -8px var(--t-btn-shadow)}
+.btn.primary:hover{box-shadow:0 20px 42px -10px var(--t-btn-shadow)}
+.export-group{box-shadow:0 14px 30px -12px var(--t-card-shadow),inset 0 1px 0 rgba(255,255,255,.9)}
+.sum-chip.on{background:linear-gradient(135deg,var(--t-btn-1) 0%,var(--t-btn-2) 60%,var(--t-btn-3) 100%);
+  box-shadow:0 14px 28px -10px var(--t-btn-shadow)}
+.ln-chip.on{background:linear-gradient(135deg,var(--t-btn-1) 0%,var(--t-btn-2) 60%,var(--t-btn-3) 100%);
+  box-shadow:0 14px 28px -10px var(--t-btn-shadow)}
+.table-wrap{background:rgba(255,255,255,.86);border-color:var(--t-table-border);
+  box-shadow:0 16px 38px -18px var(--t-card-shadow),inset 0 1px 0 rgba(255,255,255,.9)}
+.khata-table tbody td{background:var(--t-row-1)}
+.khata-table tbody tr:nth-child(even) td{background:var(--t-row-2)}
+.khata-table tbody tr:hover td{background:var(--t-row-hover)}
+input,select,textarea{background-color:rgba(255,255,255,.97)}
+input:focus,select:focus,textarea:focus{background-color:#fff}
+
+/* --------------------------------------------------------- theme picker */
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+/* five cards in one row -> keep the numbers inside their card */
+.g5 .card .value{font-size:clamp(17px,1.5vw,24px);letter-spacing:-.03em;white-space:nowrap}
+.g5 .card h3{font-size:12.5px;line-height:1.3}
+.g5 .card .sub{font-size:11px}
+@media(max-width:1280px){.g5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:860px){.g5{grid-template-columns:repeat(auto-fit,minmax(min(84px,100%),1fr))}}
+@media(max-width:560px){.g5{grid-template-columns:repeat(auto-fit,minmax(min(84px,100%),1fr))}}
+.theme-picker{padding:2px 2px 4px}
+.theme-picker-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;color:#9fb4d8;margin-bottom:8px}
+.theme-swatches{display:flex;flex-wrap:wrap;gap:7px}
+.theme-swatch{width:26px;height:26px;border-radius:9px;cursor:pointer;border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 4px 10px -4px rgba(0,0,0,.5);padding:0;transition:transform .16s var(--ease),box-shadow .16s var(--ease)}
+.theme-swatch:hover{transform:translateY(-2px) scale(1.06);box-shadow:0 8px 16px -6px rgba(0,0,0,.6)}
+.theme-swatch.on{outline:2px solid #f0c04a;outline-offset:2px;transform:scale(1.08)}
+
+/* --------------------------------------------------------- reduced motion */
+@media (prefers-reduced-motion:reduce){
+  .bg-blobs i{animation:none}
+  .card,.exp-card,.sum-card,.ln-card,.tool-card,.kpi,.stat-pill{transition:none}
+  .card:hover,.exp-card:hover,.sum-card:hover,.ln-card:hover,.tool-card:hover,.kpi:hover{transform:none}
+}

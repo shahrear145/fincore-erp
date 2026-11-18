@@ -1,0 +1,118 @@
+{% extends "web/base.html" %}
+{% load fmt i18n_tags %}
+{% block title %}{% if ui_lang == 'en' %}Create account{% else %}অ্যাকাউন্ট তৈরি করুন{% endif %} — FinCore ERP{% endblock %}
+{% block extra_head %}
+<style>
+  .auth{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(1000px 620px at 8% -10%,rgba(94,234,212,.26),transparent 56%),
+      radial-gradient(860px 520px at 106% -2%,rgba(56,189,248,.18),transparent 54%),
+      radial-gradient(900px 700px at 50% 120%,rgba(99,102,241,.18),transparent 60%),
+      linear-gradient(180deg,#e8edf5 0%,#eef2f8 100%)}
+  .auth::before{content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(15,118,110,.10) 1px,transparent 1.4px);
+    background-size:26px 26px;opacity:.6;pointer-events:none}
+  .auth-wrap{width:100%;max-width:1020px;display:grid;grid-template-columns:.95fr 1.05fr;position:relative;z-index:1;
+    border-radius:26px;overflow:hidden;border:1px solid rgba(255,255,255,.65);
+    box-shadow:0 42px 96px -24px rgba(4,13,28,.40),0 2px 0 rgba(255,255,255,.7) inset;
+    animation:authIn .55s cubic-bezier(.16,1,.3,1)}
+  @keyframes authIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+  .auth-side{position:relative;padding:38px 36px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+    background:
+      radial-gradient(520px 380px at -12% -10%,rgba(94,234,212,.32),transparent 62%),
+      radial-gradient(440px 360px at 114% 116%,rgba(34,211,238,.26),transparent 60%),
+      linear-gradient(163deg,#070a18 0%,#0d1230 46%,#101f3a 124%);
+    color:#eaf2ff}
+  .auth-side::after{content:"";position:absolute;right:-80px;bottom:-80px;width:260px;height:260px;border-radius:50%;
+    background:radial-gradient(circle,rgba(99,102,241,.28),transparent 66%);pointer-events:none}
+  .auth-brand{display:flex;align-items:center;gap:13px;margin-bottom:26px;position:relative}
+  .auth-logo{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;
+    background:linear-gradient(140deg,#a5b4fc 0%,#6366f1 46%,#22d3ee 100%);color:#05070f;font-size:20px;
+    box-shadow:0 14px 32px rgba(99,102,241,.45),0 0 0 1px rgba(255,255,255,.3) inset}
+  .auth-brand b{display:block;font-weight:800;font-size:20px;color:#fff;letter-spacing:-.015em}
+  .auth-brand span{color:#7dd3fc;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:block;margin-top:2px}
+  .auth-side h2{margin:0 0 10px;font-size:clamp(26px,2.6vw,32px);line-height:1.16;font-weight:800;color:#fff;letter-spacing:-.03em;position:relative}
+  .auth-side p{margin:0;color:#a9c2e4;line-height:1.7;font-size:14px;position:relative}
+  .checks{display:flex;flex-direction:column;gap:11px;margin-top:28px;position:relative}
+  .checks div{display:flex;gap:11px;align-items:center;color:#e2e8f0;font-size:13.5px}
+  .checks i{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:8px;
+    background:rgba(99,102,241,.18);color:#a5b4fc;font-size:12px}
+  .auth-form{padding:36px 36px;display:flex;flex-direction:column;justify-content:center;
+    background:linear-gradient(180deg,rgba(13,17,36,.98) 0%,rgba(9,12,26,.98) 100%)}
+  .auth-form h3{margin:0 0 4px;font-size:23px;font-weight:800;letter-spacing:-.025em;color:#eef1fa}
+  .auth-form .lead{margin:0 0 18px;color:#9aa7c7;font-size:14px}
+  .auth-form .lead a{font-weight:700;color:#7dd3fc}
+  .lang-fab{position:fixed;top:16px;right:16px;display:flex;gap:8px;z-index:5}
+  .lang-fab .btn{box-shadow:var(--shadow-sm);background:rgba(255,255,255,.88);backdrop-filter:blur(10px)}
+  @media(max-width:920px){
+    .auth-wrap{grid-template-columns:1fr;max-width:540px}
+    .auth-side{display:none}
+    .auth-form{padding:30px 22px}
+    .auth-wrap{grid-template-columns:1fr !important}
+  }
+</style>
+{% endblock %}
+{% block body %}
+<div class="auth">
+  <div class="lang-fab">
+    <form method="post" action="{% url 'web:set_language' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn sm {% if ui_lang != 'en' %}primary{% endif %}" name="lang" value="bn" type="submit">বাংলা</button></form>
+    <form method="post" action="{% url 'web:set_language' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn sm {% if ui_lang == 'en' %}primary{% endif %}" name="lang" value="en" type="submit">English</button></form>
+  </div>
+  <div class="auth-wrap">
+    <div class="auth-side">
+      <div>
+        <div class="auth-brand">
+          <div class="auth-logo"><i class="fa-solid fa-coins"></i></div>
+          <div><b>FinCore ERP</b><span>{% if ui_lang == 'en' %}Start in minutes{% else %}কয়েক মিনিটেই শুরু করুন{% endif %}</span></div>
+        </div>
+        <h2>{% if ui_lang == 'en' %}Create your<br>account{% else %}আপনার অ্যাকাউন্ট<br>তৈরি করুন{% endif %}</h2>
+        <p>{% if ui_lang == 'en' %}One secure account for your personal ledger and business finance — accurate decimals, partner-wise dues, and server-enforced rules.{% else %}একটি নিরাপদ অ্যাকাউন্টে ব্যক্তিগত লেজার ও ব্যবসার হিসাব — নির্ভুল দশমিক, পার্টনার-ভিত্তিক বাকি এবং সার্ভার-নিয়ন্ত্রিত নিয়ম।{% endif %}</p>
+      </div>
+      <div class="checks">
+        <div><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Private personal finance, separate from business{% else %}ব্যক্তিগত হিসাব ব্যবসা থেকে সম্পূর্ণ আলাদা{% endif %}</div>
+        <div><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}৳ exact money (no floats){% else %}৳ নির্ভুল হিসাব (কোনো ফ্লোট নয়){% endif %}</div>
+        <div><i class="fa-solid fa-check"></i> {% if ui_lang == 'en' %}Audit trail and role-safe access{% else %}অডিট ট্রেইল ও ভূমিকা-নিরাপদ প্রবেশ{% endif %}</div>
+      </div>
+    </div>
+    <div class="auth-form">
+      <h3>{% if ui_lang == 'en' %}Sign up{% else %}নিবন্ধন{% endif %}</h3>
+      <p class="lead">{% if ui_lang == 'en' %}Already have an account?{% else %}আগে থেকেই অ্যাকাউন্ট আছে?{% endif %} <a href="{% url 'web:login' %}">{% t "Sign in" %}</a></p>
+      {% if messages %}
+        <div class="messages">{% for message in messages %}<div class="msg {{ message.tags }}"><i class="fa-solid {% if 'success' in message.tags %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i><div>{{ message }}</div></div>{% endfor %}</div>
+      {% endif %}
+      <form method="post" class="form-grid" style="gap:12px">
+        {% csrf_token %}
+        <div class="field">
+          <label for="r-user">{% if ui_lang == 'en' %}Username{% else %}ইউজারনেম{% endif %}</label>
+          <input id="r-user" name="username" value="{{ form.username|default:'' }}" autocomplete="username" required placeholder="{% if ui_lang == 'en' %}e.g., rahim_01{% else %}যেমন: rahim_01{% endif %}">
+          <div class="hint">{% if ui_lang == 'en' %}Letters, digits, . - _{% else %}অক্ষর, সংখ্যা, . - _{% endif %}</div>
+        </div>
+        <div class="field">
+          <label for="r-email">{% if ui_lang == 'en' %}Email{% else %}ইমেইল{% endif %}</label>
+          <input id="r-email" name="email" type="email" value="{{ form.email|default:'' }}" autocomplete="email" required placeholder="you@example.com">
+        </div>
+        <div class="field full">
+          <label for="r-phone">{% if ui_lang == 'en' %}Phone (optional){% else %}ফোন (ঐচ্ছিক){% endif %}</label>
+          <input id="r-phone" name="phone" value="{{ form.phone|default:'' }}" autocomplete="tel" placeholder="01XXXXXXXXX">
+        </div>
+        <div class="field">
+          <label for="r-pass">{% t "Password" %}</label>
+          <input id="r-pass" name="password" type="password" autocomplete="new-password" required placeholder="••••••••">
+        </div>
+        <div class="field">
+          <label for="r-pass2">{% if ui_lang == 'en' %}Confirm password{% else %}পাসওয়ার্ড নিশ্চিত করুন{% endif %}</label>
+          <input id="r-pass2" name="password2" type="password" autocomplete="new-password" required placeholder="••••••••">
+        </div>
+        <div class="field full">
+          <div class="hint">{% if ui_lang == 'en' %}Use at least 8 characters. A strong password is recommended.{% else %}কমপক্ষে ৮ অক্ষর ব্যবহার করুন। শক্তিশালী পাসওয়ার্ড ভালো।{% endif %}</div>
+        </div>
+        <div class="field full">
+          <button class="btn primary" type="submit" style="width:100%;justify-content:center;padding:13px 14px;font-size:15px;border-radius:14px">
+            <i class="fa-solid fa-user-plus"></i> {% if ui_lang == 'en' %}Create account{% else %}অ্যাকাউন্ট তৈরি করুন{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
