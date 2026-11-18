@@ -216,17 +216,6 @@
           <button type="button" class="btn sm khata-top-btn" id="khataScrollTop" title="{% if ui_lang == 'en' %}Scroll to top{% else %}উপরে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll to top{% else %}উপরে scroll করুন{% endif %}"><i class="fa-solid fa-arrow-up"></i></button>
         </div>
 
-        {% if khata_total > 30 %}
-        <div class="khata-pager">
-          <span class="kp-info">{{ khata_offset|add:1 }}–{{ khata_end }} / {{ khata_total }} {% if ui_lang == 'en' %}customers{% else %}জন{% endif %}</span>
-          <div class="kp-btns">
-            {% if khata_page > 1 %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:-1 }}" title="{% if ui_lang == 'en' %}Previous page{% else %}আগের পাতা{% endif %}"><i class="fa-solid fa-chevron-left"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-left"></i></span>{% endif %}
-            <span class="kp-page">{{ khata_page }} / {{ khata_total_pages }}</span>
-            {% if khata_page < khata_total_pages %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:1 }}" title="{% if ui_lang == 'en' %}Next page{% else %}পরের পাতা{% endif %}"><i class="fa-solid fa-chevron-right"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-right"></i></span>{% endif %}
-          </div>
-        </div>
-        {% endif %}
-
         <div class="table-wrap khata-scroll" style="border:0">
         <table id="khata-table" class="khata-table">
           <colgroup>
@@ -254,7 +243,7 @@
           <tbody>
             {% for r in partner_day_rows %}
             <tr class="krow" data-name="{{ r.customer.name|default:''|lower }}" data-id="{{ r.customer.id }}">
-              <td class="mono muted">{{ khata_offset|add:forloop.counter }}</td>
+              <td class="mono muted">{{ forloop.counter }}</td>
               <td class="mono" style="font-size:11px" title="{{ r.customer.id }}"><span class="badge b-muted" style="font-size:10px">#{{ r.customer.id|stringformat:"s"|slice:":8"|upper }}</span></td>
               <td>
                 <a href="?partner={{ selected.id }}{% if pdate %}&pdate={{ pdate }}{% endif %}&history={{ r.customer.id }}" data-history-link title="{{ r.customer.name }}" style="color:var(--text-strong);text-decoration:none;display:block">
@@ -282,17 +271,6 @@
           </tbody>
         </table>
         </div>
-
-        {% if khata_total > 30 %}
-        <div class="khata-pager khata-pager-bottom">
-          <span class="kp-info">{{ khata_offset|add:1 }}–{{ khata_end }} / {{ khata_total }} {% if ui_lang == 'en' %}customers{% else %}জন{% endif %}</span>
-          <div class="kp-btns">
-            {% if khata_page > 1 %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:-1 }}"><i class="fa-solid fa-chevron-left"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-left"></i></span>{% endif %}
-            <span class="kp-page">{{ khata_page }} / {{ khata_total_pages }}</span>
-            {% if khata_page < khata_total_pages %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:1 }}"><i class="fa-solid fa-chevron-right"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-right"></i></span>{% endif %}
-          </div>
-        </div>
-        {% endif %}
 
         <div class="khata-totals">
           <div class="stat-pill prev"><span class="k">{% if ui_lang == 'en' %}Total previous baki{% else %}মোট আগের বাকি{% endif %}</span><span class="v">{{ partner_day_total|money }}</span></div>

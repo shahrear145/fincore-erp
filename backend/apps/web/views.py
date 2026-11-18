@@ -1287,18 +1287,6 @@ def customers_view(request):
             partner_day_total = sum((r["amount"] for r in partner_day_rows), Decimal("0.00"))
             partner_day_remaining_total = sum((r["remaining"] for r in partner_day_rows), Decimal("0.00"))
 
-    # ---- বাকির খাতা pagination: সর্বোচ্চ ৩০ জন / page ----
-    KHATA_PAGE_SIZE = 30
-    try:
-        khata_page = int((request.GET.get("khata_page") or "1").strip())
-    except (TypeError, ValueError):
-        khata_page = 1
-    khata_total = len(partner_day_rows)
-    khata_total_pages = max(1, (khata_total + KHATA_PAGE_SIZE - 1) // KHATA_PAGE_SIZE)
-    khata_page = max(1, min(khata_page, khata_total_pages))
-    khata_offset = (khata_page - 1) * KHATA_PAGE_SIZE
-    khata_rows = partner_day_rows[khata_offset:khata_offset + KHATA_PAGE_SIZE]
-
     if request.GET.get("partial") == "history":
         # No-reload history drawer: return only the drawer fragment. The
         # client falls back to a full reload when this fails (400).
@@ -1332,14 +1320,9 @@ def customers_view(request):
         "pfrom": pfrom,
         "pto": pto,
         "range_active": range_active,
-        "partner_day_rows": khata_rows,
+        "partner_day_rows": partner_day_rows,
         "partner_day_total": partner_day_total,
         "partner_day_remaining_total": partner_day_remaining_total,
-        "khata_page": khata_page,
-        "khata_total": khata_total,
-        "khata_total_pages": khata_total_pages,
-        "khata_offset": khata_offset,
-        "khata_end": khata_offset + len(khata_rows),
         "rem_i18n": _reminder_i18n(request.session.get("ui_lang") == "en"),
     })
 

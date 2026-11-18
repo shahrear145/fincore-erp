@@ -99,7 +99,7 @@ a{color:var(--brand);text-decoration:none;transition:color .15s var(--ease)} a:h
 .biz-switch button{cursor:pointer;background:linear-gradient(135deg,rgba(45,212,191,.24),rgba(20,184,166,.12));border-color:rgba(45,212,191,.24);font-weight:700}
 .biz-switch button:hover{background:rgba(45,212,191,.3);transform:translateY(-1px)}
 
-.main{position:relative;padding:26px 30px 52px;max-width:1360px;width:100%}
+.main{position:relative;padding:26px 30px 52px;max-width:none;width:100%}
 .mobile-bar{display:none;align-items:center;justify-content:flex-start;gap:12px;margin:-4px 0 14px;
   background:rgba(255,255,255,.9);
   border:1px solid rgba(255,255,255,.75);border-radius:18px;padding:11px 13px;box-shadow:var(--shadow)}
@@ -291,6 +291,7 @@ textarea{min-height:92px;resize:vertical}
 /* Split */
 .split{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:18px;align-items:start}
 .split.split-khata-wide{grid-template-columns:minmax(0,1.34fr) minmax(0,.66fr)}
+@media(max-width:1080px){.split.split-khata-wide{grid-template-columns:1fr}}
 .split-eq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
 .split>*,.split-eq>*{min-width:0}
 
@@ -625,13 +626,6 @@ html{scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.45) transparent}
 .khata-table td.k-actions-cell{overflow:visible;text-align:right}
 .khata-table td.k-actions-cell .k-actions{display:inline-flex;gap:6px;align-items:center;justify-content:flex-end}
 
-/* পাতা সংখ্যা (সর্বোচ্চ ৩০ জন / page) */
-.khata-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 24px;border-bottom:1px solid rgba(255,255,255,.45);background:rgba(241,245,249,.55)}
-.khata-pager .kp-info{font-size:11.5px;color:var(--muted-2);font-weight:700}
-.khata-pager .kp-btns{display:inline-flex;align-items:center;gap:8px}
-.khata-pager .kp-page{font-size:11.5px;font-weight:800;color:var(--ink);min-width:46px;text-align:center}
-.khata-pager .btn.disabled{opacity:.35;pointer-events:none}
-.khata-pager-bottom{border-bottom:0;border-top:1px solid rgba(255,255,255,.55)}
 .khata-top-btn,.khata-hscroll-btn{flex:0 0 auto;align-self:center}
 
 /* বাকির খাতা — fixed height, vertical scroll (notifications panel-এর মতো) */
