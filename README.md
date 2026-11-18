@@ -3,7 +3,8 @@
 **Personal & Business Accounting ERP** — one app for the shop ledger and your
 personal pocket, built with Django and a server-rendered web UI.
 
-হিসাব রাখার সম্পূর্ণ একটা সিস্টেম — দোকানের বাকি খাতা থেকে শুরু করে ব্যক্তিগত হিসাব পর্যন্ত।
+A complete accounting system — from the shop's due books to personal finance, in
+one place.
 
 > Live on **PythonAnywhere** (free tier) behind login. Source is open; the
 > production database is intentionally **not** in this repo.
@@ -12,29 +13,30 @@ personal pocket, built with Django and a server-rendered web UI.
 
 ## Highlights
 
-- **দোকান হিসাব, আলাদা বই** — নগদ, বাকি, খরচ/ক্রয়, ঋণ, বিনিয়োগ: প্রতিটার নিজস্ব বই,
-  ব্যালেন্স, টোটাল ও হিস্ট্রি।
-- **পার্টনারভিত্তিক বাকি খাতা** — প্রতিটি পার্টনারের জন্য গ্রাহকভিত্তিক আলাদা খাতা,
-  তারিখ অনুযায়ী রিপ্লে, ওভারটাইম আদায়, রিমাইন্ডার (WhatsApp/ইমেইল)।
-- **সুপার ক্যালকুলেটর** — তারিখ রেঞ্জ দিয়ে মোট সেল (নগদ + বাকি), মোট খরচ,
-  লাভ/লোকসান। PDF-এ ধাপে ধাপে রিপোর্ট: নগদের হিসাব → পার্টনার খাতা → খরচ →
-  সংক্ষিপ্ত বিবরণ → চূড়ান্ত ফল।
-- **পজিশন ককপিট** — ক্যাশ ড্রয়ার, ব্যাংক, বাকি, ঋণের জলপ্রবাহ (waterfall),
-  as-of/দুই তারিখ তুলনা, অডিট ফাইন্ডিং, স্বাস্থ্য স্কোর।
-- **PDF / Excel / Word export** — গ্রাহক স্টেটমেন্ট (বাকি চালান), সুপার ক্যালকুলেটর,
-  পজিশন রিপোর্ট — সবগুলোই বাংলা-শাপশট PDF (headless Chromium) বা fpdf2 fallback।
-- **অডিট-ফার্স্ট ডিজাইন** — double-entry accounting engine, soft-delete + reversal
-  (never hard-delete financial rows), audit log on every write, Decimal money,
-  partner-role RBAC enforced on the backend.
+- **Separate books for the shop** — cash, due, expenses/purchases, loans,
+  investments: each with its own book, balance, totals and history.
+- **Partner-wise due books** — an independent customer-by-customer book per
+  partner, dated replay, overdue tracking, reminders (WhatsApp/email).
+- **Super Calculator** — enter a date range and get total sell (cash + due),
+  total expenses and profit/loss. The PDF breaks the result down step by step:
+  cash account → partner books → expenses → summary → final result.
+- **Position cockpit** — cash drawer, bank, dues, loan waterfall,
+  as-of / two-date comparison, audit findings, health score.
+- **PDF / Excel / Word export** — customer statements, super-calculator
+  reports, position reports — all Bangla-safe via headless Chromium, with an
+  fpdf2 fallback.
+- **Audit-first design** — double-entry accounting engine, soft delete +
+  reversal (financial rows are never hard-deleted), audit log on every write,
+  Decimal money, partner-role RBAC enforced server-side.
 - **PWA + offline sync** — Flutter client (separate repo) with client-generated
-  idempotency keys; server dedupes on `client_reference`.
+  idempotency keys; the server dedupes on `client_reference`.
 
 ## Tech stack
 
 | Layer | Choice |
 |---|---|
 | Backend | Django 5, Django REST Framework, Python |
-| Frontend | Server-rendered templates + vanilla JS, CSS custom properties (themes: Aurora/Light/Dark), Font Awesome, Google Fonts |
+| Frontend | Server-rendered templates + vanilla JS, CSS custom properties (Aurora/Light/Dark themes), Font Awesome, Google Fonts |
 | Money | `DecimalField` everywhere — never floats |
 | Database | SQLite (PythonAnywhere free) · Postgres-ready (Docker path) |
 | Auth | Session (web) + JWT (API), email OTP, Google OAuth, login history |
@@ -74,12 +76,13 @@ python manage.py test apps --settings=config.testing   # full suite
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/ — Bangla UI by default; toggle EN in the header.
+Open http://127.0.0.1:8000/ — Bangla UI by default; toggle English in the header.
 
 ## Deploying your own instance
 
 - **PythonAnywhere free tier** — step-by-step: `docs/04-pythonanywhere-deploy.md`
-  and `deploy/pythonanywhere/` (setup.sh creates venv, runs migrate + collectstatic).
+  and `deploy/pythonanywhere/` (setup.sh creates the venv, runs migrate +
+  collectstatic).
 - **Docker** — `deploy/docker-compose.yml` (Postgres + Redis + API).
 
 ## Design previews
