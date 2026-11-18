@@ -134,7 +134,7 @@
   <div class="card"><div class="empty"><div class="ei"><i class="fa-solid fa-user-tie"></i></div><h4>{% if ui_lang == 'en' %}No partner selected{% else %}কোনো পার্টনার নির্বাচন করা নেই{% endif %}</h4><p>{% if ui_lang == 'en' %}Select a partner to view their due book and add dues.{% else %}একটি পার্টনার নির্বাচন করুন তার বাকি হিসাব দেখতে এবং বাকি যোগ করতে।{% endif %}</p></div></div>
 {% else %}
 
-<div class="split">
+<div class="split split-khata-wide">
   <div>
     <div class="card">
       <div class="book-head">
@@ -211,38 +211,63 @@
           <i class="fa-solid fa-magnifying-glass"></i>
           <input id="name-search" type="text" placeholder="{% if ui_lang == 'en' %}Search name or ID...{% else %}নাম বা আইডি দিয়ে খুঁজুন...{% endif %}" oninput="filterKhata(this.value)">
           <span class="muted" style="font-size:12px">{% if ui_lang == 'en' %}Name/ID search{% else %}নাম/আইডি সার্চ{% endif %}</span>
+          <button type="button" class="btn sm khata-hscroll-btn" id="khataScrollLeft" title="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="btn sm khata-hscroll-btn" id="khataScrollRight" title="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-right"></i></button>
+          <button type="button" class="btn sm khata-top-btn" id="khataScrollTop" title="{% if ui_lang == 'en' %}Scroll to top{% else %}উপরে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll to top{% else %}উপরে scroll করুন{% endif %}"><i class="fa-solid fa-arrow-up"></i></button>
         </div>
 
-        <div class="table-wrap" style="border:0">
+        {% if khata_total > 30 %}
+        <div class="khata-pager">
+          <span class="kp-info">{{ khata_offset|add:1 }}–{{ khata_end }} / {{ khata_total }} {% if ui_lang == 'en' %}customers{% else %}জন{% endif %}</span>
+          <div class="kp-btns">
+            {% if khata_page > 1 %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:-1 }}" title="{% if ui_lang == 'en' %}Previous page{% else %}আগের পাতা{% endif %}"><i class="fa-solid fa-chevron-left"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-left"></i></span>{% endif %}
+            <span class="kp-page">{{ khata_page }} / {{ khata_total_pages }}</span>
+            {% if khata_page < khata_total_pages %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:1 }}" title="{% if ui_lang == 'en' %}Next page{% else %}পরের পাতা{% endif %}"><i class="fa-solid fa-chevron-right"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-right"></i></span>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="table-wrap khata-scroll" style="border:0">
         <table id="khata-table" class="khata-table">
+          <colgroup>
+            <col style="width:6%">
+            <col style="width:13%">
+            <col style="width:20%">
+            <col style="width:16.5%">
+            <col style="width:12.5%">
+            <col style="width:12.5%">
+            <col style="width:7%">
+            <col style="width:12.5%">
+          </colgroup>
           <thead>
             <tr>
-              <th style="width:5%">{% if ui_lang == 'en' %}SL{% else %}ক্রমিক{% endif %}</th>
-              <th class="hide-sm" style="width:11%">{% if ui_lang == 'en' %}ID{% else %}আইডি{% endif %}</th>
-              <th style="width:26%">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %}</th>
-              <th class="hide-sm" style="width:22%">{% if ui_lang == 'en' %}Phone / Email{% else %}ফোন / ইমেইল{% endif %}</th>
-              <th class="num" style="width:15%">{% if ui_lang == 'en' %}Previous baki{% else %}আগের বাকি{% endif %}</th>
-              <th class="num" style="width:15%">{% if ui_lang == 'en' %}Current baki{% else %}বর্তমান বাকি{% endif %}</th>
-              <th class="hide-sm" style="width:16%">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</th>
-              <th style="width:10%"></th>
+              <th>{% if ui_lang == 'en' %}SL{% else %}ক্রমিক{% endif %}</th>
+              <th>{% if ui_lang == 'en' %}ID{% else %}আইডি{% endif %}</th>
+              <th style="text-align:left">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %}</th>
+              <th class="hide-sm" style="text-align:left">{% if ui_lang == 'en' %}Phone / Email{% else %}ফোন / ইমেইল{% endif %}</th>
+              <th class="num">{% if ui_lang == 'en' %}Previous baki{% else %}আগের বাকি{% endif %}</th>
+              <th class="num">{% if ui_lang == 'en' %}Current baki{% else %}বর্তমান বাকি{% endif %}</th>
+              <th class="hide-sm" style="text-align:left">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</th>
+              <th style="text-align:right"></th>
             </tr>
           </thead>
           <tbody>
             {% for r in partner_day_rows %}
             <tr class="krow" data-name="{{ r.customer.name|default:''|lower }}" data-id="{{ r.customer.id }}">
-              <td class="mono muted">{{ forloop.counter }}</td>
-              <td class="mono hide-sm" style="font-size:11px" title="{{ r.customer.id }}"><span class="badge b-muted" style="font-size:10px">#{{ r.customer.id|stringformat:"s"|slice:":8"|upper }}</span></td>
+              <td class="mono muted">{{ khata_offset|add:forloop.counter }}</td>
+              <td class="mono" style="font-size:11px" title="{{ r.customer.id }}"><span class="badge b-muted" style="font-size:10px">#{{ r.customer.id|stringformat:"s"|slice:":8"|upper }}</span></td>
               <td>
-                <a href="?partner={{ selected.id }}{% if pdate %}&pdate={{ pdate }}{% endif %}&history={{ r.customer.id }}" data-history-link style="color:var(--text-strong);text-decoration:none;display:block;overflow:hidden">
+                <a href="?partner={{ selected.id }}{% if pdate %}&pdate={{ pdate }}{% endif %}&history={{ r.customer.id }}" data-history-link title="{{ r.customer.name }}" style="color:var(--text-strong);text-decoration:none;display:block">
                   <strong style="display:block;font-size:14.5px">{{ r.customer.name|default:"—" }}</strong>
                   <span class="muted" style="font-size:10.5px;margin-top:2px;display:block">ID #{{ r.customer.id|stringformat:"s"|slice:":8"|upper }}</span>
                 </a>
               </td>
-              <td class="muted hide-sm" style="font-size:13px;line-height:1.4;color:var(--text-faint)">{{ r.customer.phone|default:"—" }}{% if r.customer.email %}<div style="font-size:10.5px;margin-top:2px">{{ r.customer.email }}</div>{% endif %}</td>
+              <td class="muted hide-sm" style="font-size:12.5px;line-height:1.4" title="{{ r.customer.phone }}{% if r.customer.email %} &lt;{{ r.customer.email }}&gt;{% endif %}"><span class="k-ellipsis">{{ r.customer.phone|default:"—" }}{% if r.customer.email %}<span style="display:block;font-size:10px;color:var(--muted-2)">{{ r.customer.email }}</span>{% endif %}</span></td>
               <td class="num" style="font-weight:700">{{ r.amount|money }}</td>
               <td class="num" style="font-weight:800"><span class="{% if r.remaining > 0 %}neg{% else %}pos{% endif %}">{{ r.remaining|money }}</span></td>
-              <td class="muted hide-sm">{{ r.t.description|default:"—" }}</td>
-              <td class="num" style="white-space:nowrap">
+              <td class="muted hide-sm" title="{{ r.t.description }}">{{ r.t.description|default:"—" }}</td>
+              <td class="num k-actions-cell">
+                <span class="k-actions">
                 <button type="button" class="btn sm" onclick="pickCustomer('{{ r.customer.name|default:''|escapejs }}','{{ r.customer.phone|default:''|escapejs }}','{{ r.customer.email|default:''|escapejs }}','{{ r.customer.id }}')" title="{% if ui_lang == 'en' %}Add/Pay{% else %}বাকি/পরিশোধ{% endif %}"><i class="fa-solid fa-plus"></i></button>
                 <button type="button" class="btn sm" onclick="openEdit('{{ r.customer.id }}','{{ r.customer.name|default:''|escapejs }}','{{ r.customer.phone|default:''|escapejs }}','{{ r.customer.email|default:''|escapejs }}','{{ r.customer.serial_no|default:'' }}','{{ r.remaining }}','{{ r.edit_tx_id }}','{{ r.edit_tx_amount }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
                 {% if r.remaining > 0 and r.assignment_id %}
@@ -250,12 +275,24 @@
                 <button type="button" class="btn sm" data-reminder-btn data-assignment="{{ r.assignment_id }}" title="{% if ui_lang == 'en' %}Send a payment reminder{% else %}বাকির রিমাইন্ডার পাঠান{% endif %}{% if r.last_reminder_at %} · {% if ui_lang == 'en' %}last sent{% else %}শেষ পাঠানো{% endif %} {{ r.last_reminder_at|date:"j M Y" }}{% endif %}"><i class="fa-solid fa-bell"{% if r.last_reminder_at %} style="color:var(--warn)"{% endif %}></i></button>
                 {% endif %}
                 {% endif %}
+                </span>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
         </div>
+
+        {% if khata_total > 30 %}
+        <div class="khata-pager khata-pager-bottom">
+          <span class="kp-info">{{ khata_offset|add:1 }}–{{ khata_end }} / {{ khata_total }} {% if ui_lang == 'en' %}customers{% else %}জন{% endif %}</span>
+          <div class="kp-btns">
+            {% if khata_page > 1 %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:-1 }}"><i class="fa-solid fa-chevron-left"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-left"></i></span>{% endif %}
+            <span class="kp-page">{{ khata_page }} / {{ khata_total_pages }}</span>
+            {% if khata_page < khata_total_pages %}<a class="btn sm" href="?partner={{ selected.id }}&pdate={{ pdate }}{% if pfrom %}&pfrom={{ pfrom }}{% endif %}{% if pto %}&pto={{ pto }}{% endif %}&khata_page={{ khata_page|add:1 }}"><i class="fa-solid fa-chevron-right"></i></a>{% else %}<span class="btn sm disabled" aria-disabled="true"><i class="fa-solid fa-chevron-right"></i></span>{% endif %}
+          </div>
+        </div>
+        {% endif %}
 
         <div class="khata-totals">
           <div class="stat-pill prev"><span class="k">{% if ui_lang == 'en' %}Total previous baki{% else %}মোট আগের বাকি{% endif %}</span><span class="v">{{ partner_day_total|money }}</span></div>
@@ -709,6 +746,18 @@
     var a=document.getElementById('txe-amount'); if(a){ a.focus(); a.select(); }
   }
   function closeTxEdit(){ var m=document.getElementById('tx-edit-modal'); if(m) m.style.display='none'; }
+
+  // ---- scroll back to the top of the page + horizontal table scroll -----
+  (function(){
+    var btn = document.getElementById('khataScrollTop');
+    if(btn){ btn.addEventListener('click', function(){ window.scrollTo({top: 0, behavior: 'smooth'}); }); }
+    var wrap = document.querySelector('.khata-scroll');
+    var left = document.getElementById('khataScrollLeft');
+    var right = document.getElementById('khataScrollRight');
+    function slide(dir){ if(wrap){ wrap.scrollBy({left: dir * 300, behavior: 'smooth'}); } }
+    if(left){ left.addEventListener('click', function(){ slide(-1); }); }
+    if(right){ right.addEventListener('click', function(){ slide(1); }); }
+  })();
 </script>
 
 <div id="history-drawer" class="hd{% if history_customer and selected %} open{% endif %}" role="dialog" aria-modal="true" aria-label="{% if ui_lang == 'en' %}Customer history{% else %}কাস্টমার হিস্ট্রি{% endif %}">
