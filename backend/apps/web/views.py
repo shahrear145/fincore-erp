@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction as db_transaction
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Min
 from django.http import (
     Http404, HttpResponse, HttpResponseRedirect, JsonResponse)
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1050,9 +1050,9 @@ def customers_view(request):
                     if new_note:
                         desc = new_note
                     elif old_note:
-                        desc = f"{old_note} (আগে ৳{old_amt})"
+                        desc = old_note
                     else:
-                        desc = f"সংশোধিত (আগে ৳{old_amt})"
+                        desc = ""
                     create_transaction(
                         actor, business=biz,
                         amount=new_amt,
@@ -1265,8 +1265,26 @@ def customers_view(request):
                         .annotate(total=Sum("amount"))):
                 pay_map[str(row["customer_id"])] = (row["total"] or Decimal("0.00"))
 
+            # Stable row order: the earliest credit txn of the day (including a
+            # reversed one) fixes the row's position, so fixing an entry never
+            # shoves its row down to the bottom of the khata.
+            cust_ids_preview = [g["customer"].id for g in grouped.values()]
+            all_times = {
+                str(r["customer_id"]): r["first"]
+                for r in (Transaction.objects
+                          .filter(business=biz, partner=selected,
+                                  transaction_type=TransactionType.CREDIT,
+                                  transaction_date=pdate,
+                                  customer_id__in=cust_ids_preview)
+                          .values("customer_id")
+                          .annotate(first=Min("created_at")))
+            }
+            for cid, g in grouped.items():
+                g["order_key"] = (all_times.get(cid, g["first_at"]),
+                                  (g["customer"].name or "").lower())
+
             # prefetch assignments once (avoid per-row queries)
-            cust_ids = [g["customer"].id for g in grouped.values()]
+            cust_ids = cust_ids_preview
             asn_map = {a.customer_id: a for a in CustomerAssignment.objects.filter(
                 partner=selected, customer_id__in=cust_ids)}
             partner_day_rows = []
@@ -1287,7 +1305,7 @@ def customers_view(request):
                 g["edit_tx_amount"] = g["amount"] if len(g["tx_ids"]) == 1 else ""
                 partner_day_rows.append(g)
             # first added stays first/top, new additions go below (stable position)
-            partner_day_rows.sort(key=lambda x: x["first_at"])
+            partner_day_rows.sort(key=lambda x: x["order_key"])
             # last reminder per customer of this book (one query) — shown as a
             # small badge so the shop knows who was already chased
             if partner_day_rows:
