@@ -69,17 +69,22 @@
       {% endif %}
 
       {% if rows %}
-      <div class="table-wrap">
+      <div class="hscroll-bar">
+        <button type="button" class="btn sm hscroll-btn" data-dir="-1" title="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-left"></i></button>
+        <button type="button" class="btn sm hscroll-btn" data-dir="1" title="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+      <div class="table-wrap hscroll">
       <table class="exp-table">
         <thead><tr><th style="width:16%">{% t "Date" %}</th><th style="width:32%">{% if ui_lang == 'en' %}Name{% else %}নাম{% endif %}</th><th class="num" style="width:18%">{% t "Amount" %}</th><th style="width:14%">{% t "Status" %}</th><th style="width:20%"></th></tr></thead>
         <tbody>
           {% for t in rows %}
           <tr>
             <td class="mono muted" style="white-space:nowrap">{{ t.transaction_date }}</td>
-            <td><strong style="font-size:14.5px;font-weight:800">{{ t.description|default:"—" }}</strong></td>
+            <td title="{{ t.description|default:'—' }}"><strong style="font-size:14.5px;font-weight:800">{{ t.description|default:"—" }}</strong></td>
             <td class="num exp-amount" style="color:var(--text-ok)">{{ t.amount|money }}</td>
             <td>{% if t.status == 'REVERSED' %}<span class="badge b-danger">{% t "Reversed" %}</span>{% else %}<span class="badge b-ok">{% t "Posted" %}</span>{% endif %}</td>
-            <td style="white-space:nowrap;text-align:right">
+            <td class="num h-actions">
+              <span class="k-actions">
               {% if t.status != 'REVERSED' %}
               <button type="button" class="btn sm" onclick="openCashEdit('{{ t.id }}','{{ t.amount }}','{{ t.transaction_date }}','{{ t.description|default:''|escapejs }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
               <form method="post" style="display:inline" onsubmit="return confirm('{% if ui_lang == 'en' %}Reverse this cash entry? It cannot be undone.{% else %}এই নগদ এন্ট্রিটি বাতিল করবেন? এটি ফেরত আনা যাবে না।{% endif %}')">
@@ -90,6 +95,7 @@
                 <button type="submit" class="btn sm" style="background:var(--fill-danger);color:var(--text-danger);border-color:rgba(254,202,202,.65)"><i class="fa-solid fa-trash"></i></button>
               </form>
               {% endif %}
+              </span>
             </td>
           </tr>
           {% endfor %}

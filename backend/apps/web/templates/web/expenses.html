@@ -57,17 +57,22 @@
       {% endif %}
 
       {% if rows %}
-      <div class="table-wrap">
+      <div class="hscroll-bar">
+        <button type="button" class="btn sm hscroll-btn" data-dir="-1" title="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-left"></i></button>
+        <button type="button" class="btn sm hscroll-btn" data-dir="1" title="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+      <div class="table-wrap hscroll">
         <table class="exp-table">
           <thead><tr><th style="width:16%">{% t "Date" %}</th><th style="width:30%">{% if ui_lang == 'en' %}What was bought{% else %}কী কিনলেন{% endif %}</th><th class="hide-sm" style="width:32%">{% if ui_lang == 'en' %}Note{% else %}বিবরণ{% endif %}</th><th class="num" style="width:18%">{% t "Amount" %}</th><th style="width:10%"></th></tr></thead>
           <tbody>
             {% for r in rows %}
             <tr>
               <td class="mono muted" style="white-space:nowrap">{{ r.transaction_date }}</td>
-              <td><strong style="font-size:14.5px;font-weight:800">{{ r.description|default:"—" }}</strong></td>
-              <td class="muted hide-sm exp-note">{{ r.notes|default:"—" }}</td>
+              <td title="{{ r.description|default:'—' }}"><strong style="font-size:14.5px;font-weight:800">{{ r.description|default:"—" }}</strong></td>
+              <td class="muted hide-sm exp-note" title="{{ r.notes|default:'—' }}">{{ r.notes|default:"—" }}</td>
               <td class="num exp-amount" style="color:var(--text-warn)">{{ r.amount|money }}</td>
-              <td style="white-space:nowrap">
+              <td class="num h-actions">
+                <span class="k-actions">
                 {% if can_manage %}
                 <button type="button" class="btn sm" onclick="openExpense('{{ r.id }}','{{ r.amount }}','{{ r.transaction_date }}','{{ r.description|default:''|escapejs }}','{{ r.notes|default:''|escapejs }}','{{ r.expense_kind|default:'GOODS' }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
                 <form method="post" style="display:inline" onsubmit="return confirm('{% if ui_lang == 'en' %}Reverse this expense entry?{% else %}এই খরচের এন্ট্রিটি বাতিল করবেন?{% endif %}')">
@@ -78,6 +83,7 @@
                   <button type="submit" class="btn sm" style="background:var(--fill-danger);color:var(--text-danger);border-color:rgba(254,202,202,.65)"><i class="fa-solid fa-trash"></i></button>
                 </form>
                 {% endif %}
+                </span>
               </td>
             </tr>
             {% endfor %}

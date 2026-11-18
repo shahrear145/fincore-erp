@@ -142,14 +142,18 @@
         {% endif %}
 
         {% if entries %}
-        <div class="table-wrap">
+        <div class="hscroll-bar">
+          <button type="button" class="btn sm hscroll-btn" data-dir="-1" title="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll left{% else %}বামে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="btn sm hscroll-btn" data-dir="1" title="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}" aria-label="{% if ui_lang == 'en' %}Scroll right{% else %}ডানে scroll করুন{% endif %}"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="table-wrap hscroll">
           <table class="ln-table">
             <thead><tr><th style="width:15%">{% t "Date" %}</th><th style="width:24%">{% if is_loan %}{% if ui_lang == 'en' %}Lender{% else %}ঋণদাতা{% endif %}{% else %}{% if ui_lang == 'en' %}Investor{% else %}বিনিয়োগকারী{% endif %}{% endif %}</th><th style="width:18%">{% if ui_lang == 'en' %}Type{% else %}ধরন{% endif %}</th><th class="num" style="width:16%">{% t "Amount" %}</th><th class="num" style="width:16%">{% if ui_lang == 'en' %}Main account{% else %}মূল হিসাব{% endif %}</th><th style="width:11%"></th></tr></thead>
             <tbody>
               {% for e in entries %}
               <tr>
                 <td class="mono muted" style="white-space:nowrap">{{ e.transaction_date }}</td>
-                <td><strong style="font-size:14px;font-weight:800">{{ e.party.name }}</strong>{% if e.description %}<div class="muted" style="font-size:11.5px">{{ e.description }}</div>{% endif %}</td>
+                <td title="{{ e.party.name }}{% if e.description %} — {{ e.description }}{% endif %}"><strong style="font-size:14px;font-weight:800">{{ e.party.name }}</strong>{% if e.description %}<div class="muted" style="font-size:11.5px">{{ e.description }}</div>{% endif %}</td>
                 <td>
                   {% if e.kind == 'RECEIVED' %}<span class="badge b-ok">{% if is_loan %}{% if ui_lang == 'en' %}Loan taken{% else %}ঋণ নেওয়া{% endif %}{% else %}{% if ui_lang == 'en' %}Invested{% else %}বিনিয়োগ{% endif %}{% endif %}</span>
                   {% elif e.kind == 'REPAYMENT' %}<span class="badge b-info">{% if ui_lang == 'en' %}Repayment{% else %}পরিশোধ{% endif %}</span>
@@ -157,7 +161,8 @@
                 </td>
                 <td class="num ln-amount">{{ e.amount|money }}</td>
                 <td class="num ln-amount ln-money {% if e.signed_amount >= 0 %}pos{% else %}neg{% endif %}">{% if e.signed_amount >= 0 %}+{% else %}{% endif %}{{ e.amount|money }}</td>
-                <td style="white-space:nowrap">
+                <td class="num h-actions">
+                  <span class="k-actions">
                   {% if e.can_edit %}
                   <button type="button" class="btn sm" onclick="openLoan('{{ e.id }}','{{ e.amount }}','{{ e.transaction_date }}','{{ e.description|default:''|escapejs }}','{{ e.kind }}','{{ e.contract_total|default_if_none:'' }}')" title="{% if ui_lang == 'en' %}Edit{% else %}এডিট{% endif %}"><i class="fa-solid fa-pen"></i></button>
                   {% endif %}
@@ -170,6 +175,7 @@
                     <button type="submit" class="btn sm" title="{% if ui_lang == 'en' %}Delete for good{% else %}সম্পূর্ণ মুছুন{% endif %}" style="background:var(--fill-danger);color:var(--text-danger);border-color:rgba(254,202,202,.65)"><i class="fa-solid fa-trash"></i></button>
                   </form>
                   {% endif %}
+                  </span>
                 </td>
               </tr>
               {% endfor %}
