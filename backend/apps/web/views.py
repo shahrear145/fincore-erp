@@ -1253,6 +1253,18 @@ def customers_view(request):
                     grouped[cid]["first_at"] = t.created_at
                 if grouped[cid]["last_tx"].created_at < t.created_at:
                     grouped[cid]["last_tx"] = t
+            # Payments from the viewed date onward, per customer — used for the
+            # "আগের বাকি" column (= live due + collections since that date).
+            pay_map = {}
+            for row in (Transaction.objects
+                        .filter(business=biz, partner=selected,
+                                transaction_type=TransactionType.PAYMENT,
+                                transaction_date__gte=pdate)
+                        .exclude(status=TransactionStatus.REVERSED)
+                        .values("customer_id")
+                        .annotate(total=Sum("amount"))):
+                pay_map[str(row["customer_id"])] = (row["total"] or Decimal("0.00"))
+
             # prefetch assignments once (avoid per-row queries)
             cust_ids = [g["customer"].id for g in grouped.values()]
             asn_map = {a.customer_id: a for a in CustomerAssignment.objects.filter(
@@ -1260,7 +1272,13 @@ def customers_view(request):
             partner_day_rows = []
             for cid, g in grouped.items():
                 asn = asn_map.get(g["customer"].id)
-                g["remaining"] = asn.current_due() if asn else Decimal("0.00")
+                live_due = asn.current_due() if asn else Decimal("0.00")
+                g["remaining"] = live_due
+                # আগের বাকি = live due + collections since the viewed date.
+                # An edit shifts both figures by the same amount; a payment
+                # moves only "বর্তমান বাকি".
+                g["previous"] = (live_due
+                                 + pay_map.get(cid, Decimal("0.00"))).quantize(Decimal("0.01"))
                 g["assignment_id"] = str(asn.id) if asn else ""
                 g["t"] = g["last_tx"]
                 g["tx_count"] = len(g["tx_ids"])
@@ -1284,7 +1302,7 @@ def customers_view(request):
                     rem = latest_rem.get(g["customer"].id)
                     g["last_reminder_at"] = rem.created_at if rem else None
                     g["last_reminder_channel"] = rem.channel if rem else ""
-            partner_day_total = sum((r["amount"] for r in partner_day_rows), Decimal("0.00"))
+            partner_day_total = sum((r["previous"] for r in partner_day_rows), Decimal("0.00"))
             partner_day_remaining_total = sum((r["remaining"] for r in partner_day_rows), Decimal("0.00"))
 
     if request.GET.get("partial") == "history":
