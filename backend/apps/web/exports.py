@@ -2366,7 +2366,6 @@ def _super_pdf_final_result(pdf, data: dict[str, Any]) -> None:
     labels = data["labels"]
     t = data["totals"]
     profit_color = _SUPER_RED if t["profit"] < 0 else _SUPER_GREEN
-    profit_word = labels["loss_word"] if t["profit"] < 0 else labels["profit_word"]
 
     # Outer box
     y = pdf.get_y()
@@ -2382,40 +2381,46 @@ def _super_pdf_final_result(pdf, data: dict[str, Any]) -> None:
     pdf.set_text_color(255, 255, 255)
     pdf.cell(pdf.epw, 7, labels["step_result"], align="C")
 
-    # Body
-    pdf.set_y(y + 12)
+    # Body — three equal-height boxes, vertically centered, aligned on one line.
     box_w = (pdf.epw - 8) / 3
     gap = 4
-    x = pdf.l_margin
+    box_h = 26
+    body_y = y + 12
+    if body_y + box_h + 4 > pdf.h - pdf.b_margin:
+        pdf.add_page()
+        body_y = pdf.get_y() + 1
 
     boxes = [
         (labels["net_sell"], t["sell_total_display"], _SUPER_TEAL, False),
         (labels["net_expense"], t["khoroch_display"], _SUPER_RED, False),
-        (f"{labels['net_result']} ({profit_word})", t["profit_display"], profit_color, True),
+        (labels["net_result"], t["profit_display"], profit_color, True),
     ]
 
+    x = pdf.l_margin
     for label, value, color, is_result in boxes:
-        pdf.set_fill_color(255, 255, 255)
-        pdf.set_draw_color(*_SUPER_LINE)
         if is_result:
+            # the highlighted answer box — soft gold fill + gold border
+            pdf.set_fill_color(255, 253, 240)
             pdf.set_draw_color(*_SUPER_GOLD)
-        pdf.rect(x, pdf.get_y(), box_w, 22, "DF")
-        pdf.set_xy(x + 2, pdf.get_y() + 2)
-        pdf.set_font("Noto", "", 6.8)
+        else:
+            pdf.set_fill_color(255, 255, 255)
+            pdf.set_draw_color(*_SUPER_LINE)
+        pdf.rect(x, body_y, box_w, box_h, "DF")
+
+        # vertically centered: label above value, both centered in the box
+        pdf.set_xy(x, body_y + 6)
+        pdf.set_font("Noto", "", 7.2)
         pdf.set_text_color(*_SUPER_MUTED)
-        pdf.multi_cell(box_w - 4, 3.5, label)
-        pdf.set_xy(x + 2, pdf.get_y() + 1)
-        pdf.set_font("Noto", "B", 12 if is_result else 10)
+        pdf.cell(box_w, 4, label, align="C")
+
+        pdf.set_xy(x, body_y + 11)
+        pdf.set_font("Noto", "B", 14 if is_result else 11.5)
         pdf.set_text_color(*color)
-        pdf.cell(box_w - 4, 7, value, align="C")
-        if is_result:
-            pdf.set_xy(x + 2, pdf.get_y() + 2)
-            pdf.set_font("Noto", "", 6.5)
-            pdf.set_text_color(*_SUPER_GOLD)
-            pdf.multi_cell(box_w - 4, 3.2, labels["result_rule"])
+        pdf.cell(box_w, 8, value, align="C")
+
         x += box_w + gap
 
-    pdf.set_y(pdf.get_y() + 24)
+    pdf.set_y(body_y + box_h + 4)
 
 
 def _super_pdf_meta(pdf, data: dict[str, Any]) -> None:
