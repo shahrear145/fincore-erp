@@ -239,14 +239,15 @@ def build_summary_export(
 # ------------------------------------------------------------------ PDF ---
 
 def export_summary_pdf(data: dict[str, Any]) -> bytes:
-    """PDF — the styled HTML transcript via headless Chrome/Edge, with a
-    portable fpdf2 fallback."""
+    """PDF — the styled HTML transcript via headless Chrome/Edge, with the
+    portable shared premium renderer as fallback."""
     browser_pdf = _render_pdf_with_browser(
         data, template_name="web/summary_export_pdf.html",
         prefix="fincore-summary-")
     if browser_pdf:
         return browser_pdf
-    return _summary_pdf_fallback(data)
+    from apps.web.pdf_reports import summary_pdf
+    return summary_pdf(data)
 
 
 def _summary_pdf_fallback(data: dict[str, Any]) -> bytes:

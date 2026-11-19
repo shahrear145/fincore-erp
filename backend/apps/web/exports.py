@@ -641,20 +641,9 @@ def export_khata_pdf(data: dict[str, Any]) -> bytes:
     if browser_pdf:
         return browser_pdf
 
-    # Portable fallback: fpdf2 with bundled Noto Sans Bengali.
-    pdf = _KhataPDF(data)
-    pdf.add_page()
-    _pdf_meta(pdf, data)
-    if not data["rows"]:
-        _pdf_empty(pdf, data)
-    else:
-        widths = [10, 25, 61, 54, 31, 31, 65]
-        _pdf_table_header(pdf, data, widths)
-        for index, row in enumerate(data["rows"], start=1):
-            _pdf_row(pdf, data, row, widths, index)
-        _pdf_totals(pdf, data)
-    output = pdf.output()
-    return bytes(output)
+    # Portable fallback: the shared premium PDF design system.
+    from apps.web.pdf_reports import khata_pdf
+    return khata_pdf(data)
 
 
 # ---------------------------------------------------------------------------
@@ -2493,61 +2482,9 @@ def export_supercalc_pdf(data: dict[str, Any]) -> bytes:
     if browser_pdf:
         return browser_pdf
 
-    # Portable fallback: fpdf2 with bundled Noto Sans Bengali.
-    pdf = _SuperPDF(data)
-    pdf.add_page()
-    _super_pdf_meta(pdf, data)
-
-    if not data["rows"]:
-        pdf.set_fill_color(248, 250, 252)
-        pdf.set_draw_color(*_SUPER_LINE)
-        pdf.rect(pdf.l_margin, pdf.get_y(), pdf.epw, 12, "DF")
-        pdf.set_xy(pdf.l_margin + 2, pdf.get_y() + 3)
-        pdf.set_font("Noto", "", 9)
-        pdf.set_text_color(*_SUPER_MUTED)
-        pdf.cell(pdf.epw - 4, 6, data["labels"]["empty"], align="C")
-    else:
-        # ---- STEP 1: Cash Account ----
-        _super_pdf_step_header(pdf, data,
-                               data["labels"]["num_1"],
-                               data["labels"]["step_cash"],
-                               data["labels"]["step_cash_desc"],
-                               data["labels"]["cash_total"],
-                               money(data["cash_total"]))
-        _super_pdf_cash_table(pdf, data)
-
-        # ---- STEP 2: Partner-wise Due Books ----
-        _super_pdf_step_header(pdf, data,
-                               data["labels"]["num_2"],
-                               data["labels"]["step_partner"],
-                               data["labels"]["step_partner_desc"],
-                               data["labels"]["partner_books_total"],
-                               money(data["partner_books_total"]))
-        _super_pdf_partner_books(pdf, data)
-
-        # ---- STEP 3: Expense Account ----
-        _super_pdf_step_header(pdf, data,
-                               data["labels"]["num_3"],
-                               data["labels"]["step_expense"],
-                               data["labels"]["step_expense_desc"],
-                               data["labels"]["expense_total"],
-                               money(data["expense_total"]))
-        _super_pdf_expense_table(pdf, data)
-
-        # ---- STEP 4: Summary ----
-        _super_pdf_step_header(pdf, data,
-                               data["labels"]["num_4"],
-                               data["labels"]["step_summary"],
-                               data["labels"]["step_summary_desc"],
-                               data["labels"]["summary_total"],
-                               f'{len(data.get("summary_partners", []))} {data["labels"]["entries"]}')
-        _super_pdf_summary_section(pdf, data)
-
-        # ---- FINAL RESULT ----
-        _super_pdf_final_result(pdf, data)
-
-    output = pdf.output()
-    return bytes(output)
+    # Portable fallback: the shared premium PDF design system.
+    from apps.web.pdf_reports import supercalc_pdf
+    return supercalc_pdf(data)
 
 
 def export_supercalc_xlsx(data: dict[str, Any]) -> bytes:

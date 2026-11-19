@@ -3,220 +3,53 @@
 <head>
 <meta charset="utf-8">
 <title>{{ data.title }} — {{ data.partner }}</title>
-<style>
-  @font-face { font-family:'FinCore'; src:url('NotoSansBengaliLatin-Regular.ttf') format('truetype'); font-weight:400; font-style:normal; }
-  @font-face { font-family:'FinCore'; src:url('NotoSansBengaliLatin-Bold.ttf') format('truetype'); font-weight:700; font-style:normal; }
-  @page { size: A4 landscape; margin: 9mm 9mm 13mm 9mm; }
-  * { box-sizing: border-box; }
-  html, body { margin:0; padding:0; }
-  body {
-    font-family:'FinCore','Nirmala UI','Noto Sans Bengali','Vrinda',sans-serif;
-    color:#0b1220; font-size:10px; line-height:1.42;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    background:#fff;
-  }
-
-  /* ---------- Premium brand header (gold, like the Super Calculator) ---------- */
-  .hero {
-    position:relative; overflow:hidden; border-radius:14px;
-    background:linear-gradient(135deg,#1c1205 0%,#2f2410 46%,#0b4a4a 100%);
-    color:#fff; padding:0;
-    page-break-inside:avoid; box-shadow:0 8px 26px rgba(8,17,32,.16);
-  }
-  .hero::after {
-    content:""; position:absolute; right:-70px; top:-90px; width:250px; height:250px;
-    border-radius:50%; background:radial-gradient(circle,rgba(250,204,21,.26),transparent 66%);
-  }
-  .hero::before {
-    content:""; position:absolute; left:-40px; bottom:-120px; width:230px; height:230px;
-    border-radius:50%; background:radial-gradient(circle,rgba(56,189,248,.18),transparent 68%);
-  }
-  .hero-inner {
-    position:relative; z-index:2; display:flex; align-items:center; gap:16px;
-    padding:15px 20px 16px;
-  }
-  .mark {
-    width:46px; height:46px; border-radius:14px; flex:0 0 auto; display:flex;
-    align-items:center; justify-content:center; font-size:21px; font-weight:700; color:#4a3408;
-    background:linear-gradient(135deg,#fde68a,#d99a1f 55%,#c9961b);
-    box-shadow:0 8px 20px rgba(201,150,27,.34), 0 1px 0 rgba(255,255,255,.28) inset;
-  }
-  .hero-text { flex:1; min-width:0; }
-  .hero h1 {
-    margin:0; font-size:24px; line-height:1.14; font-weight:700; letter-spacing:-.3px;
-    background:linear-gradient(180deg,#ffffff,#f4ecdd);
-    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  }
-  .hero .sub {
-    margin-top:4px; color:#d8bd8a; font-size:11px; font-weight:600;
-  }
-  .hero .sub .dot { color:#d99a1f; margin:0 6px; }
-  .hero-side { text-align:right; color:#c8b79a; font-size:9px; line-height:1.5; flex:0 0 auto;
-    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14);
-    border-radius:10px; padding:7px 13px; }
-  .hero-side .k { color:#a38c64; font-size:7.4px; text-transform:uppercase; letter-spacing:.12em; font-weight:700; }
-  .hero-side .v { color:#f4ecdd; font-weight:700; font-size:12px; display:block; margin-top:1px; }
-  .accent {
-    height:3px; margin:0 0 11px; border-radius:0 0 3px 3px;
-    background:linear-gradient(90deg,#d99a1f,#c9961b 40%,#38bdf8 100%);
-  }
-
-  /* ---------- Meta cards ---------- */
-  .meta {
-    display:grid; grid-template-columns:1.35fr 1.05fr .8fr 1.55fr; gap:8px;
-    margin-bottom:10px; page-break-inside:avoid;
-  }
-  .meta-card {
-    border:1px solid #e6edf5; border-radius:10px; padding:7px 11px; min-width:0;
-    background:linear-gradient(180deg,#fbfdff,#f4f8fc);
-    border-left:3px solid #c9961b;
-  }
-  .meta-card:nth-child(2) { border-left-color:#38bdf8; }
-  .meta-card:nth-child(3) { border-left-color:#6366f1; }
-  .meta-card:nth-child(4) { border-left-color:#94a3b8; }
-  .meta-card .label {
-    color:#64748b; font-size:7.6px; text-transform:uppercase; letter-spacing:.11em;
-    font-weight:700; margin-bottom:3px;
-  }
-  .meta-card .value { color:#0b1220; font-size:10.2px; font-weight:700; word-break:break-word; }
-
-  /* ---------- Stat strip ---------- */
-  .stats {
-    display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:11px;
-    page-break-inside:avoid;
-  }
-  .stat {
-    border:1px solid #e6edf5; border-radius:11px; padding:7px 12px;
-    background:linear-gradient(180deg,#ffffff,#f7fafd);
-  }
-  .stat .k {
-    color:#64748b; font-size:7.8px; text-transform:uppercase; letter-spacing:.1em;
-    font-weight:700; display:block; margin-bottom:1px;
-  }
-  .stat .v {
-    font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.2px;
-    color:#0b1220; display:block; line-height:1.2;
-  }
-  .stat.plain { border-left:4px solid #38bdf8; }
-  .stat.accent { border-left:4px solid #d99a1f; background:linear-gradient(180deg,#fffdf5,#ffffff); }
-  .stat.accent .v { color:#92580b; }
-  .stat.warn { border-left:4px solid #ef4444; }
-  .stat.warn .v.red { color:#b91c1c; }
-  .stat.warn .v.green { color:#047857; }
-
-  /* ---------- Table ---------- */
-  .table-shell {
-    border:1px solid #e6edf5; border-radius:12px; overflow:hidden;
-    page-break-inside:auto;
-  }
-  table { width:100%; border-collapse:collapse; table-layout:fixed; }
-  thead { display:table-header-group; }
-  th {
-    background:linear-gradient(180deg,#0b2545,#071a33); color:#fff; font-size:8.6px; font-weight:700;
-    padding:8px 7px; text-align:center; border-right:1px solid rgba(255,255,255,.10);
-    letter-spacing:.02em;
-  }
-  th:last-child { border-right:0; }
-  th.num, td.num { text-align:right; }
-  td {
-    border-bottom:1px solid #eef2f7; border-right:1px solid #f1f5f9; padding:6.5px 7px;
-    vertical-align:middle; font-size:9px; line-height:1.42; overflow-wrap:anywhere;
-  }
-  td:last-child { border-right:0; }
-  tbody tr:nth-child(even) td { background:#f8fafc; }
-  tbody tr:last-child td { border-bottom:0; }
-  tbody tr { page-break-inside:avoid; }
-  .sl {
-    display:inline-flex; align-items:center; justify-content:center;
-    width:17px; height:17px; border-radius:6px; background:#eef2f7; color:#475569;
-    font-size:8px; font-weight:700;
-  }
-  .name { font-weight:700; color:#0b1220; font-size:9.4px; }
-  .muted { color:#64748b; }
-  .idchip {
-    display:inline-block; padding:1.5px 5px; border-radius:5px; background:#eef2f7;
-    color:#475569; font-size:7.4px; font-weight:700; letter-spacing:.03em;
-  }
-  .red { color:#b91c1c; font-weight:700; }
-  .green { color:#047857; font-weight:700; }
-  .note { white-space:pre-line; word-break:break-word; }
-  .paid { display:inline-block; padding:1.5px 6px; border-radius:999px; background:#dcfce7; color:#15803d; font-size:7.4px; font-weight:700; }
-
-  /* ---------- Gold totals row inside the table ---------- */
-  tfoot { display:table-footer-group; }
-  tfoot th {
-    background:linear-gradient(180deg,#fdf3d6,#fbf0c4); color:#0b1220;
-    font-size:9.6px; font-weight:700; padding:8px 7px; text-align:right;
-    border-top:2px solid #d99a1f; border-right:1px solid rgba(201,150,27,.22);
-    font-variant-numeric:tabular-nums;
-  }
-  tfoot th:last-child { border-right:0; }
-  tfoot th .label { color:#92580b; text-transform:uppercase; letter-spacing:.08em; font-size:8.6px; }
-  tfoot th .red { color:#b91c1c; }
-  tfoot th .green { color:#047857; }
-
-  .summary { margin-top:9px; color:#64748b; font-size:8.2px; page-break-inside:avoid; }
-
-  /* ---------- Signature strip ---------- */
-  .signatures {
-    display:flex; justify-content:space-between; gap:60px; margin-top:26px;
-    page-break-inside:avoid;
-  }
-  .sig { flex:1; text-align:center; }
-  .sig .line { display:block; border-top:1px solid #cbd5e1; margin-bottom:5px; }
-  .sig .t { color:#64748b; font-size:8.2px; font-weight:700; letter-spacing:.03em; }
-
-  /* ---------- Empty ---------- */
-  .empty {
-    border:1.5px dashed #cbd5e1; border-radius:12px; padding:34px; text-align:center;
-    color:#64748b; font-size:11px; background:#f8fafc;
-  }
-
-  /* ---------- Footer ---------- */
-  .footer {
-    margin-top:13px; border-top:1px solid #e6edf5; padding-top:7px;
-    color:#94a3b8; font-size:7.4px; display:flex; justify-content:space-between;
-    align-items:center; gap:12px;
-  }
-  .footer .brand { display:flex; align-items:center; gap:6px; font-weight:700; color:#64748b; }
-  .footer .brand .dot {
-    width:13px; height:13px; border-radius:4px; display:inline-block;
-    background:linear-gradient(135deg,#fde68a,#c9961b);
-  }
-</style>
+<style>@page { size:A4 landscape; margin:9mm 9mm 12mm; }</style>
+{% include "web/_pdf_premium_styles.html" %}
 </head>
 <body>
   <div class="hero">
-    <div class="hero-inner">
-      <div class="mark">৳</div>
-      <div class="hero-text">
+    <div class="hero-top">
+      <span class="brand-mark">F</span>
+      <span>
+        <span class="brand-name">FINCORE ERP</span>
+        <span class="brand-tag">FINANCIAL INTELLIGENCE</span>
+      </span>
+    </div>
+    <div class="hero-main">
+      <div class="hero-left">
+        <div class="eyebrow">FINCORE ERP · FINANCIAL INTELLIGENCE</div>
         <h1>{{ data.title }}</h1>
-        <div class="sub">{{ data.partner }}<span class="dot">•</span>{{ data.date_label }}<span class="dot">•</span>{{ data.labels.partner_book }}</div>
+        <div class="subtitle">{{ data.labels.partner_book }} · {{ data.partner }}</div>
+        <div class="biz">{{ data.business }}</div>
       </div>
-      <div class="hero-side">
-        <div class="k">{{ data.labels.business }}</div>
-        <div class="v">{{ data.business }}</div>
+      <div class="meta-card">
+        <div class="meta-row"><span class="meta-label">{{ data.labels.partner }}</span><span class="meta-value">{{ data.partner }}</span></div>
+        <div class="meta-row"><span class="meta-label">{{ data.labels.date }}</span><span class="meta-value">{{ data.date_label }}</span></div>
+        <div class="meta-row"><span class="meta-label">{{ data.labels.generated }}</span><span class="meta-value">{{ data.generated_label }}</span></div>
+        <span class="verified">SYSTEM VERIFIED</span>
       </div>
     </div>
   </div>
-  <div class="accent"></div>
 
-  <div class="meta">
-    <div class="meta-card"><div class="label">{{ data.labels.business }}</div><div class="value">{{ data.business }}</div></div>
-    <div class="meta-card"><div class="label">{{ data.labels.partner }}</div><div class="value">{{ data.partner }}</div></div>
-    <div class="meta-card"><div class="label">{{ data.labels.date }}</div><div class="value">{{ data.date_label }}</div></div>
-    <div class="meta-card"><div class="label">{{ data.labels.generated }}</div><div class="value">{{ data.generated_label }}</div></div>
-  </div>
-
-  <div class="stats">
-    <div class="stat plain"><div><div class="k">{{ data.labels.names }}</div><div class="v">{{ data.count }}</div></div></div>
-    <div class="stat accent"><div><div class="k">{{ data.labels.total_previous }}</div><div class="v">{{ data.total_previous_display }}</div></div></div>
-    <div class="stat warn"><div><div class="k">{{ data.labels.total_current }}</div><div class="v {% if data.total_current > 0 %}red{% else %}green{% endif %}">{{ data.total_current_display }}</div></div></div>
+  <div class="kpis three">
+    <div class="kpi gold">
+      <div class="kpi-label">{{ data.labels.names }}</div>
+      <div class="kpi-value gold">{{ data.count }}</div>
+      <div class="kpi-foot">{% if data.lang == "en" %}customer rows{% else %}গ্রাহক তালিকা{% endif %}</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">{{ data.labels.total_previous }}</div>
+      <div class="kpi-value amber">{{ data.total_previous_display }}</div>
+      <div class="kpi-foot">{{ data.labels.previous }}</div>
+    </div>
+    <div class="kpi {% if data.total_current > 0 %}red{% else %}green{% endif %}">
+      <div class="kpi-label">{{ data.labels.total_current }}</div>
+      <div class="kpi-value {% if data.total_current > 0 %}red{% else %}green{% endif %}">{{ data.total_current_display }}</div>
+    </div>
   </div>
 
   {% if data.rows %}
-  <div class="table-shell">
-  <table>
+  <table class="ledger">
     <colgroup>
       <col style="width:5%">
       <col style="width:11%">
@@ -228,50 +61,64 @@
     </colgroup>
     <thead>
       <tr>
-        <th>{{ data.labels.sl }}</th>
+        <th class="num">{{ data.labels.sl }}</th>
         <th>{{ data.labels.id }}</th>
-        <th style="text-align:left">{{ data.labels.name }}</th>
-        <th style="text-align:left">{{ data.labels.contact }}</th>
+        <th>{{ data.labels.name }}</th>
+        <th>{{ data.labels.contact }}</th>
         <th class="num">{{ data.labels.previous }}</th>
         <th class="num">{{ data.labels.current }}</th>
-        <th style="text-align:left">{{ data.labels.note }}</th>
+        <th>{{ data.labels.note }}</th>
       </tr>
     </thead>
     <tbody>
       {% for row in data.rows %}
       <tr>
-        <td style="text-align:center"><span class="sl">{{ row.sl }}</span></td>
-        <td style="text-align:center"><span class="idchip">{{ row.id }}</span></td>
-        <td><span class="name">{{ row.name }}</span></td>
-        <td class="muted note">{{ row.contact }}</td>
+        <td class="num muted">{{ row.sl }}</td>
+        <td class="muted">{{ row.id }}</td>
+        <td class="name">{{ row.name }}</td>
+        <td class="muted">{{ row.contact }}</td>
         <td class="num">{{ row.previous_display }}</td>
-        <td class="num">{% if row.current > 0 %}<span class="red">{{ row.current_display }}</span>{% else %}<span class="green">{{ row.current_display }}</span>{% endif %}</td>
-        <td class="muted note">{{ row.note }}</td>
+        <td class="num {% if row.current > 0 %}red{% else %}green{% endif %}">{{ row.current_display }}</td>
+        <td class="muted">{{ row.note }}</td>
       </tr>
       {% endfor %}
-    </tbody>
-    <tfoot>
-      <tr>
-        <th colspan="4" style="text-align:right"><span class="label">{{ data.labels.total }}</span></th>
-        <th>{{ data.total_previous_display }}</th>
-        <th>{% if data.total_current > 0 %}<span class="red">{{ data.total_current_display }}</span>{% else %}<span class="green">{{ data.total_current_display }}</span>{% endif %}</th>
-        <th></th>
+      <tr class="total-row">
+        <td colspan="4" class="label">{{ data.labels.total }}</td>
+        <td class="num">{{ data.total_previous_display }}</td>
+        <td class="num {% if data.total_current > 0 %}red{% else %}green{% endif %}">{{ data.total_current_display }}</td>
+        <td></td>
       </tr>
-    </tfoot>
+    </tbody>
   </table>
-  </div>
-  <div class="summary">{{ data.labels.names }}: {{ data.count }} · {{ data.labels.amount_note }}</div>
+  <div class="note-line">{{ data.labels.names }}: {{ data.count }} · {{ data.labels.amount_note }}</div>
 
   <div class="signatures">
-    <div class="sig"><span class="line"></span><span class="t">{{ data.labels.business }}</span></div>
-    <div class="sig"><span class="line"></span><span class="t">{{ data.labels.partner }}</span></div>
+    <div class="sig-head">
+      <h3>{% if data.lang == "en" %}Authorization &amp; signature{% else %}অনুমোদন ও স্বাক্ষর{% endif %}</h3>
+      <span>{% if data.lang == "en" %}অনুমোদন ও স্বাক্ষর{% else %}AUTHORIZATION &amp; SIGNATURE{% endif %}</span>
+    </div>
+    <div class="sig-grid">
+      <div class="sig">
+        <div class="sig-line"></div>
+        <div class="sig-name">{{ data.business }}</div>
+        <div class="sig-role">{% if data.lang == "en" %}Business / Management{% else %}ব্যবসা / ব্যবস্থাপনা{% endif %}</div>
+        <div class="sig-date">{% if data.lang == "en" %}Date: ____________{% else %}তারিখ: ____________{% endif %}</div>
+      </div>
+      <div class="sig">
+        <div class="sig-line"></div>
+        <div class="sig-name">{{ data.partner }}</div>
+        <div class="sig-role">{% if data.lang == "en" %}Partner{% else %}পার্টনার{% endif %}</div>
+        <div class="sig-date">{% if data.lang == "en" %}Date: ____________{% else %}তারিখ: ____________{% endif %}</div>
+      </div>
+    </div>
   </div>
   {% else %}
   <div class="empty">{{ data.labels.empty }}</div>
   {% endif %}
 
+  <div class="end-mark">{% if data.lang == "en" %}END OF REPORT · রিপোর্ট সমাপ্ত{% else %}রিপোর্ট সমাপ্ত · END OF REPORT{% endif %}</div>
   <div class="footer">
-    <span class="brand"><span class="dot"></span> FinCore ERP</span>
+    <span class="brand">FINCORE ERP</span>
     <span>{{ data.labels.footer }} · {{ data.generated_label }}</span>
   </div>
 </body>
