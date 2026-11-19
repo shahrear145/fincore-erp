@@ -19,7 +19,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Min, Q, Sum
 from django.utils import timezone
 
 from apps.accounting.models import JournalEntry, JournalLine
@@ -27,7 +27,7 @@ from apps.accounting.postings import ADVANCES, CASH, LOANS_PAYABLE, WALLET
 from apps.cashbook import services as cashbook
 from apps.customers.models import Customer, CustomerAssignment, DueEntry
 from apps.loans.models import LoanEntry, LoanInstallment, LoanParty
-from apps.transactions.models import Transaction, TransactionStatus
+from apps.transactions.models import Transaction, TransactionStatus, TransactionType
 
 CENT = Decimal("0.01")
 ZERO = Decimal("0.00")
@@ -188,6 +188,15 @@ def _due_section(business, as_of=None) -> dict:
                    .prefetch_related("due_entries")
                    .order_by("partner__name", "customer__name"))
     groups: dict[str, dict] = {}
+    # Same rule as the বাকি খাতা: first credit stays on top; no amount sort.
+    first_credit = {
+        str(r["customer_id"]): r["first"]
+        for r in (Transaction.objects
+                  .filter(business=business,
+                          transaction_type=TransactionType.CREDIT)
+                  .values("customer_id")
+                  .annotate(first=Min("created_at")))
+    }
     total = ZERO
     customer_count = 0
     for assignment in assignments:
@@ -227,15 +236,18 @@ def _due_section(business, as_of=None) -> dict:
             "truncated": truncated,
             "url": (f"/customers/?partner={partner.id}"
                     f"&history={assignment.customer_id}"),
+            "_first_at": first_credit.get(str(assignment.customer_id),
+                                          assignment.created_at),
         })
         group["total"] = _q(group["total"] + due)
         total = _q(total + due)
         customer_count += 1
 
-    ordered = sorted(groups.values(),
-                     key=lambda g: (-g["total"], g["partner_name"]))
+    ordered = list(groups.values())
     for group in ordered:
-        group["customers"].sort(key=lambda c: (-c["due"], c["name"]))
+        # As in the বাকি খাতা: first added stays on top, never sorted by due.
+        group["customers"].sort(
+            key=lambda c: (c.pop("_first_at"), (c["name"] or "").lower()))
     return {
         "groups": ordered,
         "total": total,

@@ -115,6 +115,23 @@ def _clean_text(value: Any) -> str:
     return text or "—"
 
 
+def _first_credit_created(business) -> dict[str, Any]:
+    """Map customer_id -> the earliest CREDIT transaction's created_at.
+
+    Same "first added stays on top" rule the বাকি খাতা uses. Used to keep
+    every printed due list in the database's own order — no amount sorting.
+    """
+    from django.db.models import Min
+    return {
+        str(r["customer_id"]): r["first"]
+        for r in (Transaction.objects
+                  .filter(business=business,
+                          transaction_type=TransactionType.CREDIT)
+                  .values("customer_id")
+                  .annotate(first=Min("created_at")))
+    }
+
+
 def build_khata_export(
     business,
     partner,
@@ -169,7 +186,25 @@ def build_khata_export(
         .prefetch_related("due_entries")
     }
 
-    ordered = sorted(grouped.values(), key=lambda g: g["first_at"])
+    # Print exactly in the বাকি খাতা's order: the earliest credit txn of the
+    # day (including a reversed one) fixes the row position, so a transaction
+    # that got edited/reversed never shoves the row down the page. No sorting
+    # of any kind beyond that stable-position rule.
+    from django.db.models import Min
+    all_times = {
+        str(r["customer_id"]): r["first"]
+        for r in (Transaction.objects
+                  .filter(business=business, partner=partner,
+                          transaction_type=TransactionType.CREDIT,
+                          transaction_date=pdate,
+                          customer_id__in=cust_ids)
+                  .values("customer_id")
+                  .annotate(first=Min("created_at")))
+    }
+    for cid, g in grouped.items():
+        g["order_key"] = (all_times.get(cid, g["first_at"]),
+                          (g["customer"].name or "").lower())
+    ordered = sorted(grouped.values(), key=lambda g: g["order_key"])
     rows: list[dict[str, Any]] = []
     total_previous = Decimal("0.00")
     total_current = Decimal("0.00")
@@ -1539,12 +1574,18 @@ def _supercalc_partner_books(
 
     books: list[dict[str, Any]] = []
     partners = Partner.objects.filter(business=business).order_by("name")
+    partners_first_credit = _first_credit_created(business)
     for partner in partners:
         assignments = list(
             CustomerAssignment.objects
             .filter(partner=partner, customer__business=business)
             .select_related("customer")
             .prefetch_related("due_entries"))
+        # Keep the database's own order (first baki stays on top) — never a
+        # sort by amount; the khata does the same for its rows.
+        assignments.sort(key=lambda a: (
+            partners_first_credit.get(str(a.customer_id), a.created_at),
+            (a.customer.name or "").lower()))
         book_rows: list[dict[str, Any]] = []
         total_due = Decimal("0.00")
         period_due_total = Decimal("0.00")
@@ -1573,7 +1614,6 @@ def _supercalc_partner_books(
             })
         if not book_rows:
             continue
-        book_rows.sort(key=lambda item: (-item["due"], item["name"].lower()))
         books.append({
             "name": partner.name,
             "phone": (partner.phone or "").strip(),
@@ -1588,7 +1628,6 @@ def _supercalc_partner_books(
             "period_collection_display": money(period_collection_total),
             "rows": book_rows,
         })
-    books.sort(key=lambda book: (-book["total_due"], book["name"].lower()))
     return books
 
 
